@@ -94,12 +94,30 @@ namespace neuron {
     };
 
 
+    struct leonhard_NodeData  {
+        int const * nodeindices;
+        double const * node_voltages;
+        double * node_rhs;
+        int nodecount;
+    };
+
+
     static leonhard_Instance make_instance_leonhard(_nrn_mechanism_cache_range& _ml) {
         return leonhard_Instance {
             _ml.template fpfield_ptr<0>(),
             _ml.template fpfield_ptr<1>(),
             _ml.template fpfield_ptr<2>(),
             _ml.template fpfield_ptr<3>()
+        };
+    }
+
+
+    static leonhard_NodeData make_node_data_leonhard(NrnThread& _nt, Memb_list& _ml_arg) {
+        return leonhard_NodeData {
+            _ml_arg.nodeindices,
+            _nt.node_voltage_storage(),
+            _nt.node_rhs_storage(),
+            _ml_arg.nodecount
         };
     }
 
@@ -156,6 +174,7 @@ namespace neuron {
     void nrn_init_leonhard(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
         auto inst = make_instance_leonhard(_lmr);
+        auto node_data = make_node_data_leonhard(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             inst.x[id] = 42.0;
@@ -166,6 +185,7 @@ namespace neuron {
     void nrn_state_leonhard(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
         auto inst = make_instance_leonhard(_lmr);
+        auto node_data = make_node_data_leonhard(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             inst.x[id] = inst.x[id] + (1.0 - exp(_nt->_dt * ( -1.0))) * ( -(0.0) / ( -1.0) - inst.x[id]);
