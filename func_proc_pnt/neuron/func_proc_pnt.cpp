@@ -143,9 +143,9 @@ namespace neuron {
         _setdata(_prop);
     }
     /* Mechanism procedures and functions */
-    inline double x_plus_a_test_func_proc_pnt(_nrn_mechanism_cache_range* _ml, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a);
-    inline int set_x_42_test_func_proc_pnt(_nrn_mechanism_cache_range* _ml, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
-    inline int set_x_a_test_func_proc_pnt(_nrn_mechanism_cache_range* _ml, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a);
+    inline double x_plus_a_test_func_proc_pnt(_nrn_mechanism_cache_range* _ml, test_func_proc_pnt_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a);
+    inline int set_x_42_test_func_proc_pnt(_nrn_mechanism_cache_range* _ml, test_func_proc_pnt_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
+    inline int set_x_a_test_func_proc_pnt(_nrn_mechanism_cache_range* _ml, test_func_proc_pnt_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -195,8 +195,9 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_p);
         _thread = _extcall_thread.data();
         _nt = static_cast<NrnThread*>(_pnt->_vnt);
+        auto inst = make_instance_test_func_proc_pnt(_ml_real);
         _r = 1.;
-        set_x_42_test_func_proc_pnt(_ml, id, _ppvar, _thread, _nt);
+        set_x_42_test_func_proc_pnt(_ml, inst, id, _ppvar, _thread, _nt);
         return(_r);
     }
     static double _hoc_set_x_a(void* _vptr) {
@@ -215,8 +216,9 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_p);
         _thread = _extcall_thread.data();
         _nt = static_cast<NrnThread*>(_pnt->_vnt);
+        auto inst = make_instance_test_func_proc_pnt(_ml_real);
         _r = 1.;
-        set_x_a_test_func_proc_pnt(_ml, id, _ppvar, _thread, _nt, *getarg(1));
+        set_x_a_test_func_proc_pnt(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
         return(_r);
     }
     static double _hoc_x_plus_a(void* _vptr) {
@@ -235,29 +237,27 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_p);
         _thread = _extcall_thread.data();
         _nt = static_cast<NrnThread*>(_pnt->_vnt);
-        _r = x_plus_a_test_func_proc_pnt(_ml, id, _ppvar, _thread, _nt, *getarg(1));
+        auto inst = make_instance_test_func_proc_pnt(_ml_real);
+        _r = x_plus_a_test_func_proc_pnt(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
         return(_r);
     }
 
 
-    inline int set_x_42_test_func_proc_pnt(_nrn_mechanism_cache_range* _ml, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt) {
-        auto inst = make_instance_test_func_proc_pnt(*_ml);
+    inline int set_x_42_test_func_proc_pnt(_nrn_mechanism_cache_range* _ml, test_func_proc_pnt_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt) {
         int ret_set_x_42 = 0;
         inst.x[id] = 42.0;
         return ret_set_x_42;
     }
 
 
-    inline int set_x_a_test_func_proc_pnt(_nrn_mechanism_cache_range* _ml, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a) {
-        auto inst = make_instance_test_func_proc_pnt(*_ml);
+    inline int set_x_a_test_func_proc_pnt(_nrn_mechanism_cache_range* _ml, test_func_proc_pnt_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a) {
         int ret_set_x_a = 0;
         inst.x[id] = a;
         return ret_set_x_a;
     }
 
 
-    inline double x_plus_a_test_func_proc_pnt(_nrn_mechanism_cache_range* _ml, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a) {
-        auto inst = make_instance_test_func_proc_pnt(*_ml);
+    inline double x_plus_a_test_func_proc_pnt(_nrn_mechanism_cache_range* _ml, test_func_proc_pnt_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a) {
         double ret_x_plus_a = 0.0;
         ret_x_plus_a = inst.x[id] + a;
         return ret_x_plus_a;
