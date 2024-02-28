@@ -205,7 +205,7 @@ namespace coreneuron {
     }
 
 
-    inline double get_a_42_test_func_proc(int id, int pnodecount, test_func_proc_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double a);
+    inline double x_plus_a_test_func_proc(int id, int pnodecount, test_func_proc_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double a);
     inline int set_x_42_test_func_proc(int id, int pnodecount, test_func_proc_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
     inline int set_x_a_test_func_proc(int id, int pnodecount, test_func_proc_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double a);
     inline int set_a_x_test_func_proc(int id, int pnodecount, test_func_proc_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
@@ -233,10 +233,10 @@ namespace coreneuron {
     }
 
 
-    inline double get_a_42_test_func_proc(int id, int pnodecount, test_func_proc_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double a) {
-        double ret_get_a_42 = 0.0;
-        ret_get_a_42 = a + 42.0;
-        return ret_get_a_42;
+    inline double x_plus_a_test_func_proc(int id, int pnodecount, test_func_proc_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double a) {
+        double ret_x_plus_a = 0.0;
+        ret_x_plus_a = inst->x[id] + a;
+        return ret_x_plus_a;
     }
 
 

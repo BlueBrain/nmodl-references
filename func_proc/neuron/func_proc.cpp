@@ -121,7 +121,7 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
-    inline double get_a_42_test_func_proc(_nrn_mechanism_cache_range* _ml, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a);
+    inline double x_plus_a_test_func_proc(_nrn_mechanism_cache_range* _ml, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a);
     inline int set_x_42_test_func_proc(_nrn_mechanism_cache_range* _ml, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
     inline int set_x_a_test_func_proc(_nrn_mechanism_cache_range* _ml, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a);
     inline int set_a_x_test_func_proc(_nrn_mechanism_cache_range* _ml, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
@@ -143,11 +143,11 @@ namespace neuron {
     static void _hoc_set_x_42(void);
     static void _hoc_set_x_a(void);
     static void _hoc_set_a_x(void);
-    static void _hoc_get_a_42(void);
+    static void _hoc_x_plus_a(void);
     static double _npy_set_x_42(Prop*);
     static double _npy_set_x_a(Prop*);
     static double _npy_set_a_x(Prop*);
-    static double _npy_get_a_42(Prop*);
+    static double _npy_x_plus_a(Prop*);
 
 
     /* connect user functions to hoc names */
@@ -156,14 +156,14 @@ namespace neuron {
         {"set_x_42_test_func_proc", _hoc_set_x_42},
         {"set_x_a_test_func_proc", _hoc_set_x_a},
         {"set_a_x_test_func_proc", _hoc_set_a_x},
-        {"get_a_42_test_func_proc", _hoc_get_a_42},
+        {"x_plus_a_test_func_proc", _hoc_x_plus_a},
         {0, 0}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
         {"set_x_42", _npy_set_x_42},
         {"set_x_a", _npy_set_x_a},
         {"set_a_x", _npy_set_a_x},
-        {"get_a_42", _npy_get_a_42},
+        {"x_plus_a", _npy_x_plus_a},
     };
     static void _hoc_set_x_42(void) {
         double _r{};
@@ -267,22 +267,25 @@ namespace neuron {
         set_a_x_test_func_proc(_ml, id, _ppvar, _thread, _nt);
         return(_r);
     }
-    static void _hoc_get_a_42(void) {
+    static void _hoc_x_plus_a(void) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* _nt;
-        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
+        if (!_prop_id) {
+            hoc_execerror("No data for x_plus_a_test_func_proc. Requires prior call to setdata_test_func_proc and that the specified mechanism instance still be in existence.", NULL);
+        }
+        Prop* _local_prop = _extcall_prop;
         _nrn_mechanism_cache_instance _ml_real{_local_prop};
         auto* const _ml = &_ml_real;
         size_t const id{};
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         _nt = nrn_threads;
-        _r = get_a_42_test_func_proc(_ml, id, _ppvar, _thread, _nt, *getarg(1));
+        _r = x_plus_a_test_func_proc(_ml, id, _ppvar, _thread, _nt, *getarg(1));
         hoc_retpushx(_r);
     }
-    static double _npy_get_a_42(Prop* _prop) {
+    static double _npy_x_plus_a(Prop* _prop) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -293,7 +296,7 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         _nt = nrn_threads;
-        _r = get_a_42_test_func_proc(_ml, id, _ppvar, _thread, _nt, *getarg(1));
+        _r = x_plus_a_test_func_proc(_ml, id, _ppvar, _thread, _nt, *getarg(1));
         return(_r);
     }
 
@@ -323,11 +326,11 @@ namespace neuron {
     }
 
 
-    inline double get_a_42_test_func_proc(_nrn_mechanism_cache_range* _ml, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a) {
+    inline double x_plus_a_test_func_proc(_nrn_mechanism_cache_range* _ml, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a) {
         auto inst = make_instance_test_func_proc(*_ml);
-        double ret_get_a_42 = 0.0;
-        ret_get_a_42 = a + 42.0;
-        return ret_get_a_42;
+        double ret_x_plus_a = 0.0;
+        ret_x_plus_a = inst.x[id] + a;
+        return ret_x_plus_a;
     }
 
 
