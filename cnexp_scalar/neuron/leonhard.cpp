@@ -202,8 +202,8 @@ namespace neuron {
         auto node_data = make_node_data_leonhard(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
-            int node_id = node_data.nodeindices[id];
             // set conductances properly
+            int node_id = node_data.nodeindices[id];
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
