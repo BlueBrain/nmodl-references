@@ -96,6 +96,7 @@ namespace neuron {
     struct NeuronVariables_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
+        double * node_diagonal;
         double * node_rhs;
         int nodecount;
     };
@@ -115,6 +116,7 @@ namespace neuron {
         return NeuronVariables_NodeData {
             _ml_arg.nodeindices,
             _nt.node_voltage_storage(),
+            _nt.node_d_storage(),
             _nt.node_rhs_storage(),
             _ml_arg.nodecount
         };
@@ -192,7 +194,17 @@ namespace neuron {
 
 
     /** nrn_jacob function */
-    static void nrn_jacob_NeuronVariables(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {}
+    static void nrn_jacob_NeuronVariables(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
+        auto inst = make_instance_NeuronVariables(_lmr);
+        auto node_data = make_node_data_NeuronVariables(*_nt, *_ml_arg);
+        auto nodecount = _ml_arg->nodecount;
+        for (int id = 0; id < nodecount; id++) {
+            // set conductances properly
+            int node_id = node_data.nodeindices[id];
+            node_data.node_diagonal[node_id] += inst.g_unused[id];
+        }
+    }
 
 
     static void _initlists() {
