@@ -100,7 +100,7 @@ namespace coreneuron {
 
 
     static inline int float_variables_size() {
-        return 7;
+        return 11;
     }
 
 
