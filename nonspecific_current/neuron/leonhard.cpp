@@ -174,7 +174,10 @@ namespace neuron {
         auto inst = make_instance_leonhard(_lmr);
         auto node_data = make_node_data_leonhard(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
+        auto* const _ml = &_lmr;
+        auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
+            auto& _ppvar = _ml_arg->pdata[id];
         }
     }
 
@@ -193,6 +196,8 @@ namespace neuron {
         auto inst = make_instance_leonhard(_lmr);
         auto node_data = make_node_data_leonhard(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
+        auto* const _ml = &_lmr;
+        auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             double v = node_data.node_voltages[node_id];
@@ -212,6 +217,8 @@ namespace neuron {
         auto inst = make_instance_leonhard(_lmr);
         auto node_data = make_node_data_leonhard(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
+        auto* const _ml = &_lmr;
+        auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
         }
     }
