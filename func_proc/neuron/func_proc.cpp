@@ -363,7 +363,11 @@ namespace neuron {
         auto inst = make_instance_test_func_proc(_lmr);
         auto node_data = make_node_data_test_func_proc(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
+        auto* const _ml = &_lmr;
+        auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
+            auto& _ppvar = _ml_arg->pdata[id];
+            set_a_x_test_func_proc(_ml, inst, id, _ppvar, _thread, _nt);
         }
     }
 
