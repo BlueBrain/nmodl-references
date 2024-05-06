@@ -262,6 +262,7 @@ namespace coreneuron {
                 #if NRN_PRCELLSTATE
                 inst->v_unused[id] = v;
                 #endif
+                set_a_x_test_func_proc(id, pnodecount, inst, data, indexes, thread, nt, v);
             }
         }
     }
