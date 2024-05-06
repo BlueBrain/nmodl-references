@@ -37,6 +37,7 @@ namespace coreneuron {
     static const char *mechanism_info[] = {
         "7.7.0",
         "leonhard",
+        "c_leonhard",
         0,
         "il_leonhard",
         0,
@@ -60,6 +61,7 @@ namespace coreneuron {
 
     /** all mechanism instance variables and global variables */
     struct leonhard_Instance  {
+        const double* c{};
         double* il{};
         double* v_unused{};
         double* g_unused{};
@@ -90,7 +92,7 @@ namespace coreneuron {
 
 
     static inline int float_variables_size() {
-        return 3;
+        return 4;
     }
 
 
@@ -165,9 +167,10 @@ namespace coreneuron {
         assert(ml->global_variables_size == sizeof(leonhard_Store));
         int pnodecount = ml->_nodecount_padded;
         Datum* indexes = ml->pdata;
-        inst->il = ml->data+0*pnodecount;
-        inst->v_unused = ml->data+1*pnodecount;
-        inst->g_unused = ml->data+2*pnodecount;
+        inst->c = ml->data+0*pnodecount;
+        inst->il = ml->data+1*pnodecount;
+        inst->v_unused = ml->data+2*pnodecount;
+        inst->g_unused = ml->data+3*pnodecount;
     }
 
 
@@ -236,7 +239,7 @@ namespace coreneuron {
 
     inline double nrn_current_leonhard(int id, int pnodecount, leonhard_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
         double current = 0.0;
-        inst->il[id] = 0.005 * (v - 1.5);
+        inst->il[id] = inst->c[id] * (v - 1.5);
         current += inst->il[id];
         return current;
     }
