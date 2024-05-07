@@ -24,7 +24,7 @@ NMODL Compiler  : VERSION
 #define NRN_VECTORIZED 1
 
 static constexpr auto number_of_datum_variables = 0;
-static constexpr auto number_of_floating_point_variables = 3;
+static constexpr auto number_of_floating_point_variables = 4;
 
 namespace {
 template <typename T>
@@ -54,6 +54,7 @@ namespace neuron {
     static const char *mechanism_info[] = {
         "7.7.0",
         "leonhard",
+        "c_leonhard",
         0,
         "il_leonhard",
         0,
@@ -84,6 +85,7 @@ namespace neuron {
 
     /** all mechanism instance variables and global variables */
     struct leonhard_Instance  {
+        double* c{};
         double* il{};
         double* v_unused{};
         double* g_unused{};
@@ -104,7 +106,8 @@ namespace neuron {
         return leonhard_Instance {
             _ml.template fpfield_ptr<0>(),
             _ml.template fpfield_ptr<1>(),
-            _ml.template fpfield_ptr<2>()
+            _ml.template fpfield_ptr<2>(),
+            _ml.template fpfield_ptr<3>()
         };
     }
 
@@ -126,8 +129,9 @@ namespace neuron {
         _nrn_mechanism_cache_instance _ml_real{_prop};
         auto* const _ml = &_ml_real;
         size_t const _iml{};
-        assert(_nrn_mechanism_get_num_vars(_prop) == 3);
+        assert(_nrn_mechanism_get_num_vars(_prop) == 4);
         /*initialize range parameters*/
+        _ml->template fpfield<0>(_iml) = 0.005; /* c */
     }
 
 
@@ -184,7 +188,7 @@ namespace neuron {
 
     inline double nrn_current_leonhard(size_t id, leonhard_Instance& inst, leonhard_NodeData& node_data, double v) {
         double current = 0.0;
-        inst.il[id] = 0.005 * (v - 1.5);
+        inst.il[id] = inst.c[id] * (v - 1.5);
         current += inst.il[id];
         return current;
     }
@@ -252,12 +256,13 @@ namespace neuron {
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         _nrn_mechanism_register_data_fields(mech_type,
-            _nrn_mechanism_field<double>{"il"} /* 0 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 1 */,
-            _nrn_mechanism_field<double>{"g_unused"} /* 2 */
+            _nrn_mechanism_field<double>{"c"} /* 0 */,
+            _nrn_mechanism_field<double>{"il"} /* 1 */,
+            _nrn_mechanism_field<double>{"v_unused"} /* 2 */,
+            _nrn_mechanism_field<double>{"g_unused"} /* 3 */
         );
 
-        hoc_register_prop_size(mech_type, 3, 0);
+        hoc_register_prop_size(mech_type, 4, 0);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
     }

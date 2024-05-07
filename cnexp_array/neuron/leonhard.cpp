@@ -250,7 +250,7 @@ namespace neuron {
             _nrn_mechanism_field<double>{"g_unused"} /* 6 */
         );
 
-        hoc_register_prop_size(mech_type, 7, 0);
+        hoc_register_prop_size(mech_type, 11, 0);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
     }
