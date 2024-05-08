@@ -181,7 +181,11 @@ namespace neuron {
         auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
-            auto& _ppvar = _ml_arg->pdata[id];
+            
+            int node_id = node_data.nodeindices[id];
+            auto* _ppvar = _ml_arg->pdata[id];
+            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[node_id] = v;
         }
     }
 
@@ -224,6 +228,10 @@ namespace neuron {
         auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
+            
+            int node_id = node_data.nodeindices[id];
+            auto* _ppvar = _ml_arg->pdata[id];
+            auto v = node_data.node_voltages[node_id];
         }
     }
 

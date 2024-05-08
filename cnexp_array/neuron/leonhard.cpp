@@ -187,7 +187,14 @@ namespace neuron {
         auto inst = make_instance_leonhard(_lmr);
         auto node_data = make_node_data_leonhard(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
+        auto* const _ml = &_lmr;
+        auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
+            
+            int node_id = node_data.nodeindices[id];
+            auto* _ppvar = _ml_arg->pdata[id];
+            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[node_id] = v;
             inst.x[id] = 42.0;
             (inst.s+id*2)[static_cast<int>(0)] = 0.1;
             (inst.s+id*2)[static_cast<int>(1)] =  -1.0;
@@ -203,7 +210,13 @@ namespace neuron {
         auto inst = make_instance_leonhard(_lmr);
         auto node_data = make_node_data_leonhard(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
+        auto* const _ml = &_lmr;
+        auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
+            
+            int node_id = node_data.nodeindices[id];
+            auto* _ppvar = _ml_arg->pdata[id];
+            auto v = node_data.node_voltages[node_id];
             inst.x[id] = inst.x[id] + (1.0 - exp(_nt->_dt * ((((inst.s+id*2)[static_cast<int>(0)] + (inst.s+id*2)[static_cast<int>(1)]) * ((inst.z+id*3)[static_cast<int>(0)] * (inst.z+id*3)[static_cast<int>(1)] * (inst.z+id*3)[static_cast<int>(2)])) * (1.0)))) * ( -(0.0) / (((((inst.s+id*2)[static_cast<int>(0)] + (inst.s+id*2)[static_cast<int>(1)])) * (((((inst.z+id*3)[static_cast<int>(0)]) * ((inst.z+id*3)[static_cast<int>(1)])) * ((inst.z+id*3)[static_cast<int>(2)])))) * (1.0)) - inst.x[id]);
         }
     }

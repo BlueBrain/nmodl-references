@@ -265,6 +265,7 @@ namespace neuron {
 
     inline int set_x_42_test_func_proc_pnt(_nrn_mechanism_cache_range* _ml, test_func_proc_pnt_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt) {
         int ret_set_x_42 = 0;
+        auto v = inst.v_unused[id];
         inst.x[id] = 42.0;
         return ret_set_x_42;
     }
@@ -272,6 +273,7 @@ namespace neuron {
 
     inline int set_x_a_test_func_proc_pnt(_nrn_mechanism_cache_range* _ml, test_func_proc_pnt_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a) {
         int ret_set_x_a = 0;
+        auto v = inst.v_unused[id];
         inst.x[id] = a;
         return ret_set_x_a;
     }
@@ -279,6 +281,7 @@ namespace neuron {
 
     inline double x_plus_a_test_func_proc_pnt(_nrn_mechanism_cache_range* _ml, test_func_proc_pnt_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a) {
         double ret_x_plus_a = 0.0;
+        auto v = inst.v_unused[id];
         ret_x_plus_a = inst.x[id] + a;
         return ret_x_plus_a;
     }
@@ -292,7 +295,11 @@ namespace neuron {
         auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
-            auto& _ppvar = _ml_arg->pdata[id];
+            
+            int node_id = node_data.nodeindices[id];
+            auto* _ppvar = _ml_arg->pdata[id];
+            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[node_id] = v;
         }
     }
 
