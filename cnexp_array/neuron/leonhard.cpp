@@ -194,7 +194,7 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
-            inst.v_unused[node_id] = v;
+            inst.v_unused[id] = v;
             inst.x[id] = 42.0;
             (inst.s+id*2)[static_cast<int>(0)] = 0.1;
             (inst.s+id*2)[static_cast<int>(1)] =  -1.0;
