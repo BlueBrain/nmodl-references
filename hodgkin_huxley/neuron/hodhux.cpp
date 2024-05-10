@@ -379,7 +379,7 @@ namespace neuron {
 
     inline int states_hodhux(_nrn_mechanism_cache_range* _ml, hodhux_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt) {
         int ret_states = 0;
-        auto v = _nt->node_voltage_storage()[id];
+        auto v = _nt ? _nt->node_voltage_storage()[id] : 0;
         rates_hodhux(_ml, inst, id, _ppvar, _thread, _nt, v);
         inst.m[id] = inst.m[id] + inst.mexp[id] * (inst.minf[id] - inst.m[id]);
         inst.h[id] = inst.h[id] + inst.hexp[id] * (inst.hinf[id] - inst.h[id]);
@@ -414,7 +414,7 @@ namespace neuron {
 
     inline double vtrap_hodhux(_nrn_mechanism_cache_range* _ml, hodhux_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double x, double y) {
         double ret_vtrap = 0.0;
-        auto v = _nt->node_voltage_storage()[id];
+        auto v = _nt ? _nt->node_voltage_storage()[id] : 0;
         if (fabs(x / y) < 1e-6) {
             ret_vtrap = y * (1.0 - x / y / 2.0);
         } else {
