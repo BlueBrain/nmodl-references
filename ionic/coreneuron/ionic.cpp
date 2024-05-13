@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : leonhard
-Filename        : leonhard.mod
+Model Name      : ionic
+Filename        : ionic.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -36,43 +36,42 @@ namespace coreneuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "leonhard",
+        "ionic",
         0,
         0,
-        "x_leonhard",
         0,
         0
     };
 
 
     /** all global variables */
-    struct leonhard_Store {
-        double x0{};
+    struct ionic_Store {
+        int na_type{};
         int reset{};
         int mech_type{};
-        double c{2};
     };
-    static_assert(std::is_trivially_copy_constructible_v<leonhard_Store>);
-    static_assert(std::is_trivially_move_constructible_v<leonhard_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<leonhard_Store>);
-    static_assert(std::is_trivially_move_assignable_v<leonhard_Store>);
-    static_assert(std::is_trivially_destructible_v<leonhard_Store>);
-    leonhard_Store leonhard_global;
+    static_assert(std::is_trivially_copy_constructible_v<ionic_Store>);
+    static_assert(std::is_trivially_move_constructible_v<ionic_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<ionic_Store>);
+    static_assert(std::is_trivially_move_assignable_v<ionic_Store>);
+    static_assert(std::is_trivially_destructible_v<ionic_Store>);
+    ionic_Store ionic_global;
 
 
     /** all mechanism instance variables and global variables */
-    struct leonhard_Instance  {
-        double* x{};
-        double* Dx{};
+    struct ionic_Instance  {
+        double* ina{};
+        double* ena{};
         double* v_unused{};
         double* g_unused{};
-        leonhard_Store* global{&leonhard_global};
+        const double* ion_ina{};
+        double* ion_ena{};
+        ionic_Store* global{&ionic_global};
     };
 
 
     /** connect global (scalar) variables to hoc -- */
     static DoubScal hoc_scalar_double[] = {
-        {"c_leonhard", &leonhard_global.c},
         {nullptr, nullptr}
     };
 
@@ -99,12 +98,12 @@ namespace coreneuron {
 
 
     static inline int int_variables_size() {
-        return 0;
+        return 2;
     }
 
 
     static inline int get_mech_type() {
-        return leonhard_global.mech_type;
+        return ionic_global.mech_type;
     }
 
 
@@ -134,25 +133,25 @@ namespace coreneuron {
     }
 
     // Allocate instance structure
-    static void nrn_private_constructor_leonhard(NrnThread* nt, Memb_list* ml, int type) {
+    static void nrn_private_constructor_ionic(NrnThread* nt, Memb_list* ml, int type) {
         assert(!ml->instance);
         assert(!ml->global_variables);
         assert(ml->global_variables_size == 0);
-        auto* const inst = new leonhard_Instance{};
-        assert(inst->global == &leonhard_global);
+        auto* const inst = new ionic_Instance{};
+        assert(inst->global == &ionic_global);
         ml->instance = inst;
         ml->global_variables = inst->global;
-        ml->global_variables_size = sizeof(leonhard_Store);
+        ml->global_variables_size = sizeof(ionic_Store);
     }
 
     // Deallocate the instance structure
-    static void nrn_private_destructor_leonhard(NrnThread* nt, Memb_list* ml, int type) {
-        auto* const inst = static_cast<leonhard_Instance*>(ml->instance);
+    static void nrn_private_destructor_ionic(NrnThread* nt, Memb_list* ml, int type) {
+        auto* const inst = static_cast<ionic_Instance*>(ml->instance);
         assert(inst);
         assert(inst->global);
-        assert(inst->global == &leonhard_global);
+        assert(inst->global == &ionic_global);
         assert(inst->global == ml->global_variables);
-        assert(ml->global_variables_size == sizeof(leonhard_Store));
+        assert(ml->global_variables_size == sizeof(ionic_Store));
         delete inst;
         ml->instance = nullptr;
         ml->global_variables = nullptr;
@@ -161,28 +160,30 @@ namespace coreneuron {
 
     /** initialize mechanism instance variables */
     static inline void setup_instance(NrnThread* nt, Memb_list* ml) {
-        auto* const inst = static_cast<leonhard_Instance*>(ml->instance);
+        auto* const inst = static_cast<ionic_Instance*>(ml->instance);
         assert(inst);
         assert(inst->global);
-        assert(inst->global == &leonhard_global);
+        assert(inst->global == &ionic_global);
         assert(inst->global == ml->global_variables);
-        assert(ml->global_variables_size == sizeof(leonhard_Store));
+        assert(ml->global_variables_size == sizeof(ionic_Store));
         int pnodecount = ml->_nodecount_padded;
         Datum* indexes = ml->pdata;
-        inst->x = ml->data+0*pnodecount;
-        inst->Dx = ml->data+1*pnodecount;
+        inst->ina = ml->data+0*pnodecount;
+        inst->ena = ml->data+1*pnodecount;
         inst->v_unused = ml->data+2*pnodecount;
         inst->g_unused = ml->data+3*pnodecount;
+        inst->ion_ina = nt->_data;
+        inst->ion_ena = nt->_data;
     }
 
 
 
-    static void nrn_alloc_leonhard(double* data, Datum* indexes, int type) {
+    static void nrn_alloc_ionic(double* data, Datum* indexes, int type) {
         // do nothing
     }
 
 
-    void nrn_constructor_leonhard(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_constructor_ionic(NrnThread* nt, Memb_list* ml, int type) {
         #ifndef CORENEURON_BUILD
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
@@ -191,13 +192,13 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<leonhard_Instance*>(ml->instance);
+        auto* const inst = static_cast<ionic_Instance*>(ml->instance);
 
         #endif
     }
 
 
-    void nrn_destructor_leonhard(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_destructor_ionic(NrnThread* nt, Memb_list* ml, int type) {
         #ifndef CORENEURON_BUILD
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
@@ -206,14 +207,14 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<leonhard_Instance*>(ml->instance);
+        auto* const inst = static_cast<ionic_Instance*>(ml->instance);
 
         #endif
     }
 
 
     /** initialize channel */
-    void nrn_init_leonhard(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_init_ionic(NrnThread* nt, Memb_list* ml, int type) {
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
         const int* node_index = ml->nodeindices;
@@ -223,7 +224,7 @@ namespace coreneuron {
         ThreadDatum* thread = ml->_thread;
 
         setup_instance(nt, ml);
-        auto* const inst = static_cast<leonhard_Instance*>(ml->instance);
+        auto* const inst = static_cast<ionic_Instance*>(ml->instance);
 
         if (_nrn_skip_initmodel == 0) {
             #pragma omp simd
@@ -234,15 +235,15 @@ namespace coreneuron {
                 #if NRN_PRCELLSTATE
                 inst->v_unused[id] = v;
                 #endif
-                inst->x[id] = inst->global->x0;
-                inst->x[id] = 42.0;
+                inst->ina[id] = inst->ion_ina[indexes[0*pnodecount + id]];
+                inst->ion_ena[indexes[1*pnodecount + id]] = inst->ena[id];
             }
         }
     }
 
 
     /** update state */
-    void nrn_state_leonhard(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_state_ionic(NrnThread* nt, Memb_list* ml, int type) {
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
         const int* node_index = ml->nodeindices;
@@ -250,7 +251,7 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<leonhard_Instance*>(ml->instance);
+        auto* const inst = static_cast<ionic_Instance*>(ml->instance);
 
         #pragma omp simd
         #pragma ivdep
@@ -260,24 +261,29 @@ namespace coreneuron {
             #if NRN_PRCELLSTATE
             inst->v_unused[id] = v;
             #endif
-            inst->x[id] = inst->global->c;
+            inst->ina[id] = inst->ion_ina[indexes[0*pnodecount + id]];
+            inst->ena[id] = 42.0;
+            inst->ion_ena[indexes[1*pnodecount + id]] = inst->ena[id];
         }
     }
 
 
     /** register channel with the simulator */
-    void _leonhard_reg() {
+    void _ionic_reg() {
 
-        int mech_type = nrn_get_mechtype("leonhard");
-        leonhard_global.mech_type = mech_type;
+        int mech_type = nrn_get_mechtype("ionic");
+        ionic_global.mech_type = mech_type;
         if (mech_type == -1) {
             return;
         }
 
         _nrn_layout_reg(mech_type, 0);
-        register_mech(mechanism_info, nrn_alloc_leonhard, nullptr, nullptr, nrn_state_leonhard, nrn_init_leonhard, nrn_private_constructor_leonhard, nrn_private_destructor_leonhard, first_pointer_var_index(), 1);
+        register_mech(mechanism_info, nrn_alloc_ionic, nullptr, nullptr, nrn_state_ionic, nrn_init_ionic, nrn_private_constructor_ionic, nrn_private_destructor_ionic, first_pointer_var_index(), 1);
+        ionic_global.na_type = nrn_get_mechtype("na_ion");
 
         hoc_register_prop_size(mech_type, float_variables_size(), int_variables_size());
+        hoc_register_dparam_semantics(mech_type, 0, "na_ion");
+        hoc_register_dparam_semantics(mech_type, 1, "na_ion");
         hoc_register_var(hoc_scalar_double, hoc_vector_double, NULL);
     }
 }
