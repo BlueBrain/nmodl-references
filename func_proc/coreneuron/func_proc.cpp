@@ -4,10 +4,10 @@ Filename        : func_proc.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
-Created         : Mon May 13 13:22:42 2024
+Created         : DATE
 Simulator       : CoreNEURON
 Backend         : C++ (api-compatibility)
-NMODL Compiler  : 0.0 [43dfc32 2024-05-13 13:21:03 +0000]
+NMODL Compiler  : VERSION
 *********************************************************/
 
 #include <math.h>
