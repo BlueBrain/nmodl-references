@@ -206,9 +206,14 @@ namespace coreneuron {
 
 
     inline double x_plus_a_test_func_proc(int id, int pnodecount, test_func_proc_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double a);
+    inline double v_plus_a_test_func_proc(int id, int pnodecount, test_func_proc_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double a);
+    inline double just_v_test_func_proc(int id, int pnodecount, test_func_proc_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v);
     inline int set_x_42_test_func_proc(int id, int pnodecount, test_func_proc_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
     inline int set_x_a_test_func_proc(int id, int pnodecount, test_func_proc_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double a);
     inline int set_a_x_test_func_proc(int id, int pnodecount, test_func_proc_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline int set_x_v_test_func_proc(int id, int pnodecount, test_func_proc_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline int set_x_just_v_test_func_proc(int id, int pnodecount, test_func_proc_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline int set_x_just_vv_test_func_proc(int id, int pnodecount, test_func_proc_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v);
 
 
     inline int set_x_42_test_func_proc(int id, int pnodecount, test_func_proc_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
@@ -233,10 +238,45 @@ namespace coreneuron {
     }
 
 
+    inline int set_x_v_test_func_proc(int id, int pnodecount, test_func_proc_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
+        int ret_set_x_v = 0;
+        inst->x[id] = v;
+        return ret_set_x_v;
+    }
+
+
+    inline int set_x_just_v_test_func_proc(int id, int pnodecount, test_func_proc_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
+        int ret_set_x_just_v = 0;
+        inst->x[id] = just_v_test_func_proc(id, pnodecount, inst, data, indexes, thread, nt, v, v);
+        return ret_set_x_just_v;
+    }
+
+
+    inline int set_x_just_vv_test_func_proc(int id, int pnodecount, test_func_proc_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v) {
+        int ret_set_x_just_vv = 0;
+        inst->x[id] = just_v_test_func_proc(id, pnodecount, inst, data, indexes, thread, nt, v, arg_v);
+        return ret_set_x_just_vv;
+    }
+
+
     inline double x_plus_a_test_func_proc(int id, int pnodecount, test_func_proc_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double a) {
         double ret_x_plus_a = 0.0;
         ret_x_plus_a = inst->x[id] + a;
         return ret_x_plus_a;
+    }
+
+
+    inline double v_plus_a_test_func_proc(int id, int pnodecount, test_func_proc_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double a) {
+        double ret_v_plus_a = 0.0;
+        ret_v_plus_a = v + a;
+        return ret_v_plus_a;
+    }
+
+
+    inline double just_v_test_func_proc(int id, int pnodecount, test_func_proc_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v) {
+        double ret_just_v = 0.0;
+        ret_just_v = arg_v;
+        return ret_just_v;
     }
 
 
