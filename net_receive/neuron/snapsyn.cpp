@@ -220,7 +220,11 @@ namespace neuron {
     }
 
 
-    inline double nrn_current_SnapSyn(size_t id, SnapSyn_Instance& inst, SnapSyn_NodeData& node_data, double v) {
+    inline double nrn_current_SnapSyn(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type, size_t id, SnapSyn_Instance& inst, SnapSyn_NodeData& node_data, double v) {
+        _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
+        auto* const _ml = &_lmr;
+        auto* _thread = _ml_arg->_thread;
+        auto* _ppvar = _ml_arg->pdata[id];
         double current = 0.0;
         inst.i[id] = inst.g[id] * (v - inst.e[id]);
         current += inst.i[id];
@@ -239,8 +243,8 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             double v = node_data.node_voltages[node_id];
-            double I1 = nrn_current_SnapSyn(id, inst, node_data, v+0.001);
-            double I0 = nrn_current_SnapSyn(id, inst, node_data, v);
+            double I1 = nrn_current_SnapSyn(_sorted_token, _nt, _ml_arg, _type, id, inst, node_data, v+0.001);
+            double I0 = nrn_current_SnapSyn(_sorted_token, _nt, _ml_arg, _type, id, inst, node_data, v);
             double rhs = I0;
             double g = (I1-I0)/0.001;
             double mfactor = 1.e2/(*inst.node_area[id]);

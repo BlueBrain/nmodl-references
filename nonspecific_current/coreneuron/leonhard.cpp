@@ -210,6 +210,29 @@ namespace coreneuron {
     }
 
 
+    inline int func_leonhard(int id, int pnodecount, leonhard_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline int func_with_v_leonhard(int id, int pnodecount, leonhard_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v);
+    inline int func_with_other_leonhard(int id, int pnodecount, leonhard_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double q);
+
+
+    inline int func_leonhard(int id, int pnodecount, leonhard_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
+        int ret_func = 0;
+        return ret_func;
+    }
+
+
+    inline int func_with_v_leonhard(int id, int pnodecount, leonhard_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v) {
+        int ret_func_with_v = 0;
+        return ret_func_with_v;
+    }
+
+
+    inline int func_with_other_leonhard(int id, int pnodecount, leonhard_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double q) {
+        int ret_func_with_other = 0;
+        return ret_func_with_other;
+    }
+
+
     /** initialize channel */
     void nrn_init_leonhard(NrnThread* nt, Memb_list* ml, int type) {
         int nodecount = ml->nodecount;
@@ -239,6 +262,9 @@ namespace coreneuron {
 
     inline double nrn_current_leonhard(int id, int pnodecount, leonhard_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
         double current = 0.0;
+        func_leonhard(id, pnodecount, inst, data, indexes, thread, nt, v);
+        func_with_v_leonhard(id, pnodecount, inst, data, indexes, thread, nt, v, v);
+        func_with_other_leonhard(id, pnodecount, inst, data, indexes, thread, nt, v, inst->c[id]);
         inst->il[id] = inst->c[id] * (v - 1.5);
         current += inst->il[id];
         return current;
