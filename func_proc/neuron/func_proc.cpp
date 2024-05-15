@@ -142,9 +142,14 @@ namespace neuron {
     }
     /* Mechanism procedures and functions */
     inline double x_plus_a_test_func_proc(_nrn_mechanism_cache_range* _ml, test_func_proc_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a);
+    inline double v_plus_a_test_func_proc(_nrn_mechanism_cache_range* _ml, test_func_proc_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a);
+    inline double just_v_test_func_proc(_nrn_mechanism_cache_range* _ml, test_func_proc_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double v);
     inline int set_x_42_test_func_proc(_nrn_mechanism_cache_range* _ml, test_func_proc_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
     inline int set_x_a_test_func_proc(_nrn_mechanism_cache_range* _ml, test_func_proc_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a);
     inline int set_a_x_test_func_proc(_nrn_mechanism_cache_range* _ml, test_func_proc_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
+    inline int set_x_v_test_func_proc(_nrn_mechanism_cache_range* _ml, test_func_proc_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
+    inline int set_x_just_v_test_func_proc(_nrn_mechanism_cache_range* _ml, test_func_proc_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
+    inline int set_x_just_vv_test_func_proc(_nrn_mechanism_cache_range* _ml, test_func_proc_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double v);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -163,11 +168,21 @@ namespace neuron {
     static void _hoc_set_x_42(void);
     static void _hoc_set_x_a(void);
     static void _hoc_set_a_x(void);
+    static void _hoc_set_x_v(void);
+    static void _hoc_set_x_just_v(void);
+    static void _hoc_set_x_just_vv(void);
     static void _hoc_x_plus_a(void);
+    static void _hoc_v_plus_a(void);
+    static void _hoc_just_v(void);
     static double _npy_set_x_42(Prop*);
     static double _npy_set_x_a(Prop*);
     static double _npy_set_a_x(Prop*);
+    static double _npy_set_x_v(Prop*);
+    static double _npy_set_x_just_v(Prop*);
+    static double _npy_set_x_just_vv(Prop*);
     static double _npy_x_plus_a(Prop*);
+    static double _npy_v_plus_a(Prop*);
+    static double _npy_just_v(Prop*);
 
 
     /* connect user functions to hoc names */
@@ -176,14 +191,24 @@ namespace neuron {
         {"set_x_42_test_func_proc", _hoc_set_x_42},
         {"set_x_a_test_func_proc", _hoc_set_x_a},
         {"set_a_x_test_func_proc", _hoc_set_a_x},
+        {"set_x_v_test_func_proc", _hoc_set_x_v},
+        {"set_x_just_v_test_func_proc", _hoc_set_x_just_v},
+        {"set_x_just_vv_test_func_proc", _hoc_set_x_just_vv},
         {"x_plus_a_test_func_proc", _hoc_x_plus_a},
+        {"v_plus_a_test_func_proc", _hoc_v_plus_a},
+        {"just_v_test_func_proc", _hoc_just_v},
         {0, 0}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
         {"set_x_42", _npy_set_x_42},
         {"set_x_a", _npy_set_x_a},
         {"set_a_x", _npy_set_a_x},
+        {"set_x_v", _npy_set_x_v},
+        {"set_x_just_v", _npy_set_x_just_v},
+        {"set_x_just_vv", _npy_set_x_just_vv},
         {"x_plus_a", _npy_x_plus_a},
+        {"v_plus_a", _npy_v_plus_a},
+        {"just_v", _npy_just_v},
     };
     static void _hoc_set_x_42(void) {
         double _r{};
@@ -293,6 +318,114 @@ namespace neuron {
         set_a_x_test_func_proc(_ml, inst, id, _ppvar, _thread, _nt);
         return(_r);
     }
+    static void _hoc_set_x_v(void) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* _nt;
+        if (!_prop_id) {
+            hoc_execerror("No data for set_x_v_test_func_proc. Requires prior call to setdata_test_func_proc and that the specified mechanism instance still be in existence.", NULL);
+        }
+        Prop* _local_prop = _extcall_prop;
+        _nrn_mechanism_cache_instance _ml_real{_local_prop};
+        auto* const _ml = &_ml_real;
+        size_t const id{};
+        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
+        _thread = _extcall_thread.data();
+        _nt = nrn_threads;
+        auto inst = make_instance_test_func_proc(_ml_real);
+        _r = 1.;
+        set_x_v_test_func_proc(_ml, inst, id, _ppvar, _thread, _nt);
+        hoc_retpushx(_r);
+    }
+    static double _npy_set_x_v(Prop* _prop) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* _nt;
+        _nrn_mechanism_cache_instance _ml_real{_prop};
+        auto* const _ml = &_ml_real;
+        size_t const id{};
+        _ppvar = _nrn_mechanism_access_dparam(_prop);
+        _thread = _extcall_thread.data();
+        _nt = nrn_threads;
+        auto inst = make_instance_test_func_proc(_ml_real);
+        _r = 1.;
+        set_x_v_test_func_proc(_ml, inst, id, _ppvar, _thread, _nt);
+        return(_r);
+    }
+    static void _hoc_set_x_just_v(void) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* _nt;
+        if (!_prop_id) {
+            hoc_execerror("No data for set_x_just_v_test_func_proc. Requires prior call to setdata_test_func_proc and that the specified mechanism instance still be in existence.", NULL);
+        }
+        Prop* _local_prop = _extcall_prop;
+        _nrn_mechanism_cache_instance _ml_real{_local_prop};
+        auto* const _ml = &_ml_real;
+        size_t const id{};
+        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
+        _thread = _extcall_thread.data();
+        _nt = nrn_threads;
+        auto inst = make_instance_test_func_proc(_ml_real);
+        _r = 1.;
+        set_x_just_v_test_func_proc(_ml, inst, id, _ppvar, _thread, _nt);
+        hoc_retpushx(_r);
+    }
+    static double _npy_set_x_just_v(Prop* _prop) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* _nt;
+        _nrn_mechanism_cache_instance _ml_real{_prop};
+        auto* const _ml = &_ml_real;
+        size_t const id{};
+        _ppvar = _nrn_mechanism_access_dparam(_prop);
+        _thread = _extcall_thread.data();
+        _nt = nrn_threads;
+        auto inst = make_instance_test_func_proc(_ml_real);
+        _r = 1.;
+        set_x_just_v_test_func_proc(_ml, inst, id, _ppvar, _thread, _nt);
+        return(_r);
+    }
+    static void _hoc_set_x_just_vv(void) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* _nt;
+        if (!_prop_id) {
+            hoc_execerror("No data for set_x_just_vv_test_func_proc. Requires prior call to setdata_test_func_proc and that the specified mechanism instance still be in existence.", NULL);
+        }
+        Prop* _local_prop = _extcall_prop;
+        _nrn_mechanism_cache_instance _ml_real{_local_prop};
+        auto* const _ml = &_ml_real;
+        size_t const id{};
+        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
+        _thread = _extcall_thread.data();
+        _nt = nrn_threads;
+        auto inst = make_instance_test_func_proc(_ml_real);
+        _r = 1.;
+        set_x_just_vv_test_func_proc(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        hoc_retpushx(_r);
+    }
+    static double _npy_set_x_just_vv(Prop* _prop) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* _nt;
+        _nrn_mechanism_cache_instance _ml_real{_prop};
+        auto* const _ml = &_ml_real;
+        size_t const id{};
+        _ppvar = _nrn_mechanism_access_dparam(_prop);
+        _thread = _extcall_thread.data();
+        _nt = nrn_threads;
+        auto inst = make_instance_test_func_proc(_ml_real);
+        _r = 1.;
+        set_x_just_vv_test_func_proc(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        return(_r);
+    }
     static void _hoc_x_plus_a(void) {
         double _r{};
         Datum* _ppvar;
@@ -327,6 +460,68 @@ namespace neuron {
         _r = x_plus_a_test_func_proc(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
         return(_r);
     }
+    static void _hoc_v_plus_a(void) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* _nt;
+        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
+        _nrn_mechanism_cache_instance _ml_real{_local_prop};
+        auto* const _ml = &_ml_real;
+        size_t const id{};
+        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
+        _thread = _extcall_thread.data();
+        _nt = nrn_threads;
+        auto inst = make_instance_test_func_proc(_ml_real);
+        _r = v_plus_a_test_func_proc(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        hoc_retpushx(_r);
+    }
+    static double _npy_v_plus_a(Prop* _prop) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* _nt;
+        _nrn_mechanism_cache_instance _ml_real{_prop};
+        auto* const _ml = &_ml_real;
+        size_t const id{};
+        _ppvar = _nrn_mechanism_access_dparam(_prop);
+        _thread = _extcall_thread.data();
+        _nt = nrn_threads;
+        auto inst = make_instance_test_func_proc(_ml_real);
+        _r = v_plus_a_test_func_proc(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        return(_r);
+    }
+    static void _hoc_just_v(void) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* _nt;
+        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
+        _nrn_mechanism_cache_instance _ml_real{_local_prop};
+        auto* const _ml = &_ml_real;
+        size_t const id{};
+        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
+        _thread = _extcall_thread.data();
+        _nt = nrn_threads;
+        auto inst = make_instance_test_func_proc(_ml_real);
+        _r = just_v_test_func_proc(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        hoc_retpushx(_r);
+    }
+    static double _npy_just_v(Prop* _prop) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* _nt;
+        _nrn_mechanism_cache_instance _ml_real{_prop};
+        auto* const _ml = &_ml_real;
+        size_t const id{};
+        _ppvar = _nrn_mechanism_access_dparam(_prop);
+        _thread = _extcall_thread.data();
+        _nt = nrn_threads;
+        auto inst = make_instance_test_func_proc(_ml_real);
+        _r = just_v_test_func_proc(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        return(_r);
+    }
 
 
     inline int set_x_42_test_func_proc(_nrn_mechanism_cache_range* _ml, test_func_proc_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt) {
@@ -354,11 +549,49 @@ namespace neuron {
     }
 
 
+    inline int set_x_v_test_func_proc(_nrn_mechanism_cache_range* _ml, test_func_proc_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt) {
+        int ret_set_x_v = 0;
+        auto v = inst.v_unused[id];
+        inst.x[id] = v;
+        return ret_set_x_v;
+    }
+
+
+    inline int set_x_just_v_test_func_proc(_nrn_mechanism_cache_range* _ml, test_func_proc_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt) {
+        int ret_set_x_just_v = 0;
+        auto v = inst.v_unused[id];
+        inst.x[id] = just_v_test_func_proc(_ml, inst, id, _ppvar, _thread, _nt, v);
+        return ret_set_x_just_v;
+    }
+
+
+    inline int set_x_just_vv_test_func_proc(_nrn_mechanism_cache_range* _ml, test_func_proc_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double v) {
+        int ret_set_x_just_vv = 0;
+        inst.x[id] = just_v_test_func_proc(_ml, inst, id, _ppvar, _thread, _nt, v);
+        return ret_set_x_just_vv;
+    }
+
+
     inline double x_plus_a_test_func_proc(_nrn_mechanism_cache_range* _ml, test_func_proc_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a) {
         double ret_x_plus_a = 0.0;
         auto v = inst.v_unused[id];
         ret_x_plus_a = inst.x[id] + a;
         return ret_x_plus_a;
+    }
+
+
+    inline double v_plus_a_test_func_proc(_nrn_mechanism_cache_range* _ml, test_func_proc_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a) {
+        double ret_v_plus_a = 0.0;
+        auto v = inst.v_unused[id];
+        ret_v_plus_a = v + a;
+        return ret_v_plus_a;
+    }
+
+
+    inline double just_v_test_func_proc(_nrn_mechanism_cache_range* _ml, test_func_proc_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double v) {
+        double ret_just_v = 0.0;
+        ret_just_v = v;
+        return ret_just_v;
     }
 
 
