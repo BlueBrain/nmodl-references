@@ -190,11 +190,7 @@ namespace neuron {
     }
 
 
-    inline double nrn_current_leonhard(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type, size_t id, leonhard_Instance& inst, leonhard_NodeData& node_data, double v) {
-        _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
-        auto* const _ml = &_lmr;
-        auto* _thread = _ml_arg->_thread;
-        auto* _ppvar = _ml_arg->pdata[id];
+    inline double nrn_current_leonhard(_nrn_mechanism_cache_range* _ml, NrnThread* _nt, Datum* _ppvar, Datum* _thread, size_t id, leonhard_Instance& inst, leonhard_NodeData& node_data, double v) {
         double current = 0.0;
         inst.il[id] = inst.c[id] * (v - 1.5);
         current += inst.il[id];
@@ -213,8 +209,9 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             double v = node_data.node_voltages[node_id];
-            double I1 = nrn_current_leonhard(_sorted_token, _nt, _ml_arg, _type, id, inst, node_data, v+0.001);
-            double I0 = nrn_current_leonhard(_sorted_token, _nt, _ml_arg, _type, id, inst, node_data, v);
+            auto* _ppvar = _ml_arg->pdata[id];
+            double I1 = nrn_current_leonhard(_ml, _nt, _ppvar, _thread, id, inst, node_data, v+0.001);
+            double I0 = nrn_current_leonhard(_ml, _nt, _ppvar, _thread, id, inst, node_data, v);
             double rhs = I0;
             double g = (I1-I0)/0.001;
             node_data.node_rhs[node_id] -= rhs;

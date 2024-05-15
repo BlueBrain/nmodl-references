@@ -447,11 +447,7 @@ namespace neuron {
     }
 
 
-    inline double nrn_current_hodhux(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type, size_t id, hodhux_Instance& inst, hodhux_NodeData& node_data, double v) {
-        _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
-        auto* const _ml = &_lmr;
-        auto* _thread = _ml_arg->_thread;
-        auto* _ppvar = _ml_arg->pdata[id];
+    inline double nrn_current_hodhux(_nrn_mechanism_cache_range* _ml, NrnThread* _nt, Datum* _ppvar, Datum* _thread, size_t id, hodhux_Instance& inst, hodhux_NodeData& node_data, double v) {
         double current = 0.0;
         inst.ina[id] = inst.gnabar[id] * inst.m[id] * inst.m[id] * inst.m[id] * inst.h[id] * (v - inst.ena[id]);
         inst.ik[id] = inst.gkbar[id] * inst.n[id] * inst.n[id] * inst.n[id] * inst.n[id] * (v - inst.ek[id]);
@@ -474,12 +470,13 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             double v = node_data.node_voltages[node_id];
+            auto* _ppvar = _ml_arg->pdata[id];
             inst.ena[id] = (*inst.ion_ena[id]);
             inst.ek[id] = (*inst.ion_ek[id]);
-            double I1 = nrn_current_hodhux(_sorted_token, _nt, _ml_arg, _type, id, inst, node_data, v+0.001);
+            double I1 = nrn_current_hodhux(_ml, _nt, _ppvar, _thread, id, inst, node_data, v+0.001);
             double dina = inst.ina[id];
             double dik = inst.ik[id];
-            double I0 = nrn_current_hodhux(_sorted_token, _nt, _ml_arg, _type, id, inst, node_data, v);
+            double I0 = nrn_current_hodhux(_ml, _nt, _ppvar, _thread, id, inst, node_data, v);
             double rhs = I0;
             double g = (I1-I0)/0.001;
             (*inst.ion_dinadv[id]) += (dina-inst.ina[id])/0.001;

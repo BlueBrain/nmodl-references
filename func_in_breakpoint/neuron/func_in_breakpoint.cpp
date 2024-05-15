@@ -24,7 +24,7 @@ NMODL Compiler  : VERSION
 #define NRN_VECTORIZED 1
 
 static constexpr auto number_of_datum_variables = 0;
-static constexpr auto number_of_floating_point_variables = 2;
+static constexpr auto number_of_floating_point_variables = 3;
 
 namespace {
 template <typename T>
@@ -55,6 +55,7 @@ namespace neuron {
         "7.7.0",
         "func_in_breakpoint",
         0,
+        "il_func_in_breakpoint",
         0,
         0,
         0
@@ -84,6 +85,7 @@ namespace neuron {
 
     /** all mechanism instance variables and global variables */
     struct func_in_breakpoint_Instance  {
+        double* il{};
         double* v_unused{};
         double* g_unused{};
         func_in_breakpoint_Store* global{&func_in_breakpoint_global};
@@ -102,7 +104,8 @@ namespace neuron {
     static func_in_breakpoint_Instance make_instance_func_in_breakpoint(_nrn_mechanism_cache_range& _ml) {
         return func_in_breakpoint_Instance {
             _ml.template fpfield_ptr<0>(),
-            _ml.template fpfield_ptr<1>()
+            _ml.template fpfield_ptr<1>(),
+            _ml.template fpfield_ptr<2>()
         };
     }
 
@@ -124,7 +127,7 @@ namespace neuron {
         _nrn_mechanism_cache_instance _ml_real{_prop};
         auto* const _ml = &_ml_real;
         size_t const _iml{};
-        assert(_nrn_mechanism_get_num_vars(_prop) == 2);
+        assert(_nrn_mechanism_get_num_vars(_prop) == 3);
         /*initialize range parameters*/
     }
 
@@ -319,6 +322,39 @@ namespace neuron {
     }
 
 
+    inline double nrn_current_func_in_breakpoint(_nrn_mechanism_cache_range* _ml, NrnThread* _nt, Datum* _ppvar, Datum* _thread, size_t id, func_in_breakpoint_Instance& inst, func_in_breakpoint_NodeData& node_data, double v) {
+        double current = 0.0;
+        func_func_in_breakpoint(_ml, inst, id, _ppvar, _thread, _nt);
+        func_with_v_func_in_breakpoint(_ml, inst, id, _ppvar, _thread, _nt, v);
+        func_with_other_func_in_breakpoint(_ml, inst, id, _ppvar, _thread, _nt, inst.global->c);
+        current += inst.il[id];
+        return current;
+    }
+
+
+    /** update current */
+    void nrn_cur_func_in_breakpoint(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
+        auto inst = make_instance_func_in_breakpoint(_lmr);
+        auto node_data = make_node_data_func_in_breakpoint(*_nt, *_ml_arg);
+        auto nodecount = _ml_arg->nodecount;
+        auto* const _ml = &_lmr;
+        auto* _thread = _ml_arg->_thread;
+        for (int id = 0; id < nodecount; id++) {
+            int node_id = node_data.nodeindices[id];
+            double v = node_data.node_voltages[node_id];
+            auto* _ppvar = _ml_arg->pdata[id];
+            double I1 = nrn_current_func_in_breakpoint(_ml, _nt, _ppvar, _thread, id, inst, node_data, v+0.001);
+            double I0 = nrn_current_func_in_breakpoint(_ml, _nt, _ppvar, _thread, id, inst, node_data, v);
+            double rhs = I0;
+            double g = (I1-I0)/0.001;
+            node_data.node_rhs[node_id] -= rhs;
+            // remember the conductances so we can set them later
+            inst.g_unused[id] = g;
+        }
+    }
+
+
     void nrn_state_func_in_breakpoint(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
         auto inst = make_instance_func_in_breakpoint(_lmr);
@@ -331,9 +367,6 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
-            func_func_in_breakpoint(_ml, inst, id, _ppvar, _thread, _nt);
-            func_with_v_func_in_breakpoint(_ml, inst, id, _ppvar, _thread, _nt, v);
-            func_with_other_func_in_breakpoint(_ml, inst, id, _ppvar, _thread, _nt, inst.global->c);
         }
     }
 
@@ -362,15 +395,16 @@ namespace neuron {
 
 
 
-        register_mech(mechanism_info, nrn_alloc_func_in_breakpoint, nullptr, nrn_jacob_func_in_breakpoint, nrn_state_func_in_breakpoint, nrn_init_func_in_breakpoint, hoc_nrnpointerindex, 1);
+        register_mech(mechanism_info, nrn_alloc_func_in_breakpoint, nrn_cur_func_in_breakpoint, nrn_jacob_func_in_breakpoint, nrn_state_func_in_breakpoint, nrn_init_func_in_breakpoint, hoc_nrnpointerindex, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         _nrn_mechanism_register_data_fields(mech_type,
-            _nrn_mechanism_field<double>{"v_unused"} /* 0 */,
-            _nrn_mechanism_field<double>{"g_unused"} /* 1 */
+            _nrn_mechanism_field<double>{"il"} /* 0 */,
+            _nrn_mechanism_field<double>{"v_unused"} /* 1 */,
+            _nrn_mechanism_field<double>{"g_unused"} /* 2 */
         );
 
-        hoc_register_prop_size(mech_type, 2, 0);
+        hoc_register_prop_size(mech_type, 3, 0);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
     }
