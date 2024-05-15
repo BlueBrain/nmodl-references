@@ -229,7 +229,7 @@ namespace neuron {
     }
 
 
-    inline double nrn_current_ExpSyn2(size_t id, ExpSyn2_Instance& inst, ExpSyn2_NodeData& node_data, double v) {
+    inline double nrn_current_ExpSyn2(_nrn_mechanism_cache_range* _ml, NrnThread* _nt, Datum* _ppvar, Datum* _thread, size_t id, ExpSyn2_Instance& inst, ExpSyn2_NodeData& node_data, double v) {
         double current = 0.0;
         inst.i[id] = inst.g[id] * (v - inst.e[id]);
         current += inst.i[id];
@@ -248,8 +248,9 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             double v = node_data.node_voltages[node_id];
-            double I1 = nrn_current_ExpSyn2(id, inst, node_data, v+0.001);
-            double I0 = nrn_current_ExpSyn2(id, inst, node_data, v);
+            auto* _ppvar = _ml_arg->pdata[id];
+            double I1 = nrn_current_ExpSyn2(_ml, _nt, _ppvar, _thread, id, inst, node_data, v+0.001);
+            double I0 = nrn_current_ExpSyn2(_ml, _nt, _ppvar, _thread, id, inst, node_data, v);
             double rhs = I0;
             double g = (I1-I0)/0.001;
             double mfactor = 1.e2/(*inst.node_area[id]);
