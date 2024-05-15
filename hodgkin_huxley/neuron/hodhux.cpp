@@ -379,7 +379,7 @@ namespace neuron {
 
     inline int states_hodhux(_nrn_mechanism_cache_range* _ml, hodhux_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt) {
         int ret_states = 0;
-        auto v = inst.v_unused[id];
+        auto v = _nt ? _nt->node_voltage_storage()[id] : 0;
         rates_hodhux(_ml, inst, id, _ppvar, _thread, _nt, v);
         inst.m[id] = inst.m[id] + inst.mexp[id] * (inst.minf[id] - inst.m[id]);
         inst.h[id] = inst.h[id] + inst.hexp[id] * (inst.hinf[id] - inst.h[id]);
@@ -414,7 +414,7 @@ namespace neuron {
 
     inline double vtrap_hodhux(_nrn_mechanism_cache_range* _ml, hodhux_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double x, double y) {
         double ret_vtrap = 0.0;
-        auto v = inst.v_unused[id];
+        auto v = _nt ? _nt->node_voltage_storage()[id] : 0;
         if (fabs(x / y) < 1e-6) {
             ret_vtrap = y * (1.0 - x / y / 2.0);
         } else {
@@ -436,7 +436,6 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
-            inst.v_unused[id] = v;
             inst.ena[id] = (*inst.ion_ena[id]);
             inst.ek[id] = (*inst.ion_ek[id]);
             rates_hodhux(_ml, inst, id, _ppvar, _thread, _nt, v);
