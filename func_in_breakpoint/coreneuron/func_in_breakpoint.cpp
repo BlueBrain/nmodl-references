@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : leonhard
-Filename        : leonhard.mod
+Model Name      : func_in_breakpoint
+Filename        : func_in_breakpoint.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -36,10 +36,8 @@ namespace coreneuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "leonhard",
-        "c_leonhard",
+        "func_in_breakpoint",
         0,
-        "il_leonhard",
         0,
         0,
         0
@@ -47,30 +45,30 @@ namespace coreneuron {
 
 
     /** all global variables */
-    struct leonhard_Store {
+    struct func_in_breakpoint_Store {
         int reset{};
         int mech_type{};
+        double c{1};
     };
-    static_assert(std::is_trivially_copy_constructible_v<leonhard_Store>);
-    static_assert(std::is_trivially_move_constructible_v<leonhard_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<leonhard_Store>);
-    static_assert(std::is_trivially_move_assignable_v<leonhard_Store>);
-    static_assert(std::is_trivially_destructible_v<leonhard_Store>);
-    leonhard_Store leonhard_global;
+    static_assert(std::is_trivially_copy_constructible_v<func_in_breakpoint_Store>);
+    static_assert(std::is_trivially_move_constructible_v<func_in_breakpoint_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<func_in_breakpoint_Store>);
+    static_assert(std::is_trivially_move_assignable_v<func_in_breakpoint_Store>);
+    static_assert(std::is_trivially_destructible_v<func_in_breakpoint_Store>);
+    func_in_breakpoint_Store func_in_breakpoint_global;
 
 
     /** all mechanism instance variables and global variables */
-    struct leonhard_Instance  {
-        const double* c{};
-        double* il{};
+    struct func_in_breakpoint_Instance  {
         double* v_unused{};
         double* g_unused{};
-        leonhard_Store* global{&leonhard_global};
+        func_in_breakpoint_Store* global{&func_in_breakpoint_global};
     };
 
 
     /** connect global (scalar) variables to hoc -- */
     static DoubScal hoc_scalar_double[] = {
+        {"c_func_in_breakpoint", &func_in_breakpoint_global.c},
         {nullptr, nullptr}
     };
 
@@ -92,7 +90,7 @@ namespace coreneuron {
 
 
     static inline int float_variables_size() {
-        return 4;
+        return 2;
     }
 
 
@@ -102,7 +100,7 @@ namespace coreneuron {
 
 
     static inline int get_mech_type() {
-        return leonhard_global.mech_type;
+        return func_in_breakpoint_global.mech_type;
     }
 
 
@@ -132,25 +130,25 @@ namespace coreneuron {
     }
 
     // Allocate instance structure
-    static void nrn_private_constructor_leonhard(NrnThread* nt, Memb_list* ml, int type) {
+    static void nrn_private_constructor_func_in_breakpoint(NrnThread* nt, Memb_list* ml, int type) {
         assert(!ml->instance);
         assert(!ml->global_variables);
         assert(ml->global_variables_size == 0);
-        auto* const inst = new leonhard_Instance{};
-        assert(inst->global == &leonhard_global);
+        auto* const inst = new func_in_breakpoint_Instance{};
+        assert(inst->global == &func_in_breakpoint_global);
         ml->instance = inst;
         ml->global_variables = inst->global;
-        ml->global_variables_size = sizeof(leonhard_Store);
+        ml->global_variables_size = sizeof(func_in_breakpoint_Store);
     }
 
     // Deallocate the instance structure
-    static void nrn_private_destructor_leonhard(NrnThread* nt, Memb_list* ml, int type) {
-        auto* const inst = static_cast<leonhard_Instance*>(ml->instance);
+    static void nrn_private_destructor_func_in_breakpoint(NrnThread* nt, Memb_list* ml, int type) {
+        auto* const inst = static_cast<func_in_breakpoint_Instance*>(ml->instance);
         assert(inst);
         assert(inst->global);
-        assert(inst->global == &leonhard_global);
+        assert(inst->global == &func_in_breakpoint_global);
         assert(inst->global == ml->global_variables);
-        assert(ml->global_variables_size == sizeof(leonhard_Store));
+        assert(ml->global_variables_size == sizeof(func_in_breakpoint_Store));
         delete inst;
         ml->instance = nullptr;
         ml->global_variables = nullptr;
@@ -159,28 +157,26 @@ namespace coreneuron {
 
     /** initialize mechanism instance variables */
     static inline void setup_instance(NrnThread* nt, Memb_list* ml) {
-        auto* const inst = static_cast<leonhard_Instance*>(ml->instance);
+        auto* const inst = static_cast<func_in_breakpoint_Instance*>(ml->instance);
         assert(inst);
         assert(inst->global);
-        assert(inst->global == &leonhard_global);
+        assert(inst->global == &func_in_breakpoint_global);
         assert(inst->global == ml->global_variables);
-        assert(ml->global_variables_size == sizeof(leonhard_Store));
+        assert(ml->global_variables_size == sizeof(func_in_breakpoint_Store));
         int pnodecount = ml->_nodecount_padded;
         Datum* indexes = ml->pdata;
-        inst->c = ml->data+0*pnodecount;
-        inst->il = ml->data+1*pnodecount;
-        inst->v_unused = ml->data+2*pnodecount;
-        inst->g_unused = ml->data+3*pnodecount;
+        inst->v_unused = ml->data+0*pnodecount;
+        inst->g_unused = ml->data+1*pnodecount;
     }
 
 
 
-    static void nrn_alloc_leonhard(double* data, Datum* indexes, int type) {
+    static void nrn_alloc_func_in_breakpoint(double* data, Datum* indexes, int type) {
         // do nothing
     }
 
 
-    void nrn_constructor_leonhard(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_constructor_func_in_breakpoint(NrnThread* nt, Memb_list* ml, int type) {
         #ifndef CORENEURON_BUILD
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
@@ -189,13 +185,13 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<leonhard_Instance*>(ml->instance);
+        auto* const inst = static_cast<func_in_breakpoint_Instance*>(ml->instance);
 
         #endif
     }
 
 
-    void nrn_destructor_leonhard(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_destructor_func_in_breakpoint(NrnThread* nt, Memb_list* ml, int type) {
         #ifndef CORENEURON_BUILD
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
@@ -204,14 +200,37 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<leonhard_Instance*>(ml->instance);
+        auto* const inst = static_cast<func_in_breakpoint_Instance*>(ml->instance);
 
         #endif
+    }
+
+
+    inline int func_func_in_breakpoint(int id, int pnodecount, func_in_breakpoint_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline int func_with_v_func_in_breakpoint(int id, int pnodecount, func_in_breakpoint_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v);
+    inline int func_with_other_func_in_breakpoint(int id, int pnodecount, func_in_breakpoint_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double q);
+
+
+    inline int func_func_in_breakpoint(int id, int pnodecount, func_in_breakpoint_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
+        int ret_func = 0;
+        return ret_func;
+    }
+
+
+    inline int func_with_v_func_in_breakpoint(int id, int pnodecount, func_in_breakpoint_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v) {
+        int ret_func_with_v = 0;
+        return ret_func_with_v;
+    }
+
+
+    inline int func_with_other_func_in_breakpoint(int id, int pnodecount, func_in_breakpoint_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double q) {
+        int ret_func_with_other = 0;
+        return ret_func_with_other;
     }
 
 
     /** initialize channel */
-    void nrn_init_leonhard(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_init_func_in_breakpoint(NrnThread* nt, Memb_list* ml, int type) {
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
         const int* node_index = ml->nodeindices;
@@ -221,7 +240,7 @@ namespace coreneuron {
         ThreadDatum* thread = ml->_thread;
 
         setup_instance(nt, ml);
-        auto* const inst = static_cast<leonhard_Instance*>(ml->instance);
+        auto* const inst = static_cast<func_in_breakpoint_Instance*>(ml->instance);
 
         if (_nrn_skip_initmodel == 0) {
             #pragma omp simd
@@ -237,49 +256,8 @@ namespace coreneuron {
     }
 
 
-    inline double nrn_current_leonhard(int id, int pnodecount, leonhard_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
-        double current = 0.0;
-        inst->il[id] = inst->c[id] * (v - 1.5);
-        current += inst->il[id];
-        return current;
-    }
-
-
-    /** update current */
-    void nrn_cur_leonhard(NrnThread* nt, Memb_list* ml, int type) {
-        int nodecount = ml->nodecount;
-        int pnodecount = ml->_nodecount_padded;
-        const int* node_index = ml->nodeindices;
-        double* data = ml->data;
-        const double* voltage = nt->_actual_v;
-        double* vec_rhs = nt->_actual_rhs;
-        double* vec_d = nt->_actual_d;
-        Datum* indexes = ml->pdata;
-        ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<leonhard_Instance*>(ml->instance);
-
-        #pragma omp simd
-        #pragma ivdep
-        for (int id = 0; id < nodecount; id++) {
-            int node_id = node_index[id];
-            double v = voltage[node_id];
-            #if NRN_PRCELLSTATE
-            inst->v_unused[id] = v;
-            #endif
-            double g = nrn_current_leonhard(id, pnodecount, inst, data, indexes, thread, nt, v+0.001);
-            double rhs = nrn_current_leonhard(id, pnodecount, inst, data, indexes, thread, nt, v);
-            g = (g-rhs)/0.001;
-            #if NRN_PRCELLSTATE
-            inst->g_unused[id] = g;
-            #endif
-            vec_rhs[node_id] -= rhs;
-            vec_d[node_id] += g;
-        }
-    }
-
-
     /** update state */
-    void nrn_state_leonhard(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_state_func_in_breakpoint(NrnThread* nt, Memb_list* ml, int type) {
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
         const int* node_index = ml->nodeindices;
@@ -287,7 +265,7 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<leonhard_Instance*>(ml->instance);
+        auto* const inst = static_cast<func_in_breakpoint_Instance*>(ml->instance);
 
         #pragma omp simd
         #pragma ivdep
@@ -297,21 +275,24 @@ namespace coreneuron {
             #if NRN_PRCELLSTATE
             inst->v_unused[id] = v;
             #endif
+            func_func_in_breakpoint(id, pnodecount, inst, data, indexes, thread, nt, v);
+            func_with_v_func_in_breakpoint(id, pnodecount, inst, data, indexes, thread, nt, v, v);
+            func_with_other_func_in_breakpoint(id, pnodecount, inst, data, indexes, thread, nt, v, inst->global->c);
         }
     }
 
 
     /** register channel with the simulator */
-    void _leonhard_reg() {
+    void _func_in_breakpoint_reg() {
 
-        int mech_type = nrn_get_mechtype("leonhard");
-        leonhard_global.mech_type = mech_type;
+        int mech_type = nrn_get_mechtype("func_in_breakpoint");
+        func_in_breakpoint_global.mech_type = mech_type;
         if (mech_type == -1) {
             return;
         }
 
         _nrn_layout_reg(mech_type, 0);
-        register_mech(mechanism_info, nrn_alloc_leonhard, nrn_cur_leonhard, nullptr, nrn_state_leonhard, nrn_init_leonhard, nrn_private_constructor_leonhard, nrn_private_destructor_leonhard, first_pointer_var_index(), 1);
+        register_mech(mechanism_info, nrn_alloc_func_in_breakpoint, nullptr, nullptr, nrn_state_func_in_breakpoint, nrn_init_func_in_breakpoint, nrn_private_constructor_func_in_breakpoint, nrn_private_destructor_func_in_breakpoint, first_pointer_var_index(), 1);
 
         hoc_register_prop_size(mech_type, float_variables_size(), int_variables_size());
         hoc_register_var(hoc_scalar_double, hoc_vector_double, NULL);

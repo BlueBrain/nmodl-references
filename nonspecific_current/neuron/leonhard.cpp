@@ -147,9 +147,6 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
-    inline int func_leonhard(_nrn_mechanism_cache_range* _ml, leonhard_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
-    inline int func_with_v_leonhard(_nrn_mechanism_cache_range* _ml, leonhard_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double v);
-    inline int func_with_other_leonhard(_nrn_mechanism_cache_range* _ml, leonhard_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double q);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -165,146 +162,15 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_func(void);
-    static void _hoc_func_with_v(void);
-    static void _hoc_func_with_other(void);
-    static double _npy_func(Prop*);
-    static double _npy_func_with_v(Prop*);
-    static double _npy_func_with_other(Prop*);
 
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
         {"setdata_leonhard", _hoc_setdata},
-        {"func_leonhard", _hoc_func},
-        {"func_with_v_leonhard", _hoc_func_with_v},
-        {"func_with_other_leonhard", _hoc_func_with_other},
         {0, 0}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
-        {"func", _npy_func},
-        {"func_with_v", _npy_func_with_v},
-        {"func_with_other", _npy_func_with_other},
     };
-    static void _hoc_func(void) {
-        double _r{};
-        Datum* _ppvar;
-        Datum* _thread;
-        NrnThread* _nt;
-        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
-        _nrn_mechanism_cache_instance _ml_real{_local_prop};
-        auto* const _ml = &_ml_real;
-        size_t const id{};
-        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
-        _thread = _extcall_thread.data();
-        _nt = nrn_threads;
-        auto inst = make_instance_leonhard(_ml_real);
-        _r = 1.;
-        func_leonhard(_ml, inst, id, _ppvar, _thread, _nt);
-        hoc_retpushx(_r);
-    }
-    static double _npy_func(Prop* _prop) {
-        double _r{};
-        Datum* _ppvar;
-        Datum* _thread;
-        NrnThread* _nt;
-        _nrn_mechanism_cache_instance _ml_real{_prop};
-        auto* const _ml = &_ml_real;
-        size_t const id{};
-        _ppvar = _nrn_mechanism_access_dparam(_prop);
-        _thread = _extcall_thread.data();
-        _nt = nrn_threads;
-        auto inst = make_instance_leonhard(_ml_real);
-        _r = 1.;
-        func_leonhard(_ml, inst, id, _ppvar, _thread, _nt);
-        return(_r);
-    }
-    static void _hoc_func_with_v(void) {
-        double _r{};
-        Datum* _ppvar;
-        Datum* _thread;
-        NrnThread* _nt;
-        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
-        _nrn_mechanism_cache_instance _ml_real{_local_prop};
-        auto* const _ml = &_ml_real;
-        size_t const id{};
-        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
-        _thread = _extcall_thread.data();
-        _nt = nrn_threads;
-        auto inst = make_instance_leonhard(_ml_real);
-        _r = 1.;
-        func_with_v_leonhard(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
-        hoc_retpushx(_r);
-    }
-    static double _npy_func_with_v(Prop* _prop) {
-        double _r{};
-        Datum* _ppvar;
-        Datum* _thread;
-        NrnThread* _nt;
-        _nrn_mechanism_cache_instance _ml_real{_prop};
-        auto* const _ml = &_ml_real;
-        size_t const id{};
-        _ppvar = _nrn_mechanism_access_dparam(_prop);
-        _thread = _extcall_thread.data();
-        _nt = nrn_threads;
-        auto inst = make_instance_leonhard(_ml_real);
-        _r = 1.;
-        func_with_v_leonhard(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
-        return(_r);
-    }
-    static void _hoc_func_with_other(void) {
-        double _r{};
-        Datum* _ppvar;
-        Datum* _thread;
-        NrnThread* _nt;
-        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
-        _nrn_mechanism_cache_instance _ml_real{_local_prop};
-        auto* const _ml = &_ml_real;
-        size_t const id{};
-        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
-        _thread = _extcall_thread.data();
-        _nt = nrn_threads;
-        auto inst = make_instance_leonhard(_ml_real);
-        _r = 1.;
-        func_with_other_leonhard(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
-        hoc_retpushx(_r);
-    }
-    static double _npy_func_with_other(Prop* _prop) {
-        double _r{};
-        Datum* _ppvar;
-        Datum* _thread;
-        NrnThread* _nt;
-        _nrn_mechanism_cache_instance _ml_real{_prop};
-        auto* const _ml = &_ml_real;
-        size_t const id{};
-        _ppvar = _nrn_mechanism_access_dparam(_prop);
-        _thread = _extcall_thread.data();
-        _nt = nrn_threads;
-        auto inst = make_instance_leonhard(_ml_real);
-        _r = 1.;
-        func_with_other_leonhard(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
-        return(_r);
-    }
-
-
-    inline int func_leonhard(_nrn_mechanism_cache_range* _ml, leonhard_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt) {
-        int ret_func = 0;
-        auto v = inst.v_unused[id];
-        return ret_func;
-    }
-
-
-    inline int func_with_v_leonhard(_nrn_mechanism_cache_range* _ml, leonhard_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double v) {
-        int ret_func_with_v = 0;
-        return ret_func_with_v;
-    }
-
-
-    inline int func_with_other_leonhard(_nrn_mechanism_cache_range* _ml, leonhard_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double q) {
-        int ret_func_with_other = 0;
-        auto v = inst.v_unused[id];
-        return ret_func_with_other;
-    }
 
 
     void nrn_init_leonhard(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
@@ -330,9 +196,6 @@ namespace neuron {
         auto* _thread = _ml_arg->_thread;
         auto* _ppvar = _ml_arg->pdata[id];
         double current = 0.0;
-        func_leonhard(_ml, inst, id, _ppvar, _thread, _nt);
-        func_with_v_leonhard(_ml, inst, id, _ppvar, _thread, _nt, v);
-        func_with_other_leonhard(_ml, inst, id, _ppvar, _thread, _nt, inst.c[id]);
         inst.il[id] = inst.c[id] * (v - 1.5);
         current += inst.il[id];
         return current;
