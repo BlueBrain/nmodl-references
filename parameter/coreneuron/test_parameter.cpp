@@ -38,6 +38,7 @@ namespace coreneuron {
         "7.7.0",
         "test_parameter",
         "x",
+        "y",
         0,
         0,
         0,
@@ -62,6 +63,7 @@ namespace coreneuron {
     /** all mechanism instance variables and global variables */
     struct test_parameter_Instance  {
         const double* x{};
+        double* y{};
         double* v_unused{};
         const double* node_area{};
         const int* point_process{};
@@ -92,7 +94,7 @@ namespace coreneuron {
 
 
     static inline int float_variables_size() {
-        return 2;
+        return 3;
     }
 
 
@@ -168,7 +170,8 @@ namespace coreneuron {
         int pnodecount = ml->_nodecount_padded;
         Datum* indexes = ml->pdata;
         inst->x = ml->data+0*pnodecount;
-        inst->v_unused = ml->data+1*pnodecount;
+        inst->y = ml->data+1*pnodecount;
+        inst->v_unused = ml->data+2*pnodecount;
         inst->node_area = nt->_data;
         inst->point_process = ml->pdata;
     }
@@ -232,6 +235,7 @@ namespace coreneuron {
                 #if NRN_PRCELLSTATE
                 inst->v_unused[id] = v;
                 #endif
+                inst->y[id] = 43.0;
             }
         }
     }

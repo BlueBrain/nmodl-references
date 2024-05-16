@@ -24,7 +24,7 @@ NMODL Compiler  : VERSION
 #define NRN_VECTORIZED 1
 
 static constexpr auto number_of_datum_variables = 2;
-static constexpr auto number_of_floating_point_variables = 2;
+static constexpr auto number_of_floating_point_variables = 3;
 
 namespace {
 template <typename T>
@@ -55,6 +55,7 @@ namespace neuron {
         "7.7.0",
         "test_parameter",
         "x",
+        "y",
         0,
         0,
         0,
@@ -83,6 +84,7 @@ namespace neuron {
     /** all mechanism instance variables and global variables */
     struct test_parameter_Instance  {
         double* x{};
+        double* y{};
         double* v_unused{};
         const double* const* node_area{};
         test_parameter_Store* global{&test_parameter_global};
@@ -102,6 +104,7 @@ namespace neuron {
         return test_parameter_Instance {
             _ml.template fpfield_ptr<0>(),
             _ml.template fpfield_ptr<1>(),
+            _ml.template fpfield_ptr<2>(),
             _ml.template dptr_field_ptr<0>()
         };
     }
@@ -130,9 +133,10 @@ namespace neuron {
             _nrn_mechanism_cache_instance _ml_real{_prop};
             auto* const _ml = &_ml_real;
             size_t const _iml{};
-            assert(_nrn_mechanism_get_num_vars(_prop) == 2);
+            assert(_nrn_mechanism_get_num_vars(_prop) == 3);
             /*initialize range parameters*/
             _ml->template fpfield<0>(_iml) = 42; /* x */
+            _ml->template fpfield<1>(_iml) = 0; /* y */
         }
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
     }
@@ -206,6 +210,7 @@ namespace neuron {
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
             inst.v_unused[id] = v;
+            inst.y[id] = 43.0;
         }
     }
 
@@ -236,12 +241,13 @@ namespace neuron {
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         _nrn_mechanism_register_data_fields(mech_type,
             _nrn_mechanism_field<double>{"x"} /* 0 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 1 */,
+            _nrn_mechanism_field<double>{"y"} /* 1 */,
+            _nrn_mechanism_field<double>{"v_unused"} /* 2 */,
             _nrn_mechanism_field<double*>{"node_area", "area"} /* 0 */,
             _nrn_mechanism_field<Point_process*>{"point_process", "pntproc"} /* 1 */
         );
 
-        hoc_register_prop_size(mech_type, 2, 2);
+        hoc_register_prop_size(mech_type, 3, 2);
         hoc_register_dparam_semantics(mech_type, 0, "area");
         hoc_register_dparam_semantics(mech_type, 1, "pntproc");
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
