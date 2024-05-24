@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : art_toggle
-Filename        : art_toggle.mod
+Model Name      : art_spiker
+Filename        : art_spiker.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -36,9 +36,10 @@ namespace coreneuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "art_toggle",
+        "art_spiker",
         0,
         "y",
+        "z",
         0,
         0,
         0
@@ -46,28 +47,29 @@ namespace coreneuron {
 
 
     /** all global variables */
-    struct art_toggle_Store {
+    struct art_spiker_Store {
         int point_type{};
         int reset{};
         int mech_type{};
     };
-    static_assert(std::is_trivially_copy_constructible_v<art_toggle_Store>);
-    static_assert(std::is_trivially_move_constructible_v<art_toggle_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<art_toggle_Store>);
-    static_assert(std::is_trivially_move_assignable_v<art_toggle_Store>);
-    static_assert(std::is_trivially_destructible_v<art_toggle_Store>);
-    art_toggle_Store art_toggle_global;
+    static_assert(std::is_trivially_copy_constructible_v<art_spiker_Store>);
+    static_assert(std::is_trivially_move_constructible_v<art_spiker_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<art_spiker_Store>);
+    static_assert(std::is_trivially_move_assignable_v<art_spiker_Store>);
+    static_assert(std::is_trivially_destructible_v<art_spiker_Store>);
+    art_spiker_Store art_spiker_global;
 
 
     /** all mechanism instance variables and global variables */
-    struct art_toggle_Instance  {
+    struct art_spiker_Instance  {
         double* y{};
+        double* z{};
         double* v_unused{};
         double* tsave{};
         const double* node_area{};
         void** point_process{};
         void** tqitem{};
-        art_toggle_Store* global{&art_toggle_global};
+        art_spiker_Store* global{&art_spiker_global};
     };
 
 
@@ -99,7 +101,7 @@ namespace coreneuron {
 
 
     static inline int float_variables_size() {
-        return 3;
+        return 4;
     }
 
 
@@ -109,7 +111,7 @@ namespace coreneuron {
 
 
     static inline int get_mech_type() {
-        return art_toggle_global.mech_type;
+        return art_spiker_global.mech_type;
     }
 
 
@@ -139,25 +141,25 @@ namespace coreneuron {
     }
 
     // Allocate instance structure
-    static void nrn_private_constructor_art_toggle(NrnThread* nt, Memb_list* ml, int type) {
+    static void nrn_private_constructor_art_spiker(NrnThread* nt, Memb_list* ml, int type) {
         assert(!ml->instance);
         assert(!ml->global_variables);
         assert(ml->global_variables_size == 0);
-        auto* const inst = new art_toggle_Instance{};
-        assert(inst->global == &art_toggle_global);
+        auto* const inst = new art_spiker_Instance{};
+        assert(inst->global == &art_spiker_global);
         ml->instance = inst;
         ml->global_variables = inst->global;
-        ml->global_variables_size = sizeof(art_toggle_Store);
+        ml->global_variables_size = sizeof(art_spiker_Store);
     }
 
     // Deallocate the instance structure
-    static void nrn_private_destructor_art_toggle(NrnThread* nt, Memb_list* ml, int type) {
-        auto* const inst = static_cast<art_toggle_Instance*>(ml->instance);
+    static void nrn_private_destructor_art_spiker(NrnThread* nt, Memb_list* ml, int type) {
+        auto* const inst = static_cast<art_spiker_Instance*>(ml->instance);
         assert(inst);
         assert(inst->global);
-        assert(inst->global == &art_toggle_global);
+        assert(inst->global == &art_spiker_global);
         assert(inst->global == ml->global_variables);
-        assert(ml->global_variables_size == sizeof(art_toggle_Store));
+        assert(ml->global_variables_size == sizeof(art_spiker_Store));
         delete inst;
         ml->instance = nullptr;
         ml->global_variables = nullptr;
@@ -166,17 +168,18 @@ namespace coreneuron {
 
     /** initialize mechanism instance variables */
     static inline void setup_instance(NrnThread* nt, Memb_list* ml) {
-        auto* const inst = static_cast<art_toggle_Instance*>(ml->instance);
+        auto* const inst = static_cast<art_spiker_Instance*>(ml->instance);
         assert(inst);
         assert(inst->global);
-        assert(inst->global == &art_toggle_global);
+        assert(inst->global == &art_spiker_global);
         assert(inst->global == ml->global_variables);
-        assert(ml->global_variables_size == sizeof(art_toggle_Store));
+        assert(ml->global_variables_size == sizeof(art_spiker_Store));
         int pnodecount = ml->_nodecount_padded;
         Datum* indexes = ml->pdata;
         inst->y = ml->data+0*pnodecount;
-        inst->v_unused = ml->data+1*pnodecount;
-        inst->tsave = ml->data+2*pnodecount;
+        inst->z = ml->data+1*pnodecount;
+        inst->v_unused = ml->data+2*pnodecount;
+        inst->tsave = ml->data+3*pnodecount;
         inst->node_area = nt->_data;
         inst->point_process = nt->_vdata;
         inst->tqitem = nt->_vdata;
@@ -184,12 +187,12 @@ namespace coreneuron {
 
 
 
-    static void nrn_alloc_art_toggle(double* data, Datum* indexes, int type) {
+    static void nrn_alloc_art_spiker(double* data, Datum* indexes, int type) {
         // do nothing
     }
 
 
-    void nrn_constructor_art_toggle(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_constructor_art_spiker(NrnThread* nt, Memb_list* ml, int type) {
         #ifndef CORENEURON_BUILD
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
@@ -198,13 +201,13 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<art_toggle_Instance*>(ml->instance);
+        auto* const inst = static_cast<art_spiker_Instance*>(ml->instance);
 
         #endif
     }
 
 
-    void nrn_destructor_art_toggle(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_destructor_art_spiker(NrnThread* nt, Memb_list* ml, int type) {
         #ifndef CORENEURON_BUILD
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
@@ -213,13 +216,13 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<art_toggle_Instance*>(ml->instance);
+        auto* const inst = static_cast<art_spiker_Instance*>(ml->instance);
 
         #endif
     }
 
 
-    static inline void net_receive_art_toggle(Point_process* pnt, int weight_index, double flag) {
+    static inline void net_receive_art_spiker(Point_process* pnt, int weight_index, double flag) {
         int tid = pnt->_tid;
         int id = pnt->_i_instance;
         double v = 0;
@@ -231,21 +234,24 @@ namespace coreneuron {
         double* weights = nt->weights;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<art_toggle_Instance*>(ml->instance);
+        auto* const inst = static_cast<art_spiker_Instance*>(ml->instance);
 
         double t = nt->_t;
         inst->tsave[id] = t;
         {
-            inst->y[id] = inst->y[id] + 1.0;
-            if (t < 3.7) {
-                artcell_net_send(&inst->tqitem[indexes[2*pnodecount + id]], weight_index, pnt, nt->_t+4.501 - t, 1.0);
+            if (flag == 0.0) {
+                inst->y[id] = inst->y[id] + 1.0;
+                artcell_net_move(&inst->tqitem[indexes[2*pnodecount + id]], pnt, t + 0.1);
+            } else {
+                inst->z[id] = inst->z[id] + 1.0;
+                artcell_net_send(&inst->tqitem[indexes[2*pnodecount + id]], weight_index, pnt, nt->_t+2.0, 1.0);
             }
         }
     }
 
 
     /** initialize channel */
-    void nrn_init_art_toggle(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_init_art_spiker(NrnThread* nt, Memb_list* ml, int type) {
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
         const int* node_index = ml->nodeindices;
@@ -255,7 +261,7 @@ namespace coreneuron {
         ThreadDatum* thread = ml->_thread;
 
         setup_instance(nt, ml);
-        auto* const inst = static_cast<art_toggle_Instance*>(ml->instance);
+        auto* const inst = static_cast<art_spiker_Instance*>(ml->instance);
 
         if (_nrn_skip_initmodel == 0) {
             #pragma omp simd
@@ -264,30 +270,31 @@ namespace coreneuron {
                 inst->tsave[id] = -1e20;
                 double v = 0.0;
                 inst->y[id] = 0.0;
-                artcell_net_send(&inst->tqitem[indexes[2*pnodecount + id]], 0, (Point_process*)inst->point_process[indexes[1*pnodecount + id]], nt->_t+2.501, 1.0);
+                inst->z[id] = 0.0;
+                artcell_net_send(&inst->tqitem[indexes[2*pnodecount + id]], 0, (Point_process*)inst->point_process[indexes[1*pnodecount + id]], nt->_t+1.8, 1.0);
             }
         }
     }
 
 
     /** register channel with the simulator */
-    void _art_toggle_reg() {
+    void _art_spiker_reg() {
 
-        int mech_type = nrn_get_mechtype("art_toggle");
-        art_toggle_global.mech_type = mech_type;
+        int mech_type = nrn_get_mechtype("art_spiker");
+        art_spiker_global.mech_type = mech_type;
         if (mech_type == -1) {
             return;
         }
 
         _nrn_layout_reg(mech_type, 0);
-        point_register_mech(mechanism_info, nrn_alloc_art_toggle, nullptr, nullptr, nullptr, nrn_init_art_toggle, nrn_private_constructor_art_toggle, nrn_private_destructor_art_toggle, first_pointer_var_index(), nullptr, nullptr, 1);
+        point_register_mech(mechanism_info, nrn_alloc_art_spiker, nullptr, nullptr, nullptr, nrn_init_art_spiker, nrn_private_constructor_art_spiker, nrn_private_destructor_art_spiker, first_pointer_var_index(), nullptr, nullptr, 1);
 
         hoc_register_prop_size(mech_type, float_variables_size(), int_variables_size());
         hoc_register_dparam_semantics(mech_type, 0, "area");
         hoc_register_dparam_semantics(mech_type, 1, "pntproc");
         hoc_register_dparam_semantics(mech_type, 2, "netsend");
         add_nrn_artcell(mech_type, 2);
-        set_pnt_receive(mech_type, net_receive_art_toggle, nullptr, num_net_receive_args());
+        set_pnt_receive(mech_type, net_receive_art_spiker, nullptr, num_net_receive_args());
         hoc_register_net_send_buffering(mech_type);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, NULL);
     }
