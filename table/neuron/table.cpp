@@ -80,7 +80,7 @@ namespace neuron {
         double usetable{1};
         double tmin_sigmoid1{};
         double mfac_sigmoid1{};
-        double t_sig[101]{};
+        double t_sig[156]{};
         double k{0.1};
         double d{-50};
     };
@@ -164,12 +164,12 @@ namespace neuron {
     }
     /* Mechanism procedures and functions */
     inline int sigmoid1_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double v);
-    void check_sigmoid1_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
+    void lazy_update_sigmoid1_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
     static void _check_table_thread(Memb_list* _ml, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, int _type, _nrn_model_sorted_token const& _sorted_token)
 {
         _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml, _type};
         auto inst = make_instance_tbl(_lmr);
-        check_sigmoid1_tbl(&_lmr, inst, id, _ppvar, _thread, _nt);
+        lazy_update_sigmoid1_tbl(&_lmr, inst, id, _ppvar, _thread, _nt);
     }
 
 
@@ -215,7 +215,7 @@ namespace neuron {
         _thread = _extcall_thread.data();
         _nt = nrn_threads;
         auto inst = make_instance_tbl(_ml_real);
-        check_sigmoid1_tbl(_ml, inst, id, _ppvar, _thread, _nt);
+        lazy_update_sigmoid1_tbl(_ml, inst, id, _ppvar, _thread, _nt);
         _r = 1.;
         sigmoid1_tbl(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
         hoc_retpushx(_r);
@@ -232,21 +232,21 @@ namespace neuron {
         _thread = _extcall_thread.data();
         _nt = nrn_threads;
         auto inst = make_instance_tbl(_ml_real);
-        check_sigmoid1_tbl(_ml, inst, id, _ppvar, _thread, _nt);
+        lazy_update_sigmoid1_tbl(_ml, inst, id, _ppvar, _thread, _nt);
         _r = 1.;
         sigmoid1_tbl(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
         return(_r);
     }
 
 
-    inline int f_sigmoid1_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double v) {
+    static inline int f_sigmoid1_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double v) {
         int ret_f_sigmoid1 = 0;
         inst.sig[id] = 1.0 / (1.0 + exp(inst.global->k * (v - inst.global->d)));
         return ret_f_sigmoid1;
     }
 
 
-    void check_sigmoid1_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt) {
+    void lazy_update_sigmoid1_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt) {
         if (inst.global->usetable == 0) {
             return;
         }
@@ -261,12 +261,12 @@ namespace neuron {
         }
         if (make_table) {
             make_table = false;
-            inst.global->tmin_sigmoid1 =  -100.0;
-            double tmax = 100.0;
-            double dx = (tmax-inst.global->tmin_sigmoid1) / 100.;
+            inst.global->tmin_sigmoid1 =  -127.0;
+            double tmax = 128.0;
+            double dx = (tmax-inst.global->tmin_sigmoid1) / 155.;
             inst.global->mfac_sigmoid1 = 1./dx;
             double x = inst.global->tmin_sigmoid1;
-            for (std::size_t i = 0; i < 101; x += dx, i++) {
+            for (std::size_t i = 0; i < 156; x += dx, i++) {
                 f_sigmoid1_tbl(_ml, inst, id, _ppvar, _thread, _nt, x);
                 inst.global->t_sig[i] = inst.sig[id];
             }
@@ -286,8 +286,8 @@ namespace neuron {
             inst.sig[id] = xi;
             return 0;
         }
-        if (xi <= 0. || xi >= 100.) {
-            int index = (xi <= 0.) ? 0 : 100;
+        if (xi <= 0. || xi >= 155.) {
+            int index = (xi <= 0.) ? 0 : 155;
             inst.sig[id] = inst.global->t_sig[index];
             return 0;
         }
@@ -306,9 +306,8 @@ namespace neuron {
         auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
-            
-            int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
+            int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
             inst.v_unused[id] = v;
         }
@@ -342,7 +341,6 @@ namespace neuron {
             double rhs = I0;
             double g = (I1-I0)/0.001;
             node_data.node_rhs[node_id] -= rhs;
-            // remember the conductances so we can set them later
             inst.g_unused[id] = g;
         }
     }
@@ -356,7 +354,6 @@ namespace neuron {
         auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
-            
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
@@ -364,14 +361,12 @@ namespace neuron {
     }
 
 
-    /** nrn_jacob function */
     static void nrn_jacob_tbl(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
         auto inst = make_instance_tbl(_lmr);
         auto node_data = make_node_data_tbl(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
-            // set conductances properly
             int node_id = node_data.nodeindices[id];
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }

@@ -190,9 +190,8 @@ namespace neuron {
         auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
-            
-            int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
+            int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
             inst.v_unused[id] = v;
             inst.ina[id] = (*inst.ion_ina[id]);
@@ -209,7 +208,6 @@ namespace neuron {
         auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
-            
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
@@ -220,14 +218,12 @@ namespace neuron {
     }
 
 
-    /** nrn_jacob function */
     static void nrn_jacob_ionic(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
         auto inst = make_instance_ionic(_lmr);
         auto node_data = make_node_data_ionic(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
-            // set conductances properly
             int node_id = node_data.nodeindices[id];
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }

@@ -57,7 +57,7 @@ namespace coreneuron {
         double usetable{1};
         double tmin_sigmoid1{};
         double mfac_sigmoid1{};
-        double t_sig[101]{};
+        double t_sig[156]{};
     };
     static_assert(std::is_trivially_copy_constructible_v<tbl_Store>);
     static_assert(std::is_trivially_move_constructible_v<tbl_Store>);
@@ -237,7 +237,7 @@ namespace coreneuron {
     }
 
 
-    void check_sigmoid1_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
+    void lazy_update_sigmoid1_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
         if (inst->global->usetable == 0) {
             return;
         }
@@ -252,12 +252,12 @@ namespace coreneuron {
         }
         if (make_table) {
             make_table = false;
-            inst->global->tmin_sigmoid1 =  -100.0;
-            double tmax = 100.0;
-            double dx = (tmax-inst->global->tmin_sigmoid1) / 100.;
+            inst->global->tmin_sigmoid1 =  -127.0;
+            double tmax = 128.0;
+            double dx = (tmax-inst->global->tmin_sigmoid1) / 155.;
             inst->global->mfac_sigmoid1 = 1./dx;
             double x = inst->global->tmin_sigmoid1;
-            for (std::size_t i = 0; i < 101; x += dx, i++) {
+            for (std::size_t i = 0; i < 156; x += dx, i++) {
                 f_sigmoid1_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, x);
                 inst->global->t_sig[i] = inst->sig[id];
             }
@@ -277,8 +277,8 @@ namespace coreneuron {
             inst->sig[id] = xi;
             return 0;
         }
-        if (xi <= 0. || xi >= 100.) {
-            int index = (xi <= 0.) ? 0 : 100;
+        if (xi <= 0. || xi >= 155.) {
+            int index = (xi <= 0.) ? 0 : 155;
             inst->sig[id] = inst->global->t_sig[index];
             return 0;
         }
