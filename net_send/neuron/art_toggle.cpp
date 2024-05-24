@@ -54,8 +54,8 @@ namespace neuron {
     static const char *mechanism_info[] = {
         "7.7.0",
         "art_toggle",
-        "y",
         0,
+        "y",
         0,
         0,
         0
@@ -135,7 +135,6 @@ namespace neuron {
             size_t const _iml{};
             assert(_nrn_mechanism_get_num_vars(_prop) == 3);
             /*initialize range parameters*/
-            _ml->template fpfield<0>(_iml) = 0; /* y */
         }
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
     }
@@ -206,7 +205,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             inst.y[id] = 0.0;
-            net_send(/* tqitem */ &_ppvar[2], nullptr, _ppvar[1].get<Point_process*>(), _nt->_t + 1.5, 1.0);
+            net_send(/* tqitem */ &_ppvar[2], nullptr, _ppvar[1].get<Point_process*>(), _nt->_t + 2.501, 1.0);
         }
     }
 
@@ -223,10 +222,14 @@ namespace neuron {
         _nrn_mechanism_cache_instance _ml_obj{_pnt->prop};
         auto * _nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto * _ml = &_ml_obj;
+        auto * _ppvar = _nrn_mechanism_access_dparam(_pnt->prop);
         auto inst = make_instance_art_toggle(_ml_obj);
         size_t id = 0;
         double t = _nt->_t;
-        inst.y[id] = 1.0;
+        inst.y[id] = inst.y[id] + 1.0;
+        if (_nt->_t < 3.7) {
+            net_send(/* tqitem */ &_ppvar[2], nullptr, _pnt, _nt->_t + 4.501 - _nt->_t, 1.0);
+        }
 
     }
 

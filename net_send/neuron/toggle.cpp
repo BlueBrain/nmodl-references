@@ -208,7 +208,7 @@ namespace neuron {
             auto v = node_data.node_voltages[node_id];
             inst.v_unused[id] = v;
             inst.y[id] = 0.0;
-            net_send(/* tqitem */ &_ppvar[2], nullptr, _ppvar[1].get<Point_process*>(), _nt->_t + 2.0, 1.0);
+            net_send(/* tqitem */ &_ppvar[2], nullptr, _ppvar[1].get<Point_process*>(), _nt->_t + 2.001, 1.0);
         }
     }
 
@@ -225,10 +225,14 @@ namespace neuron {
         _nrn_mechanism_cache_instance _ml_obj{_pnt->prop};
         auto * _nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto * _ml = &_ml_obj;
+        auto * _ppvar = _nrn_mechanism_access_dparam(_pnt->prop);
         auto inst = make_instance_toggle(_ml_obj);
         size_t id = 0;
         double t = _nt->_t;
-        inst.y[id] = 1.0;
+        inst.y[id] = inst.y[id] + 1.0;
+        if (_nt->_t < 3.7) {
+            net_send(/* tqitem */ &_ppvar[2], nullptr, _pnt, _nt->_t + 4.001 - _nt->_t, 1.0);
+        }
 
     }
 
