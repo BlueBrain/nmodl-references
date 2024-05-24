@@ -386,7 +386,7 @@ namespace coreneuron {
         setup_instance(nt, ml);
         auto* const inst = static_cast<tbl_Instance*>(ml->instance);
         double v = 0;
-        check_sigmoid1_tbl(id, pnodecount, inst, data, indexes, thread, nt, v);
+        lazy_update_sigmoid1_tbl(id, pnodecount, inst, data, indexes, thread, nt, v);
     }
 
 
