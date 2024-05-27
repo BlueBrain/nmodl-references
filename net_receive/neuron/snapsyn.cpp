@@ -284,6 +284,7 @@ namespace neuron {
         _nrn_mechanism_cache_instance _ml_obj{_pnt->prop};
         auto * _nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto * _ml = &_ml_obj;
+        auto * _ppvar = _nrn_mechanism_access_dparam(_pnt->prop);
         auto inst = make_instance_SnapSyn(_ml_obj);
         size_t id = 0;
         double t = _nt->_t;
