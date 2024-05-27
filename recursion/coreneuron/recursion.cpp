@@ -202,32 +202,7 @@ namespace coreneuron {
     }
 
 
-    inline double f_simple_recursion(int id, int pnodecount, recursion_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double n);
-    inline double fc_recursion(int id, int pnodecount, recursion_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double n);
-    inline double fd_recursion(int id, int pnodecount, recursion_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double n);
     inline double myfactorial_recursion(int id, int pnodecount, recursion_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double n);
-    inline double myfib_recursion(int id, int pnodecount, recursion_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double n);
-
-
-    inline double f_simple_recursion(int id, int pnodecount, recursion_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double n) {
-        double ret_f_simple = 0.0;
-        ret_f_simple = f_simple_recursion(id, pnodecount, inst, data, indexes, thread, nt, v, n);
-        return ret_f_simple;
-    }
-
-
-    inline double fc_recursion(int id, int pnodecount, recursion_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double n) {
-        double ret_fc = 0.0;
-        ret_fc = fc_recursion(id, pnodecount, inst, data, indexes, thread, nt, v, fc_recursion(id, pnodecount, inst, data, indexes, thread, nt, v, fc_recursion(id, pnodecount, inst, data, indexes, thread, nt, v, fc_recursion(id, pnodecount, inst, data, indexes, thread, nt, v, n))));
-        return ret_fc;
-    }
-
-
-    inline double fd_recursion(int id, int pnodecount, recursion_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double n) {
-        double ret_fd = 0.0;
-        ret_fd = fd_recursion(id, pnodecount, inst, data, indexes, thread, nt, v, fc_recursion(id, pnodecount, inst, data, indexes, thread, nt, v, fd_recursion(id, pnodecount, inst, data, indexes, thread, nt, v, n) + fc_recursion(id, pnodecount, inst, data, indexes, thread, nt, v, fd_recursion(id, pnodecount, inst, data, indexes, thread, nt, v, n))));
-        return ret_fd;
-    }
 
 
     inline double myfactorial_recursion(int id, int pnodecount, recursion_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double n) {
@@ -238,17 +213,6 @@ namespace coreneuron {
             ret_myfactorial = n * myfactorial_recursion(id, pnodecount, inst, data, indexes, thread, nt, v, n - 1.0);
         }
         return ret_myfactorial;
-    }
-
-
-    inline double myfib_recursion(int id, int pnodecount, recursion_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double n) {
-        double ret_myfib = 0.0;
-        if (n == 0.0 || n == 1.0) {
-            ret_myfib = n;
-        } else {
-            ret_myfib = myfib_recursion(id, pnodecount, inst, data, indexes, thread, nt, v, n - 1.0) + myfib_recursion(id, pnodecount, inst, data, indexes, thread, nt, v, n - 2.0);
-        }
-        return ret_myfib;
     }
 
 

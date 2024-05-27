@@ -138,11 +138,7 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
-    inline double f_simple_recursion(_nrn_mechanism_cache_range* _ml, recursion_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double n);
-    inline double fc_recursion(_nrn_mechanism_cache_range* _ml, recursion_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double n);
-    inline double fd_recursion(_nrn_mechanism_cache_range* _ml, recursion_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double n);
     inline double myfactorial_recursion(_nrn_mechanism_cache_range* _ml, recursion_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double n);
-    inline double myfib_recursion(_nrn_mechanism_cache_range* _ml, recursion_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double n);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -158,128 +154,19 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_f_simple(void);
-    static void _hoc_fc(void);
-    static void _hoc_fd(void);
     static void _hoc_myfactorial(void);
-    static void _hoc_myfib(void);
-    static double _npy_f_simple(Prop*);
-    static double _npy_fc(Prop*);
-    static double _npy_fd(Prop*);
     static double _npy_myfactorial(Prop*);
-    static double _npy_myfib(Prop*);
 
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
         {"setdata_recursion", _hoc_setdata},
-        {"f_simple_recursion", _hoc_f_simple},
-        {"fc_recursion", _hoc_fc},
-        {"fd_recursion", _hoc_fd},
         {"myfactorial_recursion", _hoc_myfactorial},
-        {"myfib_recursion", _hoc_myfib},
         {0, 0}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
-        {"f_simple", _npy_f_simple},
-        {"fc", _npy_fc},
-        {"fd", _npy_fd},
         {"myfactorial", _npy_myfactorial},
-        {"myfib", _npy_myfib},
     };
-    static void _hoc_f_simple(void) {
-        double _r{};
-        Datum* _ppvar;
-        Datum* _thread;
-        NrnThread* _nt;
-        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
-        _nrn_mechanism_cache_instance _ml_real{_local_prop};
-        auto* const _ml = &_ml_real;
-        size_t const id{};
-        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
-        _thread = _extcall_thread.data();
-        _nt = nrn_threads;
-        auto inst = make_instance_recursion(_ml_real);
-        _r = f_simple_recursion(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
-        hoc_retpushx(_r);
-    }
-    static double _npy_f_simple(Prop* _prop) {
-        double _r{};
-        Datum* _ppvar;
-        Datum* _thread;
-        NrnThread* _nt;
-        _nrn_mechanism_cache_instance _ml_real{_prop};
-        auto* const _ml = &_ml_real;
-        size_t const id{};
-        _ppvar = _nrn_mechanism_access_dparam(_prop);
-        _thread = _extcall_thread.data();
-        _nt = nrn_threads;
-        auto inst = make_instance_recursion(_ml_real);
-        _r = f_simple_recursion(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
-        return(_r);
-    }
-    static void _hoc_fc(void) {
-        double _r{};
-        Datum* _ppvar;
-        Datum* _thread;
-        NrnThread* _nt;
-        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
-        _nrn_mechanism_cache_instance _ml_real{_local_prop};
-        auto* const _ml = &_ml_real;
-        size_t const id{};
-        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
-        _thread = _extcall_thread.data();
-        _nt = nrn_threads;
-        auto inst = make_instance_recursion(_ml_real);
-        _r = fc_recursion(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
-        hoc_retpushx(_r);
-    }
-    static double _npy_fc(Prop* _prop) {
-        double _r{};
-        Datum* _ppvar;
-        Datum* _thread;
-        NrnThread* _nt;
-        _nrn_mechanism_cache_instance _ml_real{_prop};
-        auto* const _ml = &_ml_real;
-        size_t const id{};
-        _ppvar = _nrn_mechanism_access_dparam(_prop);
-        _thread = _extcall_thread.data();
-        _nt = nrn_threads;
-        auto inst = make_instance_recursion(_ml_real);
-        _r = fc_recursion(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
-        return(_r);
-    }
-    static void _hoc_fd(void) {
-        double _r{};
-        Datum* _ppvar;
-        Datum* _thread;
-        NrnThread* _nt;
-        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
-        _nrn_mechanism_cache_instance _ml_real{_local_prop};
-        auto* const _ml = &_ml_real;
-        size_t const id{};
-        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
-        _thread = _extcall_thread.data();
-        _nt = nrn_threads;
-        auto inst = make_instance_recursion(_ml_real);
-        _r = fd_recursion(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
-        hoc_retpushx(_r);
-    }
-    static double _npy_fd(Prop* _prop) {
-        double _r{};
-        Datum* _ppvar;
-        Datum* _thread;
-        NrnThread* _nt;
-        _nrn_mechanism_cache_instance _ml_real{_prop};
-        auto* const _ml = &_ml_real;
-        size_t const id{};
-        _ppvar = _nrn_mechanism_access_dparam(_prop);
-        _thread = _extcall_thread.data();
-        _nt = nrn_threads;
-        auto inst = make_instance_recursion(_ml_real);
-        _r = fd_recursion(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
-        return(_r);
-    }
     static void _hoc_myfactorial(void) {
         double _r{};
         Datum* _ppvar;
@@ -311,61 +198,6 @@ namespace neuron {
         _r = myfactorial_recursion(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_myfib(void) {
-        double _r{};
-        Datum* _ppvar;
-        Datum* _thread;
-        NrnThread* _nt;
-        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
-        _nrn_mechanism_cache_instance _ml_real{_local_prop};
-        auto* const _ml = &_ml_real;
-        size_t const id{};
-        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
-        _thread = _extcall_thread.data();
-        _nt = nrn_threads;
-        auto inst = make_instance_recursion(_ml_real);
-        _r = myfib_recursion(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
-        hoc_retpushx(_r);
-    }
-    static double _npy_myfib(Prop* _prop) {
-        double _r{};
-        Datum* _ppvar;
-        Datum* _thread;
-        NrnThread* _nt;
-        _nrn_mechanism_cache_instance _ml_real{_prop};
-        auto* const _ml = &_ml_real;
-        size_t const id{};
-        _ppvar = _nrn_mechanism_access_dparam(_prop);
-        _thread = _extcall_thread.data();
-        _nt = nrn_threads;
-        auto inst = make_instance_recursion(_ml_real);
-        _r = myfib_recursion(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
-        return(_r);
-    }
-
-
-    inline double f_simple_recursion(_nrn_mechanism_cache_range* _ml, recursion_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double n) {
-        double ret_f_simple = 0.0;
-        auto v = inst.v_unused[id];
-        ret_f_simple = f_simple_recursion(_ml, inst, id, _ppvar, _thread, _nt, n);
-        return ret_f_simple;
-    }
-
-
-    inline double fc_recursion(_nrn_mechanism_cache_range* _ml, recursion_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double n) {
-        double ret_fc = 0.0;
-        auto v = inst.v_unused[id];
-        ret_fc = fc_recursion(_ml, inst, id, _ppvar, _thread, _nt, fc_recursion(_ml, inst, id, _ppvar, _thread, _nt, fc_recursion(_ml, inst, id, _ppvar, _thread, _nt, fc_recursion(_ml, inst, id, _ppvar, _thread, _nt, n))));
-        return ret_fc;
-    }
-
-
-    inline double fd_recursion(_nrn_mechanism_cache_range* _ml, recursion_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double n) {
-        double ret_fd = 0.0;
-        auto v = inst.v_unused[id];
-        ret_fd = fd_recursion(_ml, inst, id, _ppvar, _thread, _nt, fc_recursion(_ml, inst, id, _ppvar, _thread, _nt, fd_recursion(_ml, inst, id, _ppvar, _thread, _nt, n) + fc_recursion(_ml, inst, id, _ppvar, _thread, _nt, fd_recursion(_ml, inst, id, _ppvar, _thread, _nt, n))));
-        return ret_fd;
-    }
 
 
     inline double myfactorial_recursion(_nrn_mechanism_cache_range* _ml, recursion_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double n) {
@@ -377,18 +209,6 @@ namespace neuron {
             ret_myfactorial = n * myfactorial_recursion(_ml, inst, id, _ppvar, _thread, _nt, n - 1.0);
         }
         return ret_myfactorial;
-    }
-
-
-    inline double myfib_recursion(_nrn_mechanism_cache_range* _ml, recursion_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double n) {
-        double ret_myfib = 0.0;
-        auto v = inst.v_unused[id];
-        if (n == 0.0 || n == 1.0) {
-            ret_myfib = n;
-        } else {
-            ret_myfib = myfib_recursion(_ml, inst, id, _ppvar, _thread, _nt, n - 1.0) + myfib_recursion(_ml, inst, id, _ppvar, _thread, _nt, n - 2.0);
-        }
-        return ret_myfib;
     }
 
 
