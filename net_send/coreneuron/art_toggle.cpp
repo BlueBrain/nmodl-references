@@ -37,8 +37,8 @@ namespace coreneuron {
     static const char *mechanism_info[] = {
         "7.7.0",
         "art_toggle",
-        "y",
         0,
+        "y",
         0,
         0,
         0
@@ -236,7 +236,10 @@ namespace coreneuron {
         double t = nt->_t;
         inst->tsave[id] = t;
         {
-            inst->y[id] = 1.0;
+            inst->y[id] = inst->y[id] + 1.0;
+            if (t < 3.7) {
+                artcell_net_send(&inst->tqitem[indexes[2*pnodecount + id]], weight_index, pnt, nt->_t+4.501 - t, 1.0);
+            }
         }
     }
 
@@ -261,7 +264,7 @@ namespace coreneuron {
                 inst->tsave[id] = -1e20;
                 double v = 0.0;
                 inst->y[id] = 0.0;
-                artcell_net_send(&inst->tqitem[indexes[2*pnodecount + id]], 0, (Point_process*)inst->point_process[indexes[1*pnodecount + id]], nt->_t+1.5, 1.0);
+                artcell_net_send(&inst->tqitem[indexes[2*pnodecount + id]], 0, (Point_process*)inst->point_process[indexes[1*pnodecount + id]], nt->_t+2.501, 1.0);
             }
         }
     }
