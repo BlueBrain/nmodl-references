@@ -280,7 +280,7 @@ namespace neuron {
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
-    static void nrn_net_receive_SnapSyn(Point_process* _pnt, double* _args, double _lflag) {
+    static void nrn_net_receive_SnapSyn(Point_process* _pnt, double* _args, double flag) {
         _nrn_mechanism_cache_instance _ml_obj{_pnt->prop};
         auto * _nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto * _ml = &_ml_obj;

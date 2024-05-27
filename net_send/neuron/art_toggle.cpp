@@ -218,7 +218,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
         }
     }
-    static void nrn_net_receive_art_toggle(Point_process* _pnt, double* _args, double _lflag) {
+    static void nrn_net_receive_art_toggle(Point_process* _pnt, double* _args, double flag) {
         _nrn_mechanism_cache_instance _ml_obj{_pnt->prop};
         auto * _nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto * _ml = &_ml_obj;
