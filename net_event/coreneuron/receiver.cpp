@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : toggle
-Filename        : toggle.mod
+Model Name      : receiver
+Filename        : receiver.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -36,7 +36,7 @@ namespace coreneuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "toggle",
+        "receiver",
         0,
         "y",
         0,
@@ -46,28 +46,27 @@ namespace coreneuron {
 
 
     /** all global variables */
-    struct toggle_Store {
+    struct receiver_Store {
         int point_type{};
         int reset{};
         int mech_type{};
     };
-    static_assert(std::is_trivially_copy_constructible_v<toggle_Store>);
-    static_assert(std::is_trivially_move_constructible_v<toggle_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<toggle_Store>);
-    static_assert(std::is_trivially_move_assignable_v<toggle_Store>);
-    static_assert(std::is_trivially_destructible_v<toggle_Store>);
-    toggle_Store toggle_global;
+    static_assert(std::is_trivially_copy_constructible_v<receiver_Store>);
+    static_assert(std::is_trivially_move_constructible_v<receiver_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<receiver_Store>);
+    static_assert(std::is_trivially_move_assignable_v<receiver_Store>);
+    static_assert(std::is_trivially_destructible_v<receiver_Store>);
+    receiver_Store receiver_global;
 
 
     /** all mechanism instance variables and global variables */
-    struct toggle_Instance  {
+    struct receiver_Instance  {
         double* y{};
         double* v_unused{};
         double* tsave{};
         const double* node_area{};
         const int* point_process{};
-        const int* tqitem{};
-        toggle_Store* global{&toggle_global};
+        receiver_Store* global{&receiver_global};
     };
 
 
@@ -104,12 +103,12 @@ namespace coreneuron {
 
 
     static inline int int_variables_size() {
-        return 3;
+        return 2;
     }
 
 
     static inline int get_mech_type() {
-        return toggle_global.mech_type;
+        return receiver_global.mech_type;
     }
 
 
@@ -139,25 +138,25 @@ namespace coreneuron {
     }
 
     // Allocate instance structure
-    static void nrn_private_constructor_toggle(NrnThread* nt, Memb_list* ml, int type) {
+    static void nrn_private_constructor_receiver(NrnThread* nt, Memb_list* ml, int type) {
         assert(!ml->instance);
         assert(!ml->global_variables);
         assert(ml->global_variables_size == 0);
-        auto* const inst = new toggle_Instance{};
-        assert(inst->global == &toggle_global);
+        auto* const inst = new receiver_Instance{};
+        assert(inst->global == &receiver_global);
         ml->instance = inst;
         ml->global_variables = inst->global;
-        ml->global_variables_size = sizeof(toggle_Store);
+        ml->global_variables_size = sizeof(receiver_Store);
     }
 
     // Deallocate the instance structure
-    static void nrn_private_destructor_toggle(NrnThread* nt, Memb_list* ml, int type) {
-        auto* const inst = static_cast<toggle_Instance*>(ml->instance);
+    static void nrn_private_destructor_receiver(NrnThread* nt, Memb_list* ml, int type) {
+        auto* const inst = static_cast<receiver_Instance*>(ml->instance);
         assert(inst);
         assert(inst->global);
-        assert(inst->global == &toggle_global);
+        assert(inst->global == &receiver_global);
         assert(inst->global == ml->global_variables);
-        assert(ml->global_variables_size == sizeof(toggle_Store));
+        assert(ml->global_variables_size == sizeof(receiver_Store));
         delete inst;
         ml->instance = nullptr;
         ml->global_variables = nullptr;
@@ -166,12 +165,12 @@ namespace coreneuron {
 
     /** initialize mechanism instance variables */
     static inline void setup_instance(NrnThread* nt, Memb_list* ml) {
-        auto* const inst = static_cast<toggle_Instance*>(ml->instance);
+        auto* const inst = static_cast<receiver_Instance*>(ml->instance);
         assert(inst);
         assert(inst->global);
-        assert(inst->global == &toggle_global);
+        assert(inst->global == &receiver_global);
         assert(inst->global == ml->global_variables);
-        assert(ml->global_variables_size == sizeof(toggle_Store));
+        assert(ml->global_variables_size == sizeof(receiver_Store));
         int pnodecount = ml->_nodecount_padded;
         Datum* indexes = ml->pdata;
         inst->y = ml->data+0*pnodecount;
@@ -179,17 +178,16 @@ namespace coreneuron {
         inst->tsave = ml->data+2*pnodecount;
         inst->node_area = nt->_data;
         inst->point_process = ml->pdata;
-        inst->tqitem = ml->pdata;
     }
 
 
 
-    static void nrn_alloc_toggle(double* data, Datum* indexes, int type) {
+    static void nrn_alloc_receiver(double* data, Datum* indexes, int type) {
         // do nothing
     }
 
 
-    void nrn_constructor_toggle(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_constructor_receiver(NrnThread* nt, Memb_list* ml, int type) {
         #ifndef CORENEURON_BUILD
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
@@ -198,13 +196,13 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<toggle_Instance*>(ml->instance);
+        auto* const inst = static_cast<receiver_Instance*>(ml->instance);
 
         #endif
     }
 
 
-    void nrn_destructor_toggle(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_destructor_receiver(NrnThread* nt, Memb_list* ml, int type) {
         #ifndef CORENEURON_BUILD
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
@@ -213,30 +211,13 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<toggle_Instance*>(ml->instance);
+        auto* const inst = static_cast<receiver_Instance*>(ml->instance);
 
         #endif
     }
 
 
-    static inline void net_send_buffering(const NrnThread* nt, NetSendBuffer_t* nsb, int type, int vdata_index, int weight_index, int point_index, double t, double flag) {
-        int i = 0;
-        i = nsb->_cnt++;
-        if (i >= nsb->_size) {
-            nsb->grow();
-        }
-        if (i < nsb->_size) {
-            nsb->_sendtype[i] = type;
-            nsb->_vdata_index[i] = vdata_index;
-            nsb->_weight_index[i] = weight_index;
-            nsb->_pnt_index[i] = point_index;
-            nsb->_nsb_t[i] = t;
-            nsb->_nsb_flag[i] = flag;
-        }
-    }
-
-
-    static inline void net_receive_kernel_toggle(double t, Point_process* pnt, toggle_Instance* inst, NrnThread* nt, Memb_list* ml, int weight_index, double flag) {
+    static inline void net_receive_kernel_receiver(double t, Point_process* pnt, receiver_Instance* inst, NrnThread* nt, Memb_list* ml, int weight_index, double flag) {
         int tid = pnt->_tid;
         int id = pnt->_i_instance;
         double v = 0;
@@ -249,15 +230,12 @@ namespace coreneuron {
 
         inst->tsave[id] = t;
         {
-            inst->y[id] = inst->y[id] + 1.0;
-            if (t < 3.7) {
-                net_send_buffering(nt, ml->_net_send_buffer, 0, inst->tqitem[2*pnodecount+id], weight_index, inst->point_process[1*pnodecount+id], t+4.001 - t, 1.0);
-            }
+            inst->y[id] = inst->y[id] + 0.1;
         }
     }
 
 
-    static void net_receive_toggle(Point_process* pnt, int weight_index, double flag) {
+    static void net_receive_receiver(Point_process* pnt, int weight_index, double flag) {
         NrnThread* nt = nrn_threads + pnt->_tid;
         Memb_list* ml = get_memb_list(nt);
         NetReceiveBuffer_t* nrb = ml->_net_receive_buffer;
@@ -273,14 +251,14 @@ namespace coreneuron {
     }
 
 
-    void net_buf_receive_toggle(NrnThread* nt) {
+    void net_buf_receive_receiver(NrnThread* nt) {
         Memb_list* ml = get_memb_list(nt);
         if (!ml) {
             return;
         }
 
         NetReceiveBuffer_t* nrb = ml->_net_receive_buffer;
-        auto* const inst = static_cast<toggle_Instance*>(ml->instance);
+        auto* const inst = static_cast<receiver_Instance*>(ml->instance);
         int count = nrb->_displ_cnt;
         #pragma omp simd
         #pragma ivdep
@@ -294,29 +272,16 @@ namespace coreneuron {
                 int weight_index = nrb->_weight_index[index];
                 double flag = nrb->_nrb_flag[index];
                 Point_process* point_process = nt->pntprocs + offset;
-                net_receive_kernel_toggle(t, point_process, inst, nt, ml, weight_index, flag);
+                net_receive_kernel_receiver(t, point_process, inst, nt, ml, weight_index, flag);
             }
         }
         nrb->_displ_cnt = 0;
         nrb->_cnt = 0;
-
-        NetSendBuffer_t* nsb = ml->_net_send_buffer;
-        for (int i=0; i < nsb->_cnt; i++) {
-            int type = nsb->_sendtype[i];
-            int tid = nt->id;
-            double t = nsb->_nsb_t[i];
-            double flag = nsb->_nsb_flag[i];
-            int vdata_index = nsb->_vdata_index[i];
-            int weight_index = nsb->_weight_index[i];
-            int point_index = nsb->_pnt_index[i];
-            net_sem_from_gpu(type, vdata_index, weight_index, tid, point_index, t, flag);
-        }
-        nsb->_cnt = 0;
     }
 
 
     /** initialize channel */
-    void nrn_init_toggle(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_init_receiver(NrnThread* nt, Memb_list* ml, int type) {
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
         const int* node_index = ml->nodeindices;
@@ -326,7 +291,7 @@ namespace coreneuron {
         ThreadDatum* thread = ml->_thread;
 
         setup_instance(nt, ml);
-        auto* const inst = static_cast<toggle_Instance*>(ml->instance);
+        auto* const inst = static_cast<receiver_Instance*>(ml->instance);
 
         if (_nrn_skip_initmodel == 0) {
             #pragma omp simd
@@ -339,44 +304,28 @@ namespace coreneuron {
                 inst->v_unused[id] = v;
                 #endif
                 inst->y[id] = 0.0;
-                net_send_buffering(nt, ml->_net_send_buffer, 0, inst->tqitem[2*pnodecount+id], 0, inst->point_process[1*pnodecount+id], nt->_t+2.001, 1.0);
             }
         }
-
-        NetSendBuffer_t* nsb = ml->_net_send_buffer;
-        for (int i=0; i < nsb->_cnt; i++) {
-            int type = nsb->_sendtype[i];
-            int tid = nt->id;
-            double t = nsb->_nsb_t[i];
-            double flag = nsb->_nsb_flag[i];
-            int vdata_index = nsb->_vdata_index[i];
-            int weight_index = nsb->_weight_index[i];
-            int point_index = nsb->_pnt_index[i];
-            net_sem_from_gpu(type, vdata_index, weight_index, tid, point_index, t, flag);
-        }
-        nsb->_cnt = 0;
     }
 
 
     /** register channel with the simulator */
-    void _toggle_reg() {
+    void _receiver_reg() {
 
-        int mech_type = nrn_get_mechtype("toggle");
-        toggle_global.mech_type = mech_type;
+        int mech_type = nrn_get_mechtype("receiver");
+        receiver_global.mech_type = mech_type;
         if (mech_type == -1) {
             return;
         }
 
         _nrn_layout_reg(mech_type, 0);
-        point_register_mech(mechanism_info, nrn_alloc_toggle, nullptr, nullptr, nullptr, nrn_init_toggle, nrn_private_constructor_toggle, nrn_private_destructor_toggle, first_pointer_var_index(), nullptr, nullptr, 1);
+        point_register_mech(mechanism_info, nrn_alloc_receiver, nullptr, nullptr, nullptr, nrn_init_receiver, nrn_private_constructor_receiver, nrn_private_destructor_receiver, first_pointer_var_index(), nullptr, nullptr, 1);
 
         hoc_register_prop_size(mech_type, float_variables_size(), int_variables_size());
         hoc_register_dparam_semantics(mech_type, 0, "area");
         hoc_register_dparam_semantics(mech_type, 1, "pntproc");
-        hoc_register_dparam_semantics(mech_type, 2, "netsend");
-        hoc_register_net_receive_buffering(net_buf_receive_toggle, mech_type);
-        set_pnt_receive(mech_type, net_receive_toggle, nullptr, num_net_receive_args());
-        hoc_register_net_send_buffering(mech_type);
+        hoc_register_net_receive_buffering(net_buf_receive_receiver, mech_type);
+        set_pnt_receive(mech_type, net_receive_receiver, nullptr, num_net_receive_args());
         hoc_register_var(hoc_scalar_double, hoc_vector_double, NULL);
     }
 }
