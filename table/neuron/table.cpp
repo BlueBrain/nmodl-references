@@ -24,7 +24,7 @@ NMODL Compiler  : VERSION
 #define NRN_VECTORIZED 1
 
 static constexpr auto number_of_datum_variables = 0;
-static constexpr auto number_of_floating_point_variables = 7;
+static constexpr auto number_of_floating_point_variables = 9;
 
 namespace {
 template <typename T>
@@ -60,6 +60,8 @@ namespace neuron {
         0,
         "g_tbl",
         "i_tbl",
+        "v1_tbl",
+        "v2_tbl",
         0,
         0,
         0
@@ -80,9 +82,18 @@ namespace neuron {
         double usetable{1};
         double tmin_sigmoid1{};
         double mfac_sigmoid1{};
+        double tmin_example_function{};
+        double mfac_example_function{};
+        double tmin_example_procedure{};
+        double mfac_example_procedure{};
+        double t_v1[301]{};
+        double t_v2[301]{};
         double t_sig[156]{};
+        double t_example_function[501]{};
         double k{0.1};
         double d{-50};
+        double c1{1};
+        double c2{2};
     };
     static_assert(std::is_trivially_copy_constructible_v<tbl_Store>);
     static_assert(std::is_trivially_move_constructible_v<tbl_Store>);
@@ -98,6 +109,8 @@ namespace neuron {
         double* gmax{};
         double* g{};
         double* i{};
+        double* v1{};
+        double* v2{};
         double* sig{};
         double* v_unused{};
         double* g_unused{};
@@ -122,7 +135,9 @@ namespace neuron {
             _ml.template fpfield_ptr<3>(),
             _ml.template fpfield_ptr<4>(),
             _ml.template fpfield_ptr<5>(),
-            _ml.template fpfield_ptr<6>()
+            _ml.template fpfield_ptr<6>(),
+            _ml.template fpfield_ptr<7>(),
+            _ml.template fpfield_ptr<8>()
         };
     }
 
@@ -144,7 +159,7 @@ namespace neuron {
         _nrn_mechanism_cache_instance _ml_real{_prop};
         auto* const _ml = &_ml_real;
         size_t const _iml{};
-        assert(_nrn_mechanism_get_num_vars(_prop) == 7);
+        assert(_nrn_mechanism_get_num_vars(_prop) == 9);
         /*initialize range parameters*/
         _ml->template fpfield<0>(_iml) = 0; /* e */
         _ml->template fpfield<1>(_iml) = 0; /* gmax */
@@ -163,13 +178,19 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
+    inline double example_function_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double arg);
     inline int sigmoid1_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double v);
+    inline int example_procedure_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double arg);
     void lazy_update_sigmoid1_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
+    void lazy_update_example_function_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
+    void lazy_update_example_procedure_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
     static void _check_table_thread(Memb_list* _ml, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, int _type, _nrn_model_sorted_token const& _sorted_token)
 {
         _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml, _type};
         auto inst = make_instance_tbl(_lmr);
         lazy_update_sigmoid1_tbl(&_lmr, inst, id, _ppvar, _thread, _nt);
+        lazy_update_example_function_tbl(&_lmr, inst, id, _ppvar, _thread, _nt);
+        lazy_update_example_procedure_tbl(&_lmr, inst, id, _ppvar, _thread, _nt);
     }
 
 
@@ -177,6 +198,8 @@ namespace neuron {
     static DoubScal hoc_scalar_double[] = {
         {"k_tbl", &tbl_global.k},
         {"d_tbl", &tbl_global.d},
+        {"c1_tbl", &tbl_global.c1},
+        {"c2_tbl", &tbl_global.c2},
         {"usetable_tbl", &tbl_global.usetable},
         {nullptr, nullptr}
     };
@@ -190,17 +213,25 @@ namespace neuron {
 
     /* declaration of user functions */
     static void _hoc_sigmoid1(void);
+    static void _hoc_example_procedure(void);
+    static void _hoc_example_function(void);
     static double _npy_sigmoid1(Prop*);
+    static double _npy_example_procedure(Prop*);
+    static double _npy_example_function(Prop*);
 
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
         {"setdata_tbl", _hoc_setdata},
         {"sigmoid1_tbl", _hoc_sigmoid1},
+        {"example_procedure_tbl", _hoc_example_procedure},
+        {"example_function_tbl", _hoc_example_function},
         {0, 0}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
         {"sigmoid1", _npy_sigmoid1},
+        {"example_procedure", _npy_example_procedure},
+        {"example_function", _npy_example_function},
     };
     static void _hoc_sigmoid1(void) {
         double _r{};
@@ -235,6 +266,77 @@ namespace neuron {
         lazy_update_sigmoid1_tbl(_ml, inst, id, _ppvar, _thread, _nt);
         _r = 1.;
         sigmoid1_tbl(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        return(_r);
+    }
+    static void _hoc_example_procedure(void) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* _nt;
+        if (!_prop_id) {
+            hoc_execerror("No data for example_procedure_tbl. Requires prior call to setdata_tbl and that the specified mechanism instance still be in existence.", NULL);
+        }
+        Prop* _local_prop = _extcall_prop;
+        _nrn_mechanism_cache_instance _ml_real{_local_prop};
+        auto* const _ml = &_ml_real;
+        size_t const id{};
+        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
+        _thread = _extcall_thread.data();
+        _nt = nrn_threads;
+        auto inst = make_instance_tbl(_ml_real);
+        lazy_update_example_procedure_tbl(_ml, inst, id, _ppvar, _thread, _nt);
+        _r = 1.;
+        example_procedure_tbl(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        hoc_retpushx(_r);
+    }
+    static double _npy_example_procedure(Prop* _prop) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* _nt;
+        _nrn_mechanism_cache_instance _ml_real{_prop};
+        auto* const _ml = &_ml_real;
+        size_t const id{};
+        _ppvar = _nrn_mechanism_access_dparam(_prop);
+        _thread = _extcall_thread.data();
+        _nt = nrn_threads;
+        auto inst = make_instance_tbl(_ml_real);
+        lazy_update_example_procedure_tbl(_ml, inst, id, _ppvar, _thread, _nt);
+        _r = 1.;
+        example_procedure_tbl(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        return(_r);
+    }
+    static void _hoc_example_function(void) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* _nt;
+        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
+        _nrn_mechanism_cache_instance _ml_real{_local_prop};
+        auto* const _ml = &_ml_real;
+        size_t const id{};
+        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
+        _thread = _extcall_thread.data();
+        _nt = nrn_threads;
+        auto inst = make_instance_tbl(_ml_real);
+        lazy_update_example_function_tbl(_ml, inst, id, _ppvar, _thread, _nt);
+        _r = example_function_tbl(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        hoc_retpushx(_r);
+    }
+    static double _npy_example_function(Prop* _prop) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* _nt;
+        _nrn_mechanism_cache_instance _ml_real{_prop};
+        auto* const _ml = &_ml_real;
+        size_t const id{};
+        _ppvar = _nrn_mechanism_access_dparam(_prop);
+        _thread = _extcall_thread.data();
+        _nt = nrn_threads;
+        auto inst = make_instance_tbl(_ml_real);
+        lazy_update_example_function_tbl(_ml, inst, id, _ppvar, _thread, _nt);
+        _r = example_function_tbl(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
         return(_r);
     }
 
@@ -295,6 +397,126 @@ namespace neuron {
         double theta = xi - double(i);
         inst.sig[id] = inst.global->t_sig[i] + theta*(inst.global->t_sig[i+1]-inst.global->t_sig[i]);
         return 0;
+    }
+
+
+    static inline int f_example_procedure_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double arg) {
+        int ret_f_example_procedure = 0;
+        auto v = inst.v_unused[id];
+        inst.v1[id] = sin(inst.global->c1 * arg) + 2.0;
+        inst.v2[id] = cos(inst.global->c2 * arg) + 2.0;
+        return ret_f_example_procedure;
+    }
+
+
+    void lazy_update_example_procedure_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt) {
+        if (inst.global->usetable == 0) {
+            return;
+        }
+        static bool make_table = true;
+        static double save_c1;
+        static double save_c2;
+        if (save_c1 != inst.global->c1) {
+            make_table = true;
+        }
+        if (save_c2 != inst.global->c2) {
+            make_table = true;
+        }
+        if (make_table) {
+            make_table = false;
+            inst.global->tmin_example_procedure =  -4.0;
+            double tmax = 6.0;
+            double dx = (tmax-inst.global->tmin_example_procedure) / 300.;
+            inst.global->mfac_example_procedure = 1./dx;
+            double x = inst.global->tmin_example_procedure;
+            for (std::size_t i = 0; i < 301; x += dx, i++) {
+                f_example_procedure_tbl(_ml, inst, id, _ppvar, _thread, _nt, x);
+                inst.global->t_v1[i] = inst.v1[id];
+                inst.global->t_v2[i] = inst.v2[id];
+            }
+            save_c1 = inst.global->c1;
+            save_c2 = inst.global->c2;
+        }
+    }
+
+
+    inline int example_procedure_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double arg){
+        if (inst.global->usetable == 0) {
+            f_example_procedure_tbl(_ml, inst, id, _ppvar, _thread, _nt, arg);
+            return 0;
+        }
+        double xi = inst.global->mfac_example_procedure * (arg - inst.global->tmin_example_procedure);
+        if (isnan(xi)) {
+            inst.v1[id] = xi;
+            inst.v2[id] = xi;
+            return 0;
+        }
+        if (xi <= 0. || xi >= 300.) {
+            int index = (xi <= 0.) ? 0 : 300;
+            inst.v1[id] = inst.global->t_v1[index];
+            inst.v2[id] = inst.global->t_v2[index];
+            return 0;
+        }
+        int i = int(xi);
+        double theta = xi - double(i);
+        inst.v1[id] = inst.global->t_v1[i] + theta*(inst.global->t_v1[i+1]-inst.global->t_v1[i]);
+        inst.v2[id] = inst.global->t_v2[i] + theta*(inst.global->t_v2[i+1]-inst.global->t_v2[i]);
+        return 0;
+    }
+
+
+    static inline double f_example_function_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double arg) {
+        double ret_f_example_function = 0.0;
+        auto v = inst.v_unused[id];
+        ret_f_example_function = inst.global->c1 * arg * arg + inst.global->c2;
+        return ret_f_example_function;
+    }
+
+
+    void lazy_update_example_function_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt) {
+        if (inst.global->usetable == 0) {
+            return;
+        }
+        static bool make_table = true;
+        static double save_c1;
+        static double save_c2;
+        if (save_c1 != inst.global->c1) {
+            make_table = true;
+        }
+        if (save_c2 != inst.global->c2) {
+            make_table = true;
+        }
+        if (make_table) {
+            make_table = false;
+            inst.global->tmin_example_function =  -3.0;
+            double tmax = 5.0;
+            double dx = (tmax-inst.global->tmin_example_function) / 500.;
+            inst.global->mfac_example_function = 1./dx;
+            double x = inst.global->tmin_example_function;
+            for (std::size_t i = 0; i < 501; x += dx, i++) {
+                inst.global->t_example_function[i] = f_example_function_tbl(_ml, inst, id, _ppvar, _thread, _nt, x);
+            }
+            save_c1 = inst.global->c1;
+            save_c2 = inst.global->c2;
+        }
+    }
+
+
+    inline double example_function_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double arg){
+        if (inst.global->usetable == 0) {
+            return f_example_function_tbl(_ml, inst, id, _ppvar, _thread, _nt, arg);
+        }
+        double xi = inst.global->mfac_example_function * (arg - inst.global->tmin_example_function);
+        if (isnan(xi)) {
+            return xi;
+        }
+        if (xi <= 0. || xi >= 500.) {
+            int index = (xi <= 0.) ? 0 : 500;
+            return inst.global->t_example_function[index];
+        }
+        int i = int(xi);
+        double theta = xi - double(i);
+        return inst.global->t_example_function[i] + theta * (inst.global->t_example_function[i+1] - inst.global->t_example_function[i]);
     }
 
 
@@ -392,12 +614,14 @@ namespace neuron {
             _nrn_mechanism_field<double>{"gmax"} /* 1 */,
             _nrn_mechanism_field<double>{"g"} /* 2 */,
             _nrn_mechanism_field<double>{"i"} /* 3 */,
-            _nrn_mechanism_field<double>{"sig"} /* 4 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 5 */,
-            _nrn_mechanism_field<double>{"g_unused"} /* 6 */
+            _nrn_mechanism_field<double>{"v1"} /* 4 */,
+            _nrn_mechanism_field<double>{"v2"} /* 5 */,
+            _nrn_mechanism_field<double>{"sig"} /* 6 */,
+            _nrn_mechanism_field<double>{"v_unused"} /* 7 */,
+            _nrn_mechanism_field<double>{"g_unused"} /* 8 */
         );
 
-        hoc_register_prop_size(mech_type, 7, 0);
+        hoc_register_prop_size(mech_type, 9, 0);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
     }
