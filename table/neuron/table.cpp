@@ -184,7 +184,7 @@ namespace neuron {
     void lazy_update_sigmoid1_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
     void lazy_update_example_function_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
     void lazy_update_example_procedure_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
-    static void _check_table_thread(Memb_list* _ml, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, int _type, _nrn_model_sorted_token const& _sorted_token)
+    static void _check_table_thread(Memb_list* _ml, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, int _type, const _nrn_model_sorted_token& _sorted_token)
 {
         _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml, _type};
         auto inst = make_instance_tbl(_lmr);
@@ -341,7 +341,7 @@ namespace neuron {
     }
 
 
-    static inline int f_sigmoid1_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double v) {
+    inline static int f_sigmoid1_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double v) {
         int ret_f_sigmoid1 = 0;
         inst.sig[id] = 1.0 / (1.0 + exp(inst.global->k * (v - inst.global->d)));
         return ret_f_sigmoid1;
@@ -400,7 +400,7 @@ namespace neuron {
     }
 
 
-    static inline int f_example_procedure_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double arg) {
+    inline static int f_example_procedure_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double arg) {
         int ret_f_example_procedure = 0;
         auto v = inst.v_unused[id];
         inst.v1[id] = sin(inst.global->c1 * arg) + 2.0;
@@ -465,7 +465,7 @@ namespace neuron {
     }
 
 
-    static inline double f_example_function_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double arg) {
+    inline static double f_example_function_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double arg) {
         double ret_f_example_function = 0.0;
         auto v = inst.v_unused[id];
         ret_f_example_function = inst.global->c1 * arg * arg + inst.global->c2;
