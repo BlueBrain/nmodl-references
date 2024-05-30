@@ -244,7 +244,6 @@ namespace neuron {
 
         _na_sym = hoc_lookup("na_ion");
 
-
         register_mech(mechanism_info, nrn_alloc_ionic, nullptr, nrn_jacob_ionic, nrn_state_ionic, nrn_init_ionic, hoc_nrnpointerindex, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
