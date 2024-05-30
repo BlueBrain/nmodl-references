@@ -109,6 +109,22 @@ namespace neuron {
     };
 
 
+    struct shared_global_ThreadVariables  {
+        double * thread_data;
+
+        double * ggw_ptr(size_t i) {
+            return thread_data + 0 + i;
+        }
+        double & ggw(size_t i) {
+            return thread_data[0 + i];
+        }
+
+        shared_global_ThreadVariables(double * const thread_data) {
+            this->thread_data = thread_data;
+        }
+    };
+
+
     static shared_global_Instance make_instance_shared_global(_nrn_mechanism_cache_range& _ml) {
         return shared_global_Instance {
             _ml.template fpfield_ptr<0>(),
@@ -212,28 +228,28 @@ namespace neuron {
         auto nodecount = _ml_arg->nodecount;
         auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
-        double * _thread_globals = _thread[0].get<double*>();
+        auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
             inst.v_unused[id] = v;
             printf("INITIAL %g\n", inst.z[id]);
-            _thread_globals[0 + 0*1] = 48.0;
+            _thread_vars.ggw(0) = 48.0;
             inst.y[id] = 10.0;
         }
     }
 
 
-    inline double nrn_current_shared_global(_nrn_mechanism_cache_range* _ml, NrnThread* _nt, Datum* _ppvar, Datum* _thread, double* _thread_globals, size_t id, shared_global_Instance& inst, shared_global_NodeData& node_data, double v) {
+    inline double nrn_current_shared_global(_nrn_mechanism_cache_range* _ml, NrnThread* _nt, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, size_t id, shared_global_Instance& inst, shared_global_NodeData& node_data, double v) {
         double current = 0.0;
         if (_nt->_t > 0.33) {
-            _thread_globals[0 + 0*1] = inst.global->ggp;
+            _thread_vars.ggw(0) = inst.global->ggp;
         }
         if (_nt->_t > 0.66) {
-            _thread_globals[0 + 0*1] = inst.z[id];
+            _thread_vars.ggw(0) = inst.z[id];
         }
-        inst.y[id] = _thread_globals[0 + 0*1];
+        inst.y[id] = _thread_vars.ggw(0);
         inst.il[id] = 0.0000001 * (v - 10.0);
         current += inst.il[id];
         return current;
@@ -248,13 +264,13 @@ namespace neuron {
         auto nodecount = _ml_arg->nodecount;
         auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
-        double * _thread_globals = _thread[0].get<double*>();
+        auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             double v = node_data.node_voltages[node_id];
             auto* _ppvar = _ml_arg->pdata[id];
-            double I1 = nrn_current_shared_global(_ml, _nt, _ppvar, _thread, _thread_globals, id, inst, node_data, v+0.001);
-            double I0 = nrn_current_shared_global(_ml, _nt, _ppvar, _thread, _thread_globals, id, inst, node_data, v);
+            double I1 = nrn_current_shared_global(_ml, _nt, _ppvar, _thread, _thread_vars, id, inst, node_data, v+0.001);
+            double I0 = nrn_current_shared_global(_ml, _nt, _ppvar, _thread, _thread_vars, id, inst, node_data, v);
             double rhs = I0;
             double g = (I1-I0)/0.001;
             node_data.node_rhs[node_id] -= rhs;
@@ -271,7 +287,7 @@ namespace neuron {
         auto nodecount = _ml_arg->nodecount;
         auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
-        double * _thread_globals = _thread[0].get<double*>();
+        auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
         for (int id = 0; id < nodecount; id++) {
             
             int node_id = node_data.nodeindices[id];
