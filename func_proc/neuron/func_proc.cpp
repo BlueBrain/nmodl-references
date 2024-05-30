@@ -18,7 +18,6 @@ NMODL Compiler  : VERSION
 #include "neuron/cache/mechanism_range.hpp"
 #include "nrniv_mf.h"
 #include "section_fwd.hpp"
-extern void _nrn_thread_reg(int, int, void(*)(Datum*));
 
 /* NEURON global macro definitions */
 /* VECTORIZED */
@@ -603,7 +602,6 @@ namespace neuron {
         auto nodecount = _ml_arg->nodecount;
         auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
-        double * _thread_globals = nullptr;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];

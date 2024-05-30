@@ -18,7 +18,6 @@ NMODL Compiler  : VERSION
 #include "neuron/cache/mechanism_range.hpp"
 #include "nrniv_mf.h"
 #include "section_fwd.hpp"
-extern void _nrn_thread_reg(int, int, void(*)(Datum*));
 
 /* NEURON global macro definitions */
 /* VECTORIZED */
@@ -210,7 +209,6 @@ namespace neuron {
         auto nodecount = _ml_arg->nodecount;
         auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
-        double * _thread_globals = nullptr;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
@@ -221,7 +219,7 @@ namespace neuron {
     }
 
 
-    inline double nrn_current_SnapSyn(_nrn_mechanism_cache_range* _ml, NrnThread* _nt, Datum* _ppvar, Datum* _thread, double* _thread_globals, size_t id, SnapSyn_Instance& inst, SnapSyn_NodeData& node_data, double v) {
+    inline double nrn_current_SnapSyn(_nrn_mechanism_cache_range* _ml, NrnThread* _nt, Datum* _ppvar, Datum* _thread, size_t id, SnapSyn_Instance& inst, SnapSyn_NodeData& node_data, double v) {
         double current = 0.0;
         inst.i[id] = inst.g[id] * (v - inst.e[id]);
         current += inst.i[id];
@@ -237,13 +235,12 @@ namespace neuron {
         auto nodecount = _ml_arg->nodecount;
         auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
-        double * _thread_globals = nullptr;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             double v = node_data.node_voltages[node_id];
             auto* _ppvar = _ml_arg->pdata[id];
-            double I1 = nrn_current_SnapSyn(_ml, _nt, _ppvar, _thread, _thread_globals, id, inst, node_data, v+0.001);
-            double I0 = nrn_current_SnapSyn(_ml, _nt, _ppvar, _thread, _thread_globals, id, inst, node_data, v);
+            double I1 = nrn_current_SnapSyn(_ml, _nt, _ppvar, _thread, id, inst, node_data, v+0.001);
+            double I0 = nrn_current_SnapSyn(_ml, _nt, _ppvar, _thread, id, inst, node_data, v);
             double rhs = I0;
             double g = (I1-I0)/0.001;
             double mfactor = 1.e2/(*inst.node_area[id]);
@@ -263,7 +260,6 @@ namespace neuron {
         auto nodecount = _ml_arg->nodecount;
         auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
-        double * _thread_globals = nullptr;
         for (int id = 0; id < nodecount; id++) {
             
             int node_id = node_data.nodeindices[id];
