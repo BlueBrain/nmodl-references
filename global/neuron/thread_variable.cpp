@@ -77,9 +77,7 @@ namespace neuron {
     /** all global variables */
     struct shared_global_Store {
         int thread_data_in_use{};
-        double thread_data[1] /* TODO init thread_data */;
-        double ggro{0};
-        double ggp{9};
+        double thread_data[4] /* TODO init thread_data */;
     };
     static_assert(std::is_trivially_copy_constructible_v<shared_global_Store>);
     static_assert(std::is_trivially_move_constructible_v<shared_global_Store>);
@@ -112,11 +110,17 @@ namespace neuron {
     struct shared_global_ThreadVariables  {
         double * thread_data;
 
-        double * ggw_ptr(size_t i) {
-            return thread_data + 0 + i;
+        double * g_arr_ptr(size_t id) {
+            return thread_data + 0 + (id % 1);
         }
-        double & ggw(size_t i) {
-            return thread_data[0 + i];
+        double & g_arr(size_t id) {
+            return thread_data[0 + (id % 1)];
+        }
+        double * g_w_ptr(size_t id) {
+            return thread_data + 3 + (id % 1);
+        }
+        double & g_w(size_t id) {
+            return thread_data[3 + (id % 1)];
         }
 
         shared_global_ThreadVariables(double * const thread_data) {
@@ -174,15 +178,14 @@ namespace neuron {
 
     /** connect global (scalar) variables to hoc -- */
     static DoubScal hoc_scalar_double[] = {
-        {"ggro_shared_global", &shared_global_global.ggro},
-        {"ggp_shared_global", &shared_global_global.ggp},
-        {"ggw_shared_global", &shared_global_global.thread_data[0]},
+        {"g_w_shared_global", &shared_global_global.thread_data[3]},
         {nullptr, nullptr}
     };
 
 
     /** connect global (array) variables to hoc -- */
     static DoubVec hoc_vector_double[] = {
+        {"g_arr_shared_global", (shared_global_global.thread_data + 0), 3},
         {nullptr, nullptr, 0}
     };
 
@@ -199,11 +202,9 @@ namespace neuron {
     };
     static void thread_mem_init(Datum* _thread)  {
         if(shared_global_global.thread_data_in_use) {
-            std::cout << "thread_mem_init :: true " << std::endl;
-            _thread[0] = {neuron::container::do_not_search, new double[1]{}};
+            _thread[0] = {neuron::container::do_not_search, new double[4]{}};
         }
         else {
-            std::cout << "thread_mem_init :: false " << std::endl;
             _thread[0] = {neuron::container::do_not_search, shared_global_global.thread_data};
             shared_global_global.thread_data_in_use = 1;
         }
@@ -211,11 +212,9 @@ namespace neuron {
     static void thread_mem_cleanup(Datum* _thread)  {
         double * _thread_data_ptr = _thread[0].get<double*>();
         if(_thread_data_ptr == shared_global_global.thread_data) {
-            std::cout << "thread_mem_cleanup :: true" << std::endl;
             shared_global_global.thread_data_in_use = 0;
         }
         else {
-            std::cout << "thread_mem_cleanup :: false " << std::endl;
             delete[] _thread_data_ptr;
         }
     }
@@ -234,8 +233,10 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
             inst.v_unused[id] = v;
-            printf("INITIAL %g\n", inst.z[id]);
-            _thread_vars.ggw(0) = 48.0;
+            _thread_vars.g_w(id) = 48.0;
+            (_thread_vars.g_arr_ptr(id))[static_cast<int>(0)] = 10.0 + inst.z[id];
+            (_thread_vars.g_arr_ptr(id))[static_cast<int>(1)] = 10.1;
+            (_thread_vars.g_arr_ptr(id))[static_cast<int>(2)] = 10.2;
             inst.y[id] = 10.0;
         }
     }
@@ -244,12 +245,12 @@ namespace neuron {
     inline double nrn_current_shared_global(_nrn_mechanism_cache_range* _ml, NrnThread* _nt, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, size_t id, shared_global_Instance& inst, shared_global_NodeData& node_data, double v) {
         double current = 0.0;
         if (_nt->_t > 0.33) {
-            _thread_vars.ggw(0) = inst.global->ggp;
+            _thread_vars.g_w(id) = (_thread_vars.g_arr_ptr(id))[static_cast<int>(0)] + (_thread_vars.g_arr_ptr(id))[static_cast<int>(1)] + (_thread_vars.g_arr_ptr(id))[static_cast<int>(2)];
         }
         if (_nt->_t > 0.66) {
-            _thread_vars.ggw(0) = inst.z[id];
+            _thread_vars.g_w(id) = inst.z[id];
         }
-        inst.y[id] = _thread_vars.ggw(0);
+        inst.y[id] = _thread_vars.g_w(id);
         inst.il[id] = 0.0000001 * (v - 10.0);
         current += inst.il[id];
         return current;
