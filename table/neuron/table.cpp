@@ -82,14 +82,14 @@ namespace neuron {
         double usetable{1};
         double tmin_sigmoid1{};
         double mfac_sigmoid1{};
-        double tmin_example_function{};
-        double mfac_example_function{};
-        double tmin_example_procedure{};
-        double mfac_example_procedure{};
+        double tmin_quadratic{};
+        double mfac_quadratic{};
+        double tmin_sinusoidal{};
+        double mfac_sinusoidal{};
         double t_v1[301]{};
         double t_v2[301]{};
         double t_sig[156]{};
-        double t_example_function[501]{};
+        double t_quadratic[501]{};
         double k{0.1};
         double d{-50};
         double c1{1};
@@ -178,19 +178,19 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
-    inline double example_function_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double arg);
+    inline double quadratic_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double arg);
     inline int sigmoid1_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double v);
-    inline int example_procedure_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double arg);
+    inline int sinusoidal_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double arg);
     void lazy_update_sigmoid1_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
-    void lazy_update_example_function_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
-    void lazy_update_example_procedure_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
+    void lazy_update_quadratic_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
+    void lazy_update_sinusoidal_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
     static void _check_table_thread(Memb_list* _ml, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, int _type, const _nrn_model_sorted_token& _sorted_token)
 {
         _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml, _type};
         auto inst = make_instance_tbl(_lmr);
         lazy_update_sigmoid1_tbl(&_lmr, inst, id, _ppvar, _thread, _nt);
-        lazy_update_example_function_tbl(&_lmr, inst, id, _ppvar, _thread, _nt);
-        lazy_update_example_procedure_tbl(&_lmr, inst, id, _ppvar, _thread, _nt);
+        lazy_update_quadratic_tbl(&_lmr, inst, id, _ppvar, _thread, _nt);
+        lazy_update_sinusoidal_tbl(&_lmr, inst, id, _ppvar, _thread, _nt);
     }
 
 
@@ -213,25 +213,25 @@ namespace neuron {
 
     /* declaration of user functions */
     static void _hoc_sigmoid1(void);
-    static void _hoc_example_procedure(void);
-    static void _hoc_example_function(void);
+    static void _hoc_sinusoidal(void);
+    static void _hoc_quadratic(void);
     static double _npy_sigmoid1(Prop*);
-    static double _npy_example_procedure(Prop*);
-    static double _npy_example_function(Prop*);
+    static double _npy_sinusoidal(Prop*);
+    static double _npy_quadratic(Prop*);
 
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
         {"setdata_tbl", _hoc_setdata},
         {"sigmoid1_tbl", _hoc_sigmoid1},
-        {"example_procedure_tbl", _hoc_example_procedure},
-        {"example_function_tbl", _hoc_example_function},
+        {"sinusoidal_tbl", _hoc_sinusoidal},
+        {"quadratic_tbl", _hoc_quadratic},
         {0, 0}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
         {"sigmoid1", _npy_sigmoid1},
-        {"example_procedure", _npy_example_procedure},
-        {"example_function", _npy_example_function},
+        {"sinusoidal", _npy_sinusoidal},
+        {"quadratic", _npy_quadratic},
     };
     static void _hoc_sigmoid1(void) {
         double _r{};
@@ -268,13 +268,13 @@ namespace neuron {
         sigmoid1_tbl(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_example_procedure(void) {
+    static void _hoc_sinusoidal(void) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* _nt;
         if (!_prop_id) {
-            hoc_execerror("No data for example_procedure_tbl. Requires prior call to setdata_tbl and that the specified mechanism instance still be in existence.", NULL);
+            hoc_execerror("No data for sinusoidal_tbl. Requires prior call to setdata_tbl and that the specified mechanism instance still be in existence.", NULL);
         }
         Prop* _local_prop = _extcall_prop;
         _nrn_mechanism_cache_instance _ml_real{_local_prop};
@@ -284,12 +284,12 @@ namespace neuron {
         _thread = _extcall_thread.data();
         _nt = nrn_threads;
         auto inst = make_instance_tbl(_ml_real);
-        lazy_update_example_procedure_tbl(_ml, inst, id, _ppvar, _thread, _nt);
+        lazy_update_sinusoidal_tbl(_ml, inst, id, _ppvar, _thread, _nt);
         _r = 1.;
-        example_procedure_tbl(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        sinusoidal_tbl(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
         hoc_retpushx(_r);
     }
-    static double _npy_example_procedure(Prop* _prop) {
+    static double _npy_sinusoidal(Prop* _prop) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -301,12 +301,12 @@ namespace neuron {
         _thread = _extcall_thread.data();
         _nt = nrn_threads;
         auto inst = make_instance_tbl(_ml_real);
-        lazy_update_example_procedure_tbl(_ml, inst, id, _ppvar, _thread, _nt);
+        lazy_update_sinusoidal_tbl(_ml, inst, id, _ppvar, _thread, _nt);
         _r = 1.;
-        example_procedure_tbl(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        sinusoidal_tbl(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_example_function(void) {
+    static void _hoc_quadratic(void) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -319,11 +319,11 @@ namespace neuron {
         _thread = _extcall_thread.data();
         _nt = nrn_threads;
         auto inst = make_instance_tbl(_ml_real);
-        lazy_update_example_function_tbl(_ml, inst, id, _ppvar, _thread, _nt);
-        _r = example_function_tbl(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        lazy_update_quadratic_tbl(_ml, inst, id, _ppvar, _thread, _nt);
+        _r = quadratic_tbl(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
         hoc_retpushx(_r);
     }
-    static double _npy_example_function(Prop* _prop) {
+    static double _npy_quadratic(Prop* _prop) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -335,8 +335,8 @@ namespace neuron {
         _thread = _extcall_thread.data();
         _nt = nrn_threads;
         auto inst = make_instance_tbl(_ml_real);
-        lazy_update_example_function_tbl(_ml, inst, id, _ppvar, _thread, _nt);
-        _r = example_function_tbl(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        lazy_update_quadratic_tbl(_ml, inst, id, _ppvar, _thread, _nt);
+        _r = quadratic_tbl(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
         return(_r);
     }
 
@@ -400,16 +400,16 @@ namespace neuron {
     }
 
 
-    inline static int f_example_procedure_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double arg) {
-        int ret_f_example_procedure = 0;
+    inline static int f_sinusoidal_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double arg) {
+        int ret_f_sinusoidal = 0;
         auto v = inst.v_unused[id];
         inst.v1[id] = sin(inst.global->c1 * arg) + 2.0;
         inst.v2[id] = cos(inst.global->c2 * arg) + 2.0;
-        return ret_f_example_procedure;
+        return ret_f_sinusoidal;
     }
 
 
-    void lazy_update_example_procedure_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt) {
+    void lazy_update_sinusoidal_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt) {
         if (inst.global->usetable == 0) {
             return;
         }
@@ -424,13 +424,13 @@ namespace neuron {
         }
         if (make_table) {
             make_table = false;
-            inst.global->tmin_example_procedure =  -4.0;
+            inst.global->tmin_sinusoidal =  -4.0;
             double tmax = 6.0;
-            double dx = (tmax-inst.global->tmin_example_procedure) / 300.;
-            inst.global->mfac_example_procedure = 1./dx;
-            double x = inst.global->tmin_example_procedure;
+            double dx = (tmax-inst.global->tmin_sinusoidal) / 300.;
+            inst.global->mfac_sinusoidal = 1./dx;
+            double x = inst.global->tmin_sinusoidal;
             for (std::size_t i = 0; i < 301; x += dx, i++) {
-                f_example_procedure_tbl(_ml, inst, id, _ppvar, _thread, _nt, x);
+                f_sinusoidal_tbl(_ml, inst, id, _ppvar, _thread, _nt, x);
                 inst.global->t_v1[i] = inst.v1[id];
                 inst.global->t_v2[i] = inst.v2[id];
             }
@@ -440,12 +440,12 @@ namespace neuron {
     }
 
 
-    inline int example_procedure_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double arg){
+    inline int sinusoidal_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double arg){
         if (inst.global->usetable == 0) {
-            f_example_procedure_tbl(_ml, inst, id, _ppvar, _thread, _nt, arg);
+            f_sinusoidal_tbl(_ml, inst, id, _ppvar, _thread, _nt, arg);
             return 0;
         }
-        double xi = inst.global->mfac_example_procedure * (arg - inst.global->tmin_example_procedure);
+        double xi = inst.global->mfac_sinusoidal * (arg - inst.global->tmin_sinusoidal);
         if (isnan(xi)) {
             inst.v1[id] = xi;
             inst.v2[id] = xi;
@@ -465,15 +465,15 @@ namespace neuron {
     }
 
 
-    inline static double f_example_function_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double arg) {
-        double ret_f_example_function = 0.0;
+    inline static double f_quadratic_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double arg) {
+        double ret_f_quadratic = 0.0;
         auto v = inst.v_unused[id];
-        ret_f_example_function = inst.global->c1 * arg * arg + inst.global->c2;
-        return ret_f_example_function;
+        ret_f_quadratic = inst.global->c1 * arg * arg + inst.global->c2;
+        return ret_f_quadratic;
     }
 
 
-    void lazy_update_example_function_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt) {
+    void lazy_update_quadratic_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt) {
         if (inst.global->usetable == 0) {
             return;
         }
@@ -488,13 +488,13 @@ namespace neuron {
         }
         if (make_table) {
             make_table = false;
-            inst.global->tmin_example_function =  -3.0;
+            inst.global->tmin_quadratic =  -3.0;
             double tmax = 5.0;
-            double dx = (tmax-inst.global->tmin_example_function) / 500.;
-            inst.global->mfac_example_function = 1./dx;
-            double x = inst.global->tmin_example_function;
+            double dx = (tmax-inst.global->tmin_quadratic) / 500.;
+            inst.global->mfac_quadratic = 1./dx;
+            double x = inst.global->tmin_quadratic;
             for (std::size_t i = 0; i < 501; x += dx, i++) {
-                inst.global->t_example_function[i] = f_example_function_tbl(_ml, inst, id, _ppvar, _thread, _nt, x);
+                inst.global->t_quadratic[i] = f_quadratic_tbl(_ml, inst, id, _ppvar, _thread, _nt, x);
             }
             save_c1 = inst.global->c1;
             save_c2 = inst.global->c2;
@@ -502,21 +502,21 @@ namespace neuron {
     }
 
 
-    inline double example_function_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double arg){
+    inline double quadratic_tbl(_nrn_mechanism_cache_range* _ml, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double arg){
         if (inst.global->usetable == 0) {
-            return f_example_function_tbl(_ml, inst, id, _ppvar, _thread, _nt, arg);
+            return f_quadratic_tbl(_ml, inst, id, _ppvar, _thread, _nt, arg);
         }
-        double xi = inst.global->mfac_example_function * (arg - inst.global->tmin_example_function);
+        double xi = inst.global->mfac_quadratic * (arg - inst.global->tmin_quadratic);
         if (isnan(xi)) {
             return xi;
         }
         if (xi <= 0. || xi >= 500.) {
             int index = (xi <= 0.) ? 0 : 500;
-            return inst.global->t_example_function[index];
+            return inst.global->t_quadratic[index];
         }
         int i = int(xi);
         double theta = xi - double(i);
-        return inst.global->t_example_function[i] + theta * (inst.global->t_example_function[i+1] - inst.global->t_example_function[i]);
+        return inst.global->t_quadratic[i] + theta * (inst.global->t_quadratic[i+1] - inst.global->t_quadratic[i]);
     }
 
 

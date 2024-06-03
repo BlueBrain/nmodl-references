@@ -61,14 +61,14 @@ namespace coreneuron {
         double usetable{1};
         double tmin_sigmoid1{};
         double mfac_sigmoid1{};
-        double tmin_example_function{};
-        double mfac_example_function{};
-        double tmin_example_procedure{};
-        double mfac_example_procedure{};
+        double tmin_quadratic{};
+        double mfac_quadratic{};
+        double tmin_sinusoidal{};
+        double mfac_sinusoidal{};
         double t_v1[301]{};
         double t_v2[301]{};
         double t_sig[156]{};
-        double t_example_function[501]{};
+        double t_quadratic[501]{};
     };
     static_assert(std::is_trivially_copy_constructible_v<tbl_Store>);
     static_assert(std::is_trivially_move_constructible_v<tbl_Store>);
@@ -244,9 +244,9 @@ namespace coreneuron {
     }
 
 
-    inline double example_function_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg);
+    inline double quadratic_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg);
     inline int sigmoid1_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v);
-    inline int example_procedure_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg);
+    inline int sinusoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg);
 
 
     inline int f_sigmoid1_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v) {
@@ -308,15 +308,15 @@ namespace coreneuron {
     }
 
 
-    inline int f_example_procedure_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg) {
-        int ret_f_example_procedure = 0;
+    inline int f_sinusoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg) {
+        int ret_f_sinusoidal = 0;
         inst->v1[id] = sin(inst->global->c1 * arg) + 2.0;
         inst->v2[id] = cos(inst->global->c2 * arg) + 2.0;
-        return ret_f_example_procedure;
+        return ret_f_sinusoidal;
     }
 
 
-    void lazy_update_example_procedure_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
+    void lazy_update_sinusoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
         if (inst->global->usetable == 0) {
             return;
         }
@@ -331,13 +331,13 @@ namespace coreneuron {
         }
         if (make_table) {
             make_table = false;
-            inst->global->tmin_example_procedure =  -4.0;
+            inst->global->tmin_sinusoidal =  -4.0;
             double tmax = 6.0;
-            double dx = (tmax-inst->global->tmin_example_procedure) / 300.;
-            inst->global->mfac_example_procedure = 1./dx;
-            double x = inst->global->tmin_example_procedure;
+            double dx = (tmax-inst->global->tmin_sinusoidal) / 300.;
+            inst->global->mfac_sinusoidal = 1./dx;
+            double x = inst->global->tmin_sinusoidal;
             for (std::size_t i = 0; i < 301; x += dx, i++) {
-                f_example_procedure_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, x);
+                f_sinusoidal_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, x);
                 inst->global->t_v1[i] = inst->v1[id];
                 inst->global->t_v2[i] = inst->v2[id];
             }
@@ -347,12 +347,12 @@ namespace coreneuron {
     }
 
 
-    inline int example_procedure_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg){
+    inline int sinusoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg){
         if (inst->global->usetable == 0) {
-            f_example_procedure_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, arg);
+            f_sinusoidal_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, arg);
             return 0;
         }
-        double xi = inst->global->mfac_example_procedure * (arg - inst->global->tmin_example_procedure);
+        double xi = inst->global->mfac_sinusoidal * (arg - inst->global->tmin_sinusoidal);
         if (isnan(xi)) {
             inst->v1[id] = xi;
             inst->v2[id] = xi;
@@ -372,14 +372,14 @@ namespace coreneuron {
     }
 
 
-    inline double f_example_function_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg) {
-        double ret_f_example_function = 0.0;
-        ret_f_example_function = inst->global->c1 * arg * arg + inst->global->c2;
-        return ret_f_example_function;
+    inline double f_quadratic_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg) {
+        double ret_f_quadratic = 0.0;
+        ret_f_quadratic = inst->global->c1 * arg * arg + inst->global->c2;
+        return ret_f_quadratic;
     }
 
 
-    void lazy_update_example_function_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
+    void lazy_update_quadratic_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
         if (inst->global->usetable == 0) {
             return;
         }
@@ -394,13 +394,13 @@ namespace coreneuron {
         }
         if (make_table) {
             make_table = false;
-            inst->global->tmin_example_function =  -3.0;
+            inst->global->tmin_quadratic =  -3.0;
             double tmax = 5.0;
-            double dx = (tmax-inst->global->tmin_example_function) / 500.;
-            inst->global->mfac_example_function = 1./dx;
-            double x = inst->global->tmin_example_function;
+            double dx = (tmax-inst->global->tmin_quadratic) / 500.;
+            inst->global->mfac_quadratic = 1./dx;
+            double x = inst->global->tmin_quadratic;
             for (std::size_t i = 0; i < 501; x += dx, i++) {
-                inst->global->t_example_function[i] = f_example_function_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, x);
+                inst->global->t_quadratic[i] = f_quadratic_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, x);
             }
             save_c1 = inst->global->c1;
             save_c2 = inst->global->c2;
@@ -408,21 +408,21 @@ namespace coreneuron {
     }
 
 
-    inline double example_function_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg){
+    inline double quadratic_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg){
         if (inst->global->usetable == 0) {
-            return f_example_function_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, arg);
+            return f_quadratic_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, arg);
         }
-        double xi = inst->global->mfac_example_function * (arg - inst->global->tmin_example_function);
+        double xi = inst->global->mfac_quadratic * (arg - inst->global->tmin_quadratic);
         if (isnan(xi)) {
             return xi;
         }
         if (xi <= 0. || xi >= 500.) {
             int index = (xi <= 0.) ? 0 : 500;
-            return inst->global->t_example_function[index];
+            return inst->global->t_quadratic[index];
         }
         int i = int(xi);
         double theta = xi - double(i);
-        return inst->global->t_example_function[i] + theta * (inst->global->t_example_function[i+1] - inst->global->t_example_function[i]);
+        return inst->global->t_quadratic[i] + theta * (inst->global->t_quadratic[i+1] - inst->global->t_quadratic[i]);
     }
 
 
@@ -524,8 +524,8 @@ namespace coreneuron {
         auto* const inst = static_cast<tbl_Instance*>(ml->instance);
         double v = 0;
         lazy_update_sigmoid1_tbl(id, pnodecount, inst, data, indexes, thread, nt, v);
-        lazy_update_example_function_tbl(id, pnodecount, inst, data, indexes, thread, nt, v);
-        lazy_update_example_procedure_tbl(id, pnodecount, inst, data, indexes, thread, nt, v);
+        lazy_update_quadratic_tbl(id, pnodecount, inst, data, indexes, thread, nt, v);
+        lazy_update_sinusoidal_tbl(id, pnodecount, inst, data, indexes, thread, nt, v);
     }
 
 
