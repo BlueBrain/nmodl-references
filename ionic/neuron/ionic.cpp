@@ -182,7 +182,7 @@ namespace neuron {
     };
 
 
-    void nrn_init_ionic(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
+    void nrn_init_ionic(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
         auto inst = make_instance_ionic(_lmr);
         auto node_data = make_node_data_ionic(*_nt, *_ml_arg);
@@ -200,7 +200,7 @@ namespace neuron {
     }
 
 
-    void nrn_state_ionic(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
+    void nrn_state_ionic(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
         auto inst = make_instance_ionic(_lmr);
         auto node_data = make_node_data_ionic(*_nt, *_ml_arg);
@@ -218,7 +218,7 @@ namespace neuron {
     }
 
 
-    static void nrn_jacob_ionic(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_ionic(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
         auto inst = make_instance_ionic(_lmr);
         auto node_data = make_node_data_ionic(*_nt, *_ml_arg);
