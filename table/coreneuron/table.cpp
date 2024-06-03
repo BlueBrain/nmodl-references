@@ -37,8 +37,6 @@ namespace coreneuron {
     static const char *mechanism_info[] = {
         "7.7.0",
         "tbl",
-        "e_tbl",
-        "gmax_tbl",
         0,
         "g_tbl",
         "i_tbl",
@@ -59,14 +57,14 @@ namespace coreneuron {
         double c1{1};
         double c2{2};
         double usetable{1};
-        double tmin_sigmoid1{};
-        double mfac_sigmoid1{};
+        double tmin_sigmoidal{};
+        double mfac_sigmoidal{};
         double tmin_quadratic{};
         double mfac_quadratic{};
         double tmin_sinusoidal{};
         double mfac_sinusoidal{};
-        double t_v1[301]{};
-        double t_v2[301]{};
+        double t_v1[801]{};
+        double t_v2[801]{};
         double t_sig[156]{};
         double t_quadratic[501]{};
     };
@@ -80,8 +78,6 @@ namespace coreneuron {
 
     /** all mechanism instance variables and global variables */
     struct tbl_Instance  {
-        const double* e{};
-        const double* gmax{};
         double* g{};
         double* i{};
         double* v1{};
@@ -121,7 +117,7 @@ namespace coreneuron {
 
 
     static inline int float_variables_size() {
-        return 9;
+        return 7;
     }
 
 
@@ -196,15 +192,13 @@ namespace coreneuron {
         assert(ml->global_variables_size == sizeof(tbl_Store));
         int pnodecount = ml->_nodecount_padded;
         Datum* indexes = ml->pdata;
-        inst->e = ml->data+0*pnodecount;
-        inst->gmax = ml->data+1*pnodecount;
-        inst->g = ml->data+2*pnodecount;
-        inst->i = ml->data+3*pnodecount;
-        inst->v1 = ml->data+4*pnodecount;
-        inst->v2 = ml->data+5*pnodecount;
-        inst->sig = ml->data+6*pnodecount;
-        inst->v_unused = ml->data+7*pnodecount;
-        inst->g_unused = ml->data+8*pnodecount;
+        inst->g = ml->data+0*pnodecount;
+        inst->i = ml->data+1*pnodecount;
+        inst->v1 = ml->data+2*pnodecount;
+        inst->v2 = ml->data+3*pnodecount;
+        inst->sig = ml->data+4*pnodecount;
+        inst->v_unused = ml->data+5*pnodecount;
+        inst->g_unused = ml->data+6*pnodecount;
     }
 
 
@@ -244,19 +238,19 @@ namespace coreneuron {
     }
 
 
-    inline double quadratic_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg);
-    inline int sigmoid1_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v);
-    inline int sinusoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg);
+    inline double quadratic_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double x);
+    inline int sigmoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v);
+    inline int sinusoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double x);
 
 
-    inline int f_sigmoid1_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v) {
-        int ret_f_sigmoid1 = 0;
+    inline int f_sigmoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v) {
+        int ret_f_sigmoidal = 0;
         inst->sig[id] = 1.0 / (1.0 + exp(inst->global->k * (arg_v - inst->global->d)));
-        return ret_f_sigmoid1;
+        return ret_f_sigmoidal;
     }
 
 
-    void lazy_update_sigmoid1_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
+    void lazy_update_sigmoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
         if (inst->global->usetable == 0) {
             return;
         }
@@ -271,13 +265,13 @@ namespace coreneuron {
         }
         if (make_table) {
             make_table = false;
-            inst->global->tmin_sigmoid1 =  -127.0;
+            inst->global->tmin_sigmoidal =  -127.0;
             double tmax = 128.0;
-            double dx = (tmax-inst->global->tmin_sigmoid1) / 155.;
-            inst->global->mfac_sigmoid1 = 1./dx;
-            double x = inst->global->tmin_sigmoid1;
+            double dx = (tmax-inst->global->tmin_sigmoidal) / 155.;
+            inst->global->mfac_sigmoidal = 1./dx;
+            double x = inst->global->tmin_sigmoidal;
             for (std::size_t i = 0; i < 156; x += dx, i++) {
-                f_sigmoid1_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, x);
+                f_sigmoidal_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, x);
                 inst->global->t_sig[i] = inst->sig[id];
             }
             save_k = inst->global->k;
@@ -286,12 +280,12 @@ namespace coreneuron {
     }
 
 
-    inline int sigmoid1_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v){
+    inline int sigmoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v){
         if (inst->global->usetable == 0) {
-            f_sigmoid1_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, arg_v);
+            f_sigmoidal_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, arg_v);
             return 0;
         }
-        double xi = inst->global->mfac_sigmoid1 * (arg_v - inst->global->tmin_sigmoid1);
+        double xi = inst->global->mfac_sigmoidal * (arg_v - inst->global->tmin_sigmoidal);
         if (isnan(xi)) {
             inst->sig[id] = xi;
             return 0;
@@ -308,10 +302,10 @@ namespace coreneuron {
     }
 
 
-    inline int f_sinusoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg) {
+    inline int f_sinusoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double x) {
         int ret_f_sinusoidal = 0;
-        inst->v1[id] = sin(inst->global->c1 * arg) + 2.0;
-        inst->v2[id] = cos(inst->global->c2 * arg) + 2.0;
+        inst->v1[id] = sin(inst->global->c1 * x) + 2.0;
+        inst->v2[id] = cos(inst->global->c2 * x) + 2.0;
         return ret_f_sinusoidal;
     }
 
@@ -333,10 +327,10 @@ namespace coreneuron {
             make_table = false;
             inst->global->tmin_sinusoidal =  -4.0;
             double tmax = 6.0;
-            double dx = (tmax-inst->global->tmin_sinusoidal) / 300.;
+            double dx = (tmax-inst->global->tmin_sinusoidal) / 800.;
             inst->global->mfac_sinusoidal = 1./dx;
             double x = inst->global->tmin_sinusoidal;
-            for (std::size_t i = 0; i < 301; x += dx, i++) {
+            for (std::size_t i = 0; i < 801; x += dx, i++) {
                 f_sinusoidal_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, x);
                 inst->global->t_v1[i] = inst->v1[id];
                 inst->global->t_v2[i] = inst->v2[id];
@@ -347,19 +341,19 @@ namespace coreneuron {
     }
 
 
-    inline int sinusoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg){
+    inline int sinusoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double x){
         if (inst->global->usetable == 0) {
-            f_sinusoidal_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, arg);
+            f_sinusoidal_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, x);
             return 0;
         }
-        double xi = inst->global->mfac_sinusoidal * (arg - inst->global->tmin_sinusoidal);
+        double xi = inst->global->mfac_sinusoidal * (x - inst->global->tmin_sinusoidal);
         if (isnan(xi)) {
             inst->v1[id] = xi;
             inst->v2[id] = xi;
             return 0;
         }
-        if (xi <= 0. || xi >= 300.) {
-            int index = (xi <= 0.) ? 0 : 300;
+        if (xi <= 0. || xi >= 800.) {
+            int index = (xi <= 0.) ? 0 : 800;
             inst->v1[id] = inst->global->t_v1[index];
             inst->v2[id] = inst->global->t_v2[index];
             return 0;
@@ -372,9 +366,9 @@ namespace coreneuron {
     }
 
 
-    inline double f_quadratic_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg) {
+    inline double f_quadratic_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double x) {
         double ret_f_quadratic = 0.0;
-        ret_f_quadratic = inst->global->c1 * arg * arg + inst->global->c2;
+        ret_f_quadratic = inst->global->c1 * x * x + inst->global->c2;
         return ret_f_quadratic;
     }
 
@@ -408,11 +402,11 @@ namespace coreneuron {
     }
 
 
-    inline double quadratic_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg){
+    inline double quadratic_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double x){
         if (inst->global->usetable == 0) {
-            return f_quadratic_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, arg);
+            return f_quadratic_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, x);
         }
-        double xi = inst->global->mfac_quadratic * (arg - inst->global->tmin_quadratic);
+        double xi = inst->global->mfac_quadratic * (x - inst->global->tmin_quadratic);
         if (isnan(xi)) {
             return xi;
         }
@@ -455,9 +449,9 @@ namespace coreneuron {
 
     inline double nrn_current_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
         double current = 0.0;
-        sigmoid1_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, v);
-        inst->g[id] = inst->gmax[id] * inst->sig[id];
-        inst->i[id] = inst->g[id] * (v - inst->e[id]);
+        sigmoidal_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, v);
+        inst->g[id] = 0.001 * inst->sig[id];
+        inst->i[id] = inst->g[id] * (v - 30.0);
         current += inst->i[id];
         return current;
     }
@@ -523,7 +517,7 @@ namespace coreneuron {
         setup_instance(nt, ml);
         auto* const inst = static_cast<tbl_Instance*>(ml->instance);
         double v = 0;
-        lazy_update_sigmoid1_tbl(id, pnodecount, inst, data, indexes, thread, nt, v);
+        lazy_update_sigmoidal_tbl(id, pnodecount, inst, data, indexes, thread, nt, v);
         lazy_update_quadratic_tbl(id, pnodecount, inst, data, indexes, thread, nt, v);
         lazy_update_sinusoidal_tbl(id, pnodecount, inst, data, indexes, thread, nt, v);
     }

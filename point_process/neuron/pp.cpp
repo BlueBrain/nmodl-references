@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : art_toggle
-Filename        : art_toggle.mod
+Model Name      : pp
+Filename        : pp.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -23,8 +23,8 @@ NMODL Compiler  : VERSION
 /* VECTORIZED */
 #define NRN_VECTORIZED 1
 
-static constexpr auto number_of_datum_variables = 3;
-static constexpr auto number_of_floating_point_variables = 3;
+static constexpr auto number_of_datum_variables = 2;
+static constexpr auto number_of_floating_point_variables = 1;
 
 namespace {
 template <typename T>
@@ -53,9 +53,8 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "art_toggle",
+        "pp",
         0,
-        "y",
         0,
         0,
         0
@@ -70,28 +69,25 @@ namespace neuron {
 
 
     /** all global variables */
-    struct art_toggle_Store {
+    struct pp_Store {
     };
-    static_assert(std::is_trivially_copy_constructible_v<art_toggle_Store>);
-    static_assert(std::is_trivially_move_constructible_v<art_toggle_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<art_toggle_Store>);
-    static_assert(std::is_trivially_move_assignable_v<art_toggle_Store>);
-    static_assert(std::is_trivially_destructible_v<art_toggle_Store>);
-    art_toggle_Store art_toggle_global;
+    static_assert(std::is_trivially_copy_constructible_v<pp_Store>);
+    static_assert(std::is_trivially_move_constructible_v<pp_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<pp_Store>);
+    static_assert(std::is_trivially_move_assignable_v<pp_Store>);
+    static_assert(std::is_trivially_destructible_v<pp_Store>);
+    pp_Store pp_global;
 
 
     /** all mechanism instance variables and global variables */
-    struct art_toggle_Instance  {
-        double* y{};
+    struct pp_Instance  {
         double* v_unused{};
-        double* tsave{};
         const double* const* node_area{};
-        const int* const* tqitem{};
-        art_toggle_Store* global{&art_toggle_global};
+        pp_Store* global{&pp_global};
     };
 
 
-    struct art_toggle_NodeData  {
+    struct pp_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -100,18 +96,16 @@ namespace neuron {
     };
 
 
-    static art_toggle_Instance make_instance_art_toggle(_nrn_mechanism_cache_range& _ml) {
-        return art_toggle_Instance {
+    static pp_Instance make_instance_pp(_nrn_mechanism_cache_range& _ml) {
+        return pp_Instance {
             _ml.template fpfield_ptr<0>(),
-            _ml.template fpfield_ptr<1>(),
-            _ml.template fpfield_ptr<2>(),
             _ml.template dptr_field_ptr<0>()
         };
     }
 
 
-    static art_toggle_NodeData make_node_data_art_toggle(NrnThread& _nt, Memb_list& _ml_arg) {
-        return art_toggle_NodeData {
+    static pp_NodeData make_node_data_pp(NrnThread& _nt, Memb_list& _ml_arg) {
+        return pp_NodeData {
             _ml_arg.nodeindices,
             _nt.node_voltage_storage(),
             _nt.node_d_storage(),
@@ -121,19 +115,19 @@ namespace neuron {
     }
 
 
-    static void nrn_alloc_art_toggle(Prop* _prop) {
+    static void nrn_alloc_pp(Prop* _prop) {
         Prop *prop_ion{};
         Datum *_ppvar{};
         if (nrn_point_prop_) {
             _nrn_mechanism_access_alloc_seq(_prop) = _nrn_mechanism_access_alloc_seq(nrn_point_prop_);
             _ppvar = _nrn_mechanism_access_dparam(nrn_point_prop_);
         } else {
-            _ppvar = nrn_prop_datum_alloc(mech_type, 3, _prop);
+            _ppvar = nrn_prop_datum_alloc(mech_type, 2, _prop);
             _nrn_mechanism_access_dparam(_prop) = _ppvar;
             _nrn_mechanism_cache_instance _ml_real{_prop};
             auto* const _ml = &_ml_real;
             size_t const _iml{};
-            assert(_nrn_mechanism_get_num_vars(_prop) == 3);
+            assert(_nrn_mechanism_get_num_vars(_prop) == 1);
             /*initialize range parameters*/
         }
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
@@ -195,42 +189,29 @@ namespace neuron {
     };
 
 
-    void nrn_init_art_toggle(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
+    void nrn_init_pp(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_art_toggle(_lmr);
-        auto node_data = make_node_data_art_toggle(*_nt, *_ml_arg);
+        auto inst = make_instance_pp(_lmr);
+        auto node_data = make_node_data_pp(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
-            inst.y[id] = 0.0;
-            net_send(/* tqitem */ &_ppvar[2], nullptr, _ppvar[1].get<Point_process*>(), _nt->_t + 2.501, 1.0);
+            int node_id = node_data.nodeindices[id];
+            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = v;
         }
     }
 
 
-    static void nrn_jacob_art_toggle(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_pp(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_art_toggle(_lmr);
-        auto node_data = make_node_data_art_toggle(*_nt, *_ml_arg);
+        auto inst = make_instance_pp(_lmr);
+        auto node_data = make_node_data_pp(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
-    }
-    static void nrn_net_receive_art_toggle(Point_process* _pnt, double* _args, double flag) {
-        _nrn_mechanism_cache_instance _ml_obj{_pnt->prop};
-        auto * _nt = static_cast<NrnThread*>(_pnt->_vnt);
-        auto * _ml = &_ml_obj;
-        auto * _ppvar = _nrn_mechanism_access_dparam(_pnt->prop);
-        auto inst = make_instance_art_toggle(_ml_obj);
-        size_t id = 0;
-        double t = _nt->_t;
-        inst.y[id] = inst.y[id] + 1.0;
-        if (_nt->_t < 3.7) {
-            net_send(/* tqitem */ &_ppvar[2], nullptr, _pnt, _nt->_t + 4.501 - _nt->_t, 1.0);
-        }
-
     }
 
 
@@ -239,28 +220,21 @@ namespace neuron {
 
 
     /** register channel with the simulator */
-    extern "C" void _art_toggle_reg() {
+    extern "C" void _pp_reg() {
         _initlists();
 
-        _pointtype = point_register_mech(mechanism_info, nrn_alloc_art_toggle, nullptr, nullptr, nullptr, nrn_init_art_toggle, hoc_nrnpointerindex, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
+        _pointtype = point_register_mech(mechanism_info, nrn_alloc_pp, nullptr, nullptr, nullptr, nrn_init_pp, hoc_nrnpointerindex, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         _nrn_mechanism_register_data_fields(mech_type,
-            _nrn_mechanism_field<double>{"y"} /* 0 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 1 */,
-            _nrn_mechanism_field<double>{"tsave"} /* 2 */,
+            _nrn_mechanism_field<double>{"v_unused"} /* 0 */,
             _nrn_mechanism_field<double*>{"node_area", "area"} /* 0 */,
-            _nrn_mechanism_field<Point_process*>{"point_process", "pntproc"} /* 1 */,
-            _nrn_mechanism_field<void*>{"tqitem", "netsend"} /* 2 */
+            _nrn_mechanism_field<Point_process*>{"point_process", "pntproc"} /* 1 */
         );
 
-        hoc_register_prop_size(mech_type, 3, 3);
+        hoc_register_prop_size(mech_type, 1, 2);
         hoc_register_dparam_semantics(mech_type, 0, "area");
         hoc_register_dparam_semantics(mech_type, 1, "pntproc");
-        hoc_register_dparam_semantics(mech_type, 2, "netsend");
-        add_nrn_artcell(mech_type, 2);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
-        pnt_receive[mech_type] = nrn_net_receive_art_toggle;
-        pnt_receive_size[mech_type] = 1;
     }
 }

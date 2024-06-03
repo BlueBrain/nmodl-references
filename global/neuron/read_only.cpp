@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : leonhard
-Filename        : leonhard.mod
+Model Name      : read_only
+Filename        : read_only.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -53,11 +53,10 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "leonhard",
-        "c_leonhard",
+        "read_only",
         0,
-        "il_leonhard",
         0,
+        "x_read_only",
         0,
         0
     };
@@ -73,27 +72,29 @@ namespace neuron {
 
 
     /** all global variables */
-    struct leonhard_Store {
+    struct read_only_Store {
+        double x0{};
+        double c{2};
     };
-    static_assert(std::is_trivially_copy_constructible_v<leonhard_Store>);
-    static_assert(std::is_trivially_move_constructible_v<leonhard_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<leonhard_Store>);
-    static_assert(std::is_trivially_move_assignable_v<leonhard_Store>);
-    static_assert(std::is_trivially_destructible_v<leonhard_Store>);
-    leonhard_Store leonhard_global;
+    static_assert(std::is_trivially_copy_constructible_v<read_only_Store>);
+    static_assert(std::is_trivially_move_constructible_v<read_only_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<read_only_Store>);
+    static_assert(std::is_trivially_move_assignable_v<read_only_Store>);
+    static_assert(std::is_trivially_destructible_v<read_only_Store>);
+    read_only_Store read_only_global;
 
 
     /** all mechanism instance variables and global variables */
-    struct leonhard_Instance  {
-        double* c{};
-        double* il{};
+    struct read_only_Instance  {
+        double* x{};
+        double* Dx{};
         double* v_unused{};
         double* g_unused{};
-        leonhard_Store* global{&leonhard_global};
+        read_only_Store* global{&read_only_global};
     };
 
 
-    struct leonhard_NodeData  {
+    struct read_only_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -102,8 +103,8 @@ namespace neuron {
     };
 
 
-    static leonhard_Instance make_instance_leonhard(_nrn_mechanism_cache_range& _ml) {
-        return leonhard_Instance {
+    static read_only_Instance make_instance_read_only(_nrn_mechanism_cache_range& _ml) {
+        return read_only_Instance {
             _ml.template fpfield_ptr<0>(),
             _ml.template fpfield_ptr<1>(),
             _ml.template fpfield_ptr<2>(),
@@ -112,8 +113,8 @@ namespace neuron {
     }
 
 
-    static leonhard_NodeData make_node_data_leonhard(NrnThread& _nt, Memb_list& _ml_arg) {
-        return leonhard_NodeData {
+    static read_only_NodeData make_node_data_read_only(NrnThread& _nt, Memb_list& _ml_arg) {
+        return read_only_NodeData {
             _ml_arg.nodeindices,
             _nt.node_voltage_storage(),
             _nt.node_d_storage(),
@@ -123,7 +124,7 @@ namespace neuron {
     }
 
 
-    static void nrn_alloc_leonhard(Prop* _prop) {
+    static void nrn_alloc_read_only(Prop* _prop) {
         Prop *prop_ion{};
         Datum *_ppvar{};
         _nrn_mechanism_cache_instance _ml_real{_prop};
@@ -131,7 +132,6 @@ namespace neuron {
         size_t const _iml{};
         assert(_nrn_mechanism_get_num_vars(_prop) == 4);
         /*initialize range parameters*/
-        _ml->template fpfield<0>(_iml) = 0.005; /* c */
     }
 
 
@@ -151,6 +151,7 @@ namespace neuron {
 
     /** connect global (scalar) variables to hoc -- */
     static DoubScal hoc_scalar_double[] = {
+        {"c_read_only", &read_only_global.c},
         {nullptr, nullptr}
     };
 
@@ -166,7 +167,7 @@ namespace neuron {
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
-        {"setdata_leonhard", _hoc_setdata},
+        {"setdata_read_only", _hoc_setdata},
         {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
@@ -174,10 +175,10 @@ namespace neuron {
     };
 
 
-    void nrn_init_leonhard(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
+    void nrn_init_read_only(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_leonhard(_lmr);
-        auto node_data = make_node_data_leonhard(*_nt, *_ml_arg);
+        auto inst = make_instance_read_only(_lmr);
+        auto node_data = make_node_data_read_only(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
@@ -186,44 +187,15 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
             inst.v_unused[id] = v;
+            inst.x[id] = 42.0;
         }
     }
 
 
-    inline double nrn_current_leonhard(_nrn_mechanism_cache_range* _ml, NrnThread* _nt, Datum* _ppvar, Datum* _thread, size_t id, leonhard_Instance& inst, leonhard_NodeData& node_data, double v) {
-        double current = 0.0;
-        inst.il[id] = inst.c[id] * (v - 1.5);
-        current += inst.il[id];
-        return current;
-    }
-
-
-    /** update current */
-    void nrn_cur_leonhard(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
+    void nrn_state_read_only(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_leonhard(_lmr);
-        auto node_data = make_node_data_leonhard(*_nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
-        auto* const _ml = &_lmr;
-        auto* _thread = _ml_arg->_thread;
-        for (int id = 0; id < nodecount; id++) {
-            int node_id = node_data.nodeindices[id];
-            double v = node_data.node_voltages[node_id];
-            auto* _ppvar = _ml_arg->pdata[id];
-            double I1 = nrn_current_leonhard(_ml, _nt, _ppvar, _thread, id, inst, node_data, v+0.001);
-            double I0 = nrn_current_leonhard(_ml, _nt, _ppvar, _thread, id, inst, node_data, v);
-            double rhs = I0;
-            double g = (I1-I0)/0.001;
-            node_data.node_rhs[node_id] -= rhs;
-            inst.g_unused[id] = g;
-        }
-    }
-
-
-    void nrn_state_leonhard(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_leonhard(_lmr);
-        auto node_data = make_node_data_leonhard(*_nt, *_ml_arg);
+        auto inst = make_instance_read_only(_lmr);
+        auto node_data = make_node_data_read_only(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
@@ -231,14 +203,15 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
+            inst.x[id] = inst.global->c;
         }
     }
 
 
-    static void nrn_jacob_leonhard(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_read_only(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_leonhard(_lmr);
-        auto node_data = make_node_data_leonhard(*_nt, *_ml_arg);
+        auto inst = make_instance_read_only(_lmr);
+        auto node_data = make_node_data_read_only(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
@@ -252,15 +225,15 @@ namespace neuron {
 
 
     /** register channel with the simulator */
-    extern "C" void _leonhard_reg() {
+    extern "C" void _read_only_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_leonhard, nrn_cur_leonhard, nrn_jacob_leonhard, nrn_state_leonhard, nrn_init_leonhard, hoc_nrnpointerindex, 1);
+        register_mech(mechanism_info, nrn_alloc_read_only, nullptr, nrn_jacob_read_only, nrn_state_read_only, nrn_init_read_only, hoc_nrnpointerindex, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         _nrn_mechanism_register_data_fields(mech_type,
-            _nrn_mechanism_field<double>{"c"} /* 0 */,
-            _nrn_mechanism_field<double>{"il"} /* 1 */,
+            _nrn_mechanism_field<double>{"x"} /* 0 */,
+            _nrn_mechanism_field<double>{"Dx"} /* 1 */,
             _nrn_mechanism_field<double>{"v_unused"} /* 2 */,
             _nrn_mechanism_field<double>{"g_unused"} /* 3 */
         );
