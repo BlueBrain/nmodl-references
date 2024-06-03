@@ -348,7 +348,6 @@ namespace neuron {
             double rhs = I0;
             double g = (I1-I0)/0.001;
             node_data.node_rhs[node_id] -= rhs;
-            // remember the conductances so we can set them later
             inst.g_unused[id] = g;
         }
     }
@@ -362,7 +361,6 @@ namespace neuron {
         auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
-            
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
@@ -376,7 +374,6 @@ namespace neuron {
         auto node_data = make_node_data_func_in_breakpoint(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
-            // set conductances properly
             int node_id = node_data.nodeindices[id];
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
@@ -390,8 +387,6 @@ namespace neuron {
     /** register channel with the simulator */
     extern "C" void _func_in_breakpoint_reg() {
         _initlists();
-
-
 
         register_mech(mechanism_info, nrn_alloc_func_in_breakpoint, nrn_cur_func_in_breakpoint, nrn_jacob_func_in_breakpoint, nrn_state_func_in_breakpoint, nrn_init_func_in_breakpoint, hoc_nrnpointerindex, 1);
 

@@ -232,8 +232,6 @@ namespace neuron {
     extern "C" void _test_parameter_reg() {
         _initlists();
 
-
-
         _pointtype = point_register_mech(mechanism_info, nrn_alloc_test_parameter, nullptr, nullptr, nullptr, nrn_init_test_parameter, hoc_nrnpointerindex, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);

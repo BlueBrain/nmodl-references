@@ -630,8 +630,6 @@ namespace neuron {
     extern "C" void _func_proc_reg() {
         _initlists();
 
-
-
         register_mech(mechanism_info, nrn_alloc_test_func_proc, nullptr, nullptr, nullptr, nrn_init_test_func_proc, hoc_nrnpointerindex, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);

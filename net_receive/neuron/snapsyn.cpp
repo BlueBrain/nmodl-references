@@ -247,7 +247,6 @@ namespace neuron {
             g = g*mfactor;
             rhs = rhs*mfactor;
             node_data.node_rhs[node_id] -= rhs;
-            // remember the conductances so we can set them later
             inst.g_unused[id] = g;
         }
     }
@@ -261,7 +260,6 @@ namespace neuron {
         auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
-            
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
@@ -275,7 +273,6 @@ namespace neuron {
         auto node_data = make_node_data_SnapSyn(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
-            // set conductances properly
             int node_id = node_data.nodeindices[id];
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
@@ -300,8 +297,6 @@ namespace neuron {
     /** register channel with the simulator */
     extern "C" void _snapsyn_reg() {
         _initlists();
-
-
 
         _pointtype = point_register_mech(mechanism_info, nrn_alloc_SnapSyn, nrn_cur_SnapSyn, nrn_jacob_SnapSyn, nrn_state_SnapSyn, nrn_init_SnapSyn, hoc_nrnpointerindex, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
 

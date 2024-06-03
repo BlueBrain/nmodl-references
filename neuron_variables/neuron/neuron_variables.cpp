@@ -196,7 +196,6 @@ namespace neuron {
         auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
-            
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
@@ -211,7 +210,6 @@ namespace neuron {
         auto node_data = make_node_data_NeuronVariables(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
-            // set conductances properly
             int node_id = node_data.nodeindices[id];
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
@@ -225,8 +223,6 @@ namespace neuron {
     /** register channel with the simulator */
     extern "C" void _neuron_variables_reg() {
         _initlists();
-
-
 
         register_mech(mechanism_info, nrn_alloc_NeuronVariables, nullptr, nrn_jacob_NeuronVariables, nrn_state_NeuronVariables, nrn_init_NeuronVariables, hoc_nrnpointerindex, 1);
 
