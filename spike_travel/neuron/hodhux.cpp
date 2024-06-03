@@ -265,12 +265,13 @@ namespace neuron {
         {"states_hodhux", _hoc_states},
         {"rates_hodhux", _hoc_rates},
         {"vtrap_hodhux", _hoc_vtrap},
-        {0, 0}
+        {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
         {"states", _npy_states},
         {"rates", _npy_rates},
         {"vtrap", _npy_vtrap},
+        {nullptr, nullptr}
     };
     static void _hoc_states(void) {
         double _r{};
