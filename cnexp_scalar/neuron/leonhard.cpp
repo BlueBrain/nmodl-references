@@ -230,8 +230,6 @@ namespace neuron {
     extern "C" void _leonhard_reg() {
         _initlists();
 
-
-
         register_mech(mechanism_info, nrn_alloc_leonhard, nullptr, nrn_jacob_leonhard, nrn_state_leonhard, nrn_init_leonhard, hoc_nrnpointerindex, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);

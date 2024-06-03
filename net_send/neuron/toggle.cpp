@@ -245,8 +245,6 @@ namespace neuron {
     extern "C" void _toggle_reg() {
         _initlists();
 
-
-
         _pointtype = point_register_mech(mechanism_info, nrn_alloc_toggle, nullptr, nullptr, nullptr, nrn_init_toggle, hoc_nrnpointerindex, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);

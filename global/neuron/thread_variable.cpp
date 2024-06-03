@@ -316,8 +316,6 @@ namespace neuron {
     extern "C" void _thread_variable_reg() {
         _initlists();
 
-
-
         register_mech(mechanism_info, nrn_alloc_shared_global, nrn_cur_shared_global, nrn_jacob_shared_global, nrn_state_shared_global, nrn_init_shared_global, hoc_nrnpointerindex, 2);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);

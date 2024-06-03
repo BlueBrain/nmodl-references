@@ -224,8 +224,6 @@ namespace neuron {
     extern "C" void _neuron_variables_reg() {
         _initlists();
 
-
-
         register_mech(mechanism_info, nrn_alloc_NeuronVariables, nullptr, nrn_jacob_NeuronVariables, nrn_state_NeuronVariables, nrn_init_NeuronVariables, hoc_nrnpointerindex, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
