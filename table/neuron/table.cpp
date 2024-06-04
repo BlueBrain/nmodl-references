@@ -226,12 +226,13 @@ namespace neuron {
         {"sigmoid1_tbl", _hoc_sigmoid1},
         {"sinusoidal_tbl", _hoc_sinusoidal},
         {"quadratic_tbl", _hoc_quadratic},
-        {0, 0}
+        {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
         {"sigmoid1", _npy_sigmoid1},
         {"sinusoidal", _npy_sinusoidal},
         {"quadratic", _npy_quadratic},
+        {nullptr, nullptr}
     };
     static void _hoc_sigmoid1(void) {
         double _r{};

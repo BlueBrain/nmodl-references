@@ -194,7 +194,7 @@ namespace neuron {
         {"loc", _hoc_loc_pnt},
         {"has_loc", _hoc_has_loc},
         {"get_loc", _hoc_get_loc_pnt},
-        {0, 0}
+        {nullptr, nullptr}
     };
 
 

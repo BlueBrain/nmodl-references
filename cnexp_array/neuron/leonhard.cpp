@@ -176,9 +176,10 @@ namespace neuron {
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
         {"setdata_leonhard", _hoc_setdata},
-        {0, 0}
+        {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
+        {nullptr, nullptr}
     };
 
 

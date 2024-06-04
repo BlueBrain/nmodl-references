@@ -197,7 +197,7 @@ namespace neuron {
         {"set_x_42", _hoc_set_x_42},
         {"set_x_a", _hoc_set_x_a},
         {"x_plus_a", _hoc_x_plus_a},
-        {0, 0}
+        {nullptr, nullptr}
     };
     static double _hoc_set_x_42(void* _vptr) {
         double _r{};

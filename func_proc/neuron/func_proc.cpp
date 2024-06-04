@@ -197,7 +197,7 @@ namespace neuron {
         {"x_plus_a_test_func_proc", _hoc_x_plus_a},
         {"v_plus_a_test_func_proc", _hoc_v_plus_a},
         {"just_v_test_func_proc", _hoc_just_v},
-        {0, 0}
+        {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
         {"set_x_42", _npy_set_x_42},
@@ -209,6 +209,7 @@ namespace neuron {
         {"x_plus_a", _npy_x_plus_a},
         {"v_plus_a", _npy_v_plus_a},
         {"just_v", _npy_just_v},
+        {nullptr, nullptr}
     };
     static void _hoc_set_x_42(void) {
         double _r{};
