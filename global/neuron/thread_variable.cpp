@@ -196,9 +196,10 @@ namespace neuron {
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
         {"setdata_shared_global", _hoc_setdata},
-        {0, 0}
+        {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
+        {nullptr, nullptr}
     };
     static void thread_mem_init(Datum* _thread)  {
         if(shared_global_global.thread_data_in_use) {
