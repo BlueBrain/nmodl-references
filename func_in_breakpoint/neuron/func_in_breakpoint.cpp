@@ -177,12 +177,13 @@ namespace neuron {
         {"func_func_in_breakpoint", _hoc_func},
         {"func_with_v_func_in_breakpoint", _hoc_func_with_v},
         {"func_with_other_func_in_breakpoint", _hoc_func_with_other},
-        {0, 0}
+        {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
         {"func", _npy_func},
         {"func_with_v", _npy_func_with_v},
         {"func_with_other", _npy_func_with_other},
+        {nullptr, nullptr}
     };
     static void _hoc_func(void) {
         double _r{};

@@ -162,10 +162,11 @@ namespace neuron {
     static VoidFunc hoc_intfunc[] = {
         {"setdata_recursion", _hoc_setdata},
         {"myfactorial_recursion", _hoc_myfactorial},
-        {0, 0}
+        {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
         {"myfactorial", _npy_myfactorial},
+        {nullptr, nullptr}
     };
     static void _hoc_myfactorial(void) {
         double _r{};
