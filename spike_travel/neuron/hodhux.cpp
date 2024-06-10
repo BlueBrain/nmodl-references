@@ -425,7 +425,7 @@ namespace neuron {
     }
 
 
-    void nrn_init_hodhux(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
+    void nrn_init_hodhux(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
         auto inst = make_instance_hodhux(_lmr);
         auto node_data = make_node_data_hodhux(*_nt, *_ml_arg);
@@ -460,7 +460,7 @@ namespace neuron {
 
 
     /** update current */
-    void nrn_cur_hodhux(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
+    void nrn_cur_hodhux(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
         auto inst = make_instance_hodhux(_lmr);
         auto node_data = make_node_data_hodhux(*_nt, *_ml_arg);
@@ -489,7 +489,7 @@ namespace neuron {
     }
 
 
-    void nrn_state_hodhux(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
+    void nrn_state_hodhux(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
         auto inst = make_instance_hodhux(_lmr);
         auto node_data = make_node_data_hodhux(*_nt, *_ml_arg);
@@ -510,7 +510,7 @@ namespace neuron {
     }
 
 
-    static void nrn_jacob_hodhux(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_hodhux(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
         auto inst = make_instance_hodhux(_lmr);
         auto node_data = make_node_data_hodhux(*_nt, *_ml_arg);
