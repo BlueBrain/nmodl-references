@@ -96,10 +96,10 @@ namespace neuron {
     };
 
 
-    static pp_Instance make_instance_pp(_nrn_mechanism_cache_range& _ml) {
+    static pp_Instance make_instance_pp(_nrn_mechanism_cache_range& _lmc) {
         return pp_Instance {
-            _ml.template fpfield_ptr<0>(),
-            _ml.template dptr_field_ptr<0>()
+            _lmc.template fpfield_ptr<0>(),
+            _lmc.template dptr_field_ptr<0>()
         };
     }
 
@@ -124,8 +124,7 @@ namespace neuron {
         } else {
             _ppvar = nrn_prop_datum_alloc(mech_type, 2, _prop);
             _nrn_mechanism_access_dparam(_prop) = _ppvar;
-            _nrn_mechanism_cache_instance _ml_real{_prop};
-            auto* const _ml = &_ml_real;
+            _nrn_mechanism_cache_instance _lmc{_prop};
             size_t const _iml{};
             assert(_nrn_mechanism_get_num_vars(_prop) == 1);
             /*initialize range parameters*/
@@ -190,11 +189,10 @@ namespace neuron {
 
 
     void nrn_init_pp(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_pp(_lmr);
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+        auto inst = make_instance_pp(_lmc);
         auto node_data = make_node_data_pp(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
-        auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
@@ -206,8 +204,8 @@ namespace neuron {
 
 
     static void nrn_jacob_pp(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_pp(_lmr);
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+        auto inst = make_instance_pp(_lmc);
         auto node_data = make_node_data_pp(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
