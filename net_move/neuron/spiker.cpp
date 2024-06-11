@@ -102,13 +102,13 @@ namespace neuron {
     };
 
 
-    static spiker_Instance make_instance_spiker(_nrn_mechanism_cache_range& _ml) {
+    static spiker_Instance make_instance_spiker(_nrn_mechanism_cache_range& _lmc) {
         return spiker_Instance {
-            _ml.template fpfield_ptr<0>(),
-            _ml.template fpfield_ptr<1>(),
-            _ml.template fpfield_ptr<2>(),
-            _ml.template fpfield_ptr<3>(),
-            _ml.template dptr_field_ptr<0>()
+            _lmc.template fpfield_ptr<0>(),
+            _lmc.template fpfield_ptr<1>(),
+            _lmc.template fpfield_ptr<2>(),
+            _lmc.template fpfield_ptr<3>(),
+            _lmc.template dptr_field_ptr<0>()
         };
     }
 
@@ -133,8 +133,7 @@ namespace neuron {
         } else {
             _ppvar = nrn_prop_datum_alloc(mech_type, 3, _prop);
             _nrn_mechanism_access_dparam(_prop) = _ppvar;
-            _nrn_mechanism_cache_instance _ml_real{_prop};
-            auto* const _ml = &_ml_real;
+            _nrn_mechanism_cache_instance _lmc{_prop};
             size_t const _iml{};
             assert(_nrn_mechanism_get_num_vars(_prop) == 4);
             /*initialize range parameters*/
@@ -199,11 +198,10 @@ namespace neuron {
 
 
     void nrn_init_spiker(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_spiker(_lmr);
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+        auto inst = make_instance_spiker(_lmc);
         auto node_data = make_node_data_spiker(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
-        auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
@@ -218,19 +216,22 @@ namespace neuron {
 
 
     static void nrn_jacob_spiker(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_spiker(_lmr);
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+        auto inst = make_instance_spiker(_lmc);
         auto node_data = make_node_data_spiker(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
     }
     static void nrn_net_receive_spiker(Point_process* _pnt, double* _args, double flag) {
-        _nrn_mechanism_cache_instance _ml_obj{_pnt->prop};
+        _nrn_mechanism_cache_instance _lmc{_pnt->prop};
         auto * _nt = static_cast<NrnThread*>(_pnt->_vnt);
-        auto * _ml = &_ml_obj;
         auto * _ppvar = _nrn_mechanism_access_dparam(_pnt->prop);
-        auto inst = make_instance_spiker(_ml_obj);
+        auto inst = make_instance_spiker(_lmc);
+        // nocmodl has a nullptr dereference for thread variables.
+        // NMODL will fail to compile at a later point, because of
+        // missing '_thread_vars'.
+        Datum * _thread = nullptr;
         size_t id = 0;
         double t = _nt->_t;
         if (flag == 0.0) {
