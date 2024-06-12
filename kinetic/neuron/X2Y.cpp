@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : shared_global
-Filename        : thread_variable.mod
+Model Name      : pump
+Filename        : X2Y.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -22,14 +22,13 @@ NMODL Compiler  : VERSION
 #include "neuron/cache/mechanism_range.hpp"
 #include "nrniv_mf.h"
 #include "section_fwd.hpp"
-extern void _nrn_thread_reg(int, int, void(*)(Datum*));
 
 /* NEURON global macro definitions */
 /* VECTORIZED */
 #define NRN_VECTORIZED 1
 
 static constexpr auto number_of_datum_variables = 0;
-static constexpr auto number_of_floating_point_variables = 5;
+static constexpr auto number_of_floating_point_variables = 8;
 
 namespace {
 template <typename T>
@@ -58,18 +57,19 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "shared_global",
+        "pump",
         0,
-        "y_shared_global",
-        "z_shared_global",
-        "il_shared_global",
+        "il_pump",
         0,
+        "X_pump",
+        "Y_pump",
         0,
         0
     };
 
 
     /* NEURON global variables */
+    static neuron::container::field_index _slist1[2], _dlist1[2];
     static int mech_type;
     static Prop* _extcall_prop;
     /* _prop_id kind of shadows _extcall_prop to allow validity checking. */
@@ -79,30 +79,33 @@ namespace neuron {
 
 
     /** all global variables */
-    struct shared_global_Store {
-        int thread_data_in_use{};
-        double thread_data[4] /* TODO init thread_data */;
+    struct pump_Store {
+        double X0{};
+        double Y0{};
     };
-    static_assert(std::is_trivially_copy_constructible_v<shared_global_Store>);
-    static_assert(std::is_trivially_move_constructible_v<shared_global_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<shared_global_Store>);
-    static_assert(std::is_trivially_move_assignable_v<shared_global_Store>);
-    static_assert(std::is_trivially_destructible_v<shared_global_Store>);
-    shared_global_Store shared_global_global;
+    static_assert(std::is_trivially_copy_constructible_v<pump_Store>);
+    static_assert(std::is_trivially_move_constructible_v<pump_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<pump_Store>);
+    static_assert(std::is_trivially_move_assignable_v<pump_Store>);
+    static_assert(std::is_trivially_destructible_v<pump_Store>);
+    pump_Store pump_global;
 
 
     /** all mechanism instance variables and global variables */
-    struct shared_global_Instance  {
-        double* y{};
-        double* z{};
+    struct pump_Instance  {
         double* il{};
+        double* X{};
+        double* Y{};
+        double* DX{};
+        double* DY{};
+        double* i{};
         double* v_unused{};
         double* g_unused{};
-        shared_global_Store* global{&shared_global_global};
+        pump_Store* global{&pump_global};
     };
 
 
-    struct shared_global_NodeData  {
+    struct pump_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -111,41 +114,22 @@ namespace neuron {
     };
 
 
-    struct shared_global_ThreadVariables  {
-        double * thread_data;
-
-        double * g_arr_ptr(size_t id) {
-            return thread_data + 0 + (id % 1);
-        }
-        double & g_arr(size_t id) {
-            return thread_data[0 + (id % 1)];
-        }
-        double * g_w_ptr(size_t id) {
-            return thread_data + 3 + (id % 1);
-        }
-        double & g_w(size_t id) {
-            return thread_data[3 + (id % 1)];
-        }
-
-        shared_global_ThreadVariables(double * const thread_data) {
-            this->thread_data = thread_data;
-        }
-    };
-
-
-    static shared_global_Instance make_instance_shared_global(_nrn_mechanism_cache_range& _lmc) {
-        return shared_global_Instance {
+    static pump_Instance make_instance_pump(_nrn_mechanism_cache_range& _lmc) {
+        return pump_Instance {
             _lmc.template fpfield_ptr<0>(),
             _lmc.template fpfield_ptr<1>(),
             _lmc.template fpfield_ptr<2>(),
             _lmc.template fpfield_ptr<3>(),
-            _lmc.template fpfield_ptr<4>()
+            _lmc.template fpfield_ptr<4>(),
+            _lmc.template fpfield_ptr<5>(),
+            _lmc.template fpfield_ptr<6>(),
+            _lmc.template fpfield_ptr<7>()
         };
     }
 
 
-    static shared_global_NodeData make_node_data_shared_global(NrnThread& _nt, Memb_list& _ml_arg) {
-        return shared_global_NodeData {
+    static pump_NodeData make_node_data_pump(NrnThread& _nt, Memb_list& _ml_arg) {
+        return pump_NodeData {
             _ml_arg.nodeindices,
             _nt.node_voltage_storage(),
             _nt.node_d_storage(),
@@ -155,12 +139,12 @@ namespace neuron {
     }
 
 
-    static void nrn_alloc_shared_global(Prop* _prop) {
+    static void nrn_alloc_pump(Prop* _prop) {
         Prop *prop_ion{};
         Datum *_ppvar{};
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const _iml{};
-        assert(_nrn_mechanism_get_num_vars(_prop) == 5);
+        assert(_nrn_mechanism_get_num_vars(_prop) == 8);
         /*initialize range parameters*/
     }
 
@@ -179,16 +163,50 @@ namespace neuron {
     /* Mechanism procedures and functions */
 
 
+    struct functor_pump_0 {
+        NrnThread* _nt;
+        pump_Instance& inst;
+        int id;
+        double v;
+        Datum* _thread;
+        double kf0_, kb0_, old_X, old_Y;
+
+        void initialize() {
+            kf0_ = 0.4;
+            kb0_ = 0.5;
+            inst.i[id] = (kf0_ * inst.X[id] - kb0_ * inst.Y[id]);
+            old_X = inst.X[id];
+            old_Y = inst.Y[id];
+        }
+
+        functor_pump_0(NrnThread* _nt, pump_Instance& inst, int id, double v, Datum* _thread)
+            : _nt(_nt), inst(inst), id(id), v(v), _thread(_thread)
+        {}
+        void operator()(const Eigen::Matrix<double, 2, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 2, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 2, 2>& nmodl_eigen_jm) const {
+            const double* nmodl_eigen_x = nmodl_eigen_xm.data();
+            double* nmodl_eigen_j = nmodl_eigen_jm.data();
+            double* nmodl_eigen_f = nmodl_eigen_fm.data();
+            nmodl_eigen_f[static_cast<int>(0)] =  -nmodl_eigen_x[static_cast<int>(0)] * _nt->_dt * kf0_ - nmodl_eigen_x[static_cast<int>(0)] + nmodl_eigen_x[static_cast<int>(1)] * _nt->_dt * kb0_ + old_X;
+            nmodl_eigen_j[static_cast<int>(0)] =  -_nt->_dt * kf0_ - 1.0;
+            nmodl_eigen_j[static_cast<int>(2)] = _nt->_dt * kb0_;
+            nmodl_eigen_f[static_cast<int>(1)] = nmodl_eigen_x[static_cast<int>(0)] * _nt->_dt * kf0_ - nmodl_eigen_x[static_cast<int>(1)] * _nt->_dt * kb0_ - nmodl_eigen_x[static_cast<int>(1)] + old_Y;
+            nmodl_eigen_j[static_cast<int>(1)] = _nt->_dt * kf0_;
+            nmodl_eigen_j[static_cast<int>(3)] =  -_nt->_dt * kb0_ - 1.0;
+        }
+
+        void finalize() {
+        }
+    };
+
+
     /** connect global (scalar) variables to hoc -- */
     static DoubScal hoc_scalar_double[] = {
-        {"g_w_shared_global", &shared_global_global.thread_data[3]},
         {nullptr, nullptr}
     };
 
 
     /** connect global (array) variables to hoc -- */
     static DoubVec hoc_vector_double[] = {
-        {"g_arr_shared_global", (shared_global_global.thread_data + 0), 3},
         {nullptr, nullptr, 0}
     };
 
@@ -198,82 +216,52 @@ namespace neuron {
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
-        {"setdata_shared_global", _hoc_setdata},
+        {"setdata_pump", _hoc_setdata},
         {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
         {nullptr, nullptr}
     };
-    static void thread_mem_init(Datum* _thread)  {
-        if(shared_global_global.thread_data_in_use) {
-            _thread[0] = {neuron::container::do_not_search, new double[4]{}};
-        }
-        else {
-            _thread[0] = {neuron::container::do_not_search, shared_global_global.thread_data};
-            shared_global_global.thread_data_in_use = 1;
-        }
-    }
-    static void thread_mem_cleanup(Datum* _thread)  {
-        double * _thread_data_ptr = _thread[0].get<double*>();
-        if(_thread_data_ptr == shared_global_global.thread_data) {
-            shared_global_global.thread_data_in_use = 0;
-        }
-        else {
-            delete[] _thread_data_ptr;
-        }
-    }
 
 
-    void nrn_init_shared_global(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
+    void nrn_init_pump(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_shared_global(_lmc);
-        auto node_data = make_node_data_shared_global(*_nt, *_ml_arg);
+        auto inst = make_instance_pump(_lmc);
+        auto node_data = make_node_data_pump(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
-        auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
             inst.v_unused[id] = v;
-            _thread_vars.g_w(id) = 48.0;
-            (_thread_vars.g_arr_ptr(id))[static_cast<int>(0)] = 10.0 + inst.z[id];
-            (_thread_vars.g_arr_ptr(id))[static_cast<int>(1)] = 10.1;
-            (_thread_vars.g_arr_ptr(id))[static_cast<int>(2)] = 10.2;
-            inst.y[id] = 10.0;
+            inst.X[id] = 0.0;
+            inst.Y[id] = 1.0;
         }
     }
 
 
-    inline double nrn_current_shared_global(_nrn_mechanism_cache_range& _lmc, NrnThread* _nt, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, size_t id, shared_global_Instance& inst, shared_global_NodeData& node_data, double v) {
+    inline double nrn_current_pump(_nrn_mechanism_cache_range& _lmc, NrnThread* _nt, Datum* _ppvar, Datum* _thread, size_t id, pump_Instance& inst, pump_NodeData& node_data, double v) {
         double current = 0.0;
-        if (_nt->_t > 0.33) {
-            _thread_vars.g_w(id) = (_thread_vars.g_arr_ptr(id))[static_cast<int>(0)] + (_thread_vars.g_arr_ptr(id))[static_cast<int>(1)] + (_thread_vars.g_arr_ptr(id))[static_cast<int>(2)];
-        }
-        if (_nt->_t > 0.66) {
-            _thread_vars.g_w(id) = inst.z[id];
-        }
-        inst.y[id] = _thread_vars.g_w(id);
-        inst.il[id] = 0.0000001 * (v - 10.0);
+        inst.il[id] = inst.i[id];
         current += inst.il[id];
         return current;
     }
 
 
     /** update current */
-    void nrn_cur_shared_global(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
+    void nrn_cur_pump(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_shared_global(_lmc);
-        auto node_data = make_node_data_shared_global(*_nt, *_ml_arg);
+        auto inst = make_instance_pump(_lmc);
+        auto node_data = make_node_data_pump(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
-        auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             double v = node_data.node_voltages[node_id];
             auto* _ppvar = _ml_arg->pdata[id];
-            double I1 = nrn_current_shared_global(_lmc, _nt, _ppvar, _thread, _thread_vars, id, inst, node_data, v+0.001);
-            double I0 = nrn_current_shared_global(_lmc, _nt, _ppvar, _thread, _thread_vars, id, inst, node_data, v);
+            double I1 = nrn_current_pump(_lmc, _nt, _ppvar, _thread, id, inst, node_data, v+0.001);
+            double I0 = nrn_current_pump(_lmc, _nt, _ppvar, _thread, id, inst, node_data, v);
             double rhs = I0;
             double g = (I1-I0)/0.001;
             node_data.node_rhs[node_id] -= rhs;
@@ -282,25 +270,38 @@ namespace neuron {
     }
 
 
-    void nrn_state_shared_global(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
+    void nrn_state_pump(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_shared_global(_lmc);
-        auto node_data = make_node_data_shared_global(*_nt, *_ml_arg);
+        auto inst = make_instance_pump(_lmc);
+        auto node_data = make_node_data_pump(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
-        auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
+            
+            Eigen::Matrix<double, 2, 1> nmodl_eigen_xm;
+            double* nmodl_eigen_x = nmodl_eigen_xm.data();
+            nmodl_eigen_x[static_cast<int>(0)] = inst.X[id];
+            nmodl_eigen_x[static_cast<int>(1)] = inst.Y[id];
+            // call newton solver
+            functor_pump_0 newton_functor(_nt, inst, id, v, _thread);
+            newton_functor.initialize();
+            int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
+            if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
+            inst.X[id] = nmodl_eigen_x[static_cast<int>(0)];
+            inst.Y[id] = nmodl_eigen_x[static_cast<int>(1)];
+            newton_functor.finalize();
+
         }
     }
 
 
-    static void nrn_jacob_shared_global(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_pump(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_shared_global(_lmc);
-        auto node_data = make_node_data_shared_global(*_nt, *_ml_arg);
+        auto inst = make_instance_pump(_lmc);
+        auto node_data = make_node_data_pump(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
@@ -310,28 +311,37 @@ namespace neuron {
 
 
     static void _initlists() {
+        /* X */
+        _slist1[0] = {1, 0};
+        /* DX */
+        _dlist1[0] = {3, 0};
+        /* Y */
+        _slist1[1] = {2, 0};
+        /* DY */
+        _dlist1[1] = {4, 0};
     }
 
 
     /** register channel with the simulator */
-    extern "C" void _thread_variable_reg() {
+    extern "C" void _X2Y_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_shared_global, nrn_cur_shared_global, nrn_jacob_shared_global, nrn_state_shared_global, nrn_init_shared_global, hoc_nrnpointerindex, 2);
+        register_mech(mechanism_info, nrn_alloc_pump, nrn_cur_pump, nrn_jacob_pump, nrn_state_pump, nrn_init_pump, hoc_nrnpointerindex, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         _nrn_mechanism_register_data_fields(mech_type,
-            _nrn_mechanism_field<double>{"y"} /* 0 */,
-            _nrn_mechanism_field<double>{"z"} /* 1 */,
-            _nrn_mechanism_field<double>{"il"} /* 2 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 3 */,
-            _nrn_mechanism_field<double>{"g_unused"} /* 4 */
+            _nrn_mechanism_field<double>{"il"} /* 0 */,
+            _nrn_mechanism_field<double>{"X"} /* 1 */,
+            _nrn_mechanism_field<double>{"Y"} /* 2 */,
+            _nrn_mechanism_field<double>{"DX"} /* 3 */,
+            _nrn_mechanism_field<double>{"DY"} /* 4 */,
+            _nrn_mechanism_field<double>{"i"} /* 5 */,
+            _nrn_mechanism_field<double>{"v_unused"} /* 6 */,
+            _nrn_mechanism_field<double>{"g_unused"} /* 7 */
         );
 
-        hoc_register_prop_size(mech_type, 5, 0);
+        hoc_register_prop_size(mech_type, 8, 0);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
-        _nrn_thread_reg(mech_type, 1, thread_mem_init);
-        _nrn_thread_reg(mech_type, 0, thread_mem_cleanup);
     }
 }

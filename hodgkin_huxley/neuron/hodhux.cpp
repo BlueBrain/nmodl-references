@@ -10,7 +10,11 @@ Backend         : C++ (api-compatibility)
 NMODL Compiler  : VERSION
 *********************************************************/
 
+#include <Eigen/Dense>
+#include <Eigen/LU>
+#include <crout/crout.hpp>
 #include <math.h>
+#include <newton/newton.hpp>
 #include <stdio.h>
 #include <stdlib.h>
 
