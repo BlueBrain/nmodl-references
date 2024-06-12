@@ -99,10 +99,10 @@ namespace neuron {
     };
 
 
-    static functions_Instance make_instance_functions(_nrn_mechanism_cache_range& _ml) {
+    static functions_Instance make_instance_functions(_nrn_mechanism_cache_range& _lmc) {
         return functions_Instance {
-            _ml.template fpfield_ptr<0>(),
-            _ml.template fpfield_ptr<1>()
+            _lmc.template fpfield_ptr<0>(),
+            _lmc.template fpfield_ptr<1>()
         };
     }
 
@@ -121,8 +121,7 @@ namespace neuron {
     static void nrn_alloc_functions(Prop* _prop) {
         Prop *prop_ion{};
         Datum *_ppvar{};
-        _nrn_mechanism_cache_instance _ml_real{_prop};
-        auto* const _ml = &_ml_real;
+        _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const _iml{};
         assert(_nrn_mechanism_get_num_vars(_prop) == 2);
         /*initialize range parameters*/
@@ -141,9 +140,9 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
-    inline double x_plus_a_functions(_nrn_mechanism_cache_range* _ml, functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a);
-    inline double v_plus_a_functions(_nrn_mechanism_cache_range* _ml, functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a);
-    inline double identity_functions(_nrn_mechanism_cache_range* _ml, functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double v);
+    inline double x_plus_a_functions(_nrn_mechanism_cache_range& _lmc, functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a);
+    inline double v_plus_a_functions(_nrn_mechanism_cache_range& _lmc, functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a);
+    inline double identity_functions(_nrn_mechanism_cache_range& _lmc, functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double v);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -190,14 +189,13 @@ namespace neuron {
             hoc_execerror("No data for x_plus_a_functions. Requires prior call to setdata_functions and that the specified mechanism instance still be in existence.", NULL);
         }
         Prop* _local_prop = _extcall_prop;
-        _nrn_mechanism_cache_instance _ml_real{_local_prop};
-        auto* const _ml = &_ml_real;
+        _nrn_mechanism_cache_instance _lmc{_local_prop};
         size_t const id{};
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         _nt = nrn_threads;
-        auto inst = make_instance_functions(_ml_real);
-        _r = x_plus_a_functions(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        auto inst = make_instance_functions(_lmc);
+        _r = x_plus_a_functions(_lmc, inst, id, _ppvar, _thread, _nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_x_plus_a(Prop* _prop) {
@@ -205,14 +203,13 @@ namespace neuron {
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* _nt;
-        _nrn_mechanism_cache_instance _ml_real{_prop};
-        auto* const _ml = &_ml_real;
+        _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const id{};
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         _nt = nrn_threads;
-        auto inst = make_instance_functions(_ml_real);
-        _r = x_plus_a_functions(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        auto inst = make_instance_functions(_lmc);
+        _r = x_plus_a_functions(_lmc, inst, id, _ppvar, _thread, _nt, *getarg(1));
         return(_r);
     }
     static void _hoc_v_plus_a(void) {
@@ -221,14 +218,13 @@ namespace neuron {
         Datum* _thread;
         NrnThread* _nt;
         Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
-        _nrn_mechanism_cache_instance _ml_real{_local_prop};
-        auto* const _ml = &_ml_real;
+        _nrn_mechanism_cache_instance _lmc{_local_prop};
         size_t const id{};
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         _nt = nrn_threads;
-        auto inst = make_instance_functions(_ml_real);
-        _r = v_plus_a_functions(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        auto inst = make_instance_functions(_lmc);
+        _r = v_plus_a_functions(_lmc, inst, id, _ppvar, _thread, _nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_v_plus_a(Prop* _prop) {
@@ -236,14 +232,13 @@ namespace neuron {
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* _nt;
-        _nrn_mechanism_cache_instance _ml_real{_prop};
-        auto* const _ml = &_ml_real;
+        _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const id{};
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         _nt = nrn_threads;
-        auto inst = make_instance_functions(_ml_real);
-        _r = v_plus_a_functions(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        auto inst = make_instance_functions(_lmc);
+        _r = v_plus_a_functions(_lmc, inst, id, _ppvar, _thread, _nt, *getarg(1));
         return(_r);
     }
     static void _hoc_identity(void) {
@@ -252,14 +247,13 @@ namespace neuron {
         Datum* _thread;
         NrnThread* _nt;
         Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
-        _nrn_mechanism_cache_instance _ml_real{_local_prop};
-        auto* const _ml = &_ml_real;
+        _nrn_mechanism_cache_instance _lmc{_local_prop};
         size_t const id{};
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         _nt = nrn_threads;
-        auto inst = make_instance_functions(_ml_real);
-        _r = identity_functions(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        auto inst = make_instance_functions(_lmc);
+        _r = identity_functions(_lmc, inst, id, _ppvar, _thread, _nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_identity(Prop* _prop) {
@@ -267,19 +261,18 @@ namespace neuron {
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* _nt;
-        _nrn_mechanism_cache_instance _ml_real{_prop};
-        auto* const _ml = &_ml_real;
+        _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const id{};
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         _nt = nrn_threads;
-        auto inst = make_instance_functions(_ml_real);
-        _r = identity_functions(_ml, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        auto inst = make_instance_functions(_lmc);
+        _r = identity_functions(_lmc, inst, id, _ppvar, _thread, _nt, *getarg(1));
         return(_r);
     }
 
 
-    inline double x_plus_a_functions(_nrn_mechanism_cache_range* _ml, functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a) {
+    inline double x_plus_a_functions(_nrn_mechanism_cache_range& _lmc, functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a) {
         double ret_x_plus_a = 0.0;
         auto v = inst.v_unused[id];
         ret_x_plus_a = inst.x[id] + a;
@@ -287,7 +280,7 @@ namespace neuron {
     }
 
 
-    inline double v_plus_a_functions(_nrn_mechanism_cache_range* _ml, functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a) {
+    inline double v_plus_a_functions(_nrn_mechanism_cache_range& _lmc, functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double a) {
         double ret_v_plus_a = 0.0;
         auto v = inst.v_unused[id];
         ret_v_plus_a = v + a;
@@ -295,7 +288,7 @@ namespace neuron {
     }
 
 
-    inline double identity_functions(_nrn_mechanism_cache_range* _ml, functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double v) {
+    inline double identity_functions(_nrn_mechanism_cache_range& _lmc, functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double v) {
         double ret_identity = 0.0;
         ret_identity = v;
         return ret_identity;
@@ -303,11 +296,10 @@ namespace neuron {
 
 
     void nrn_init_functions(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_functions(_lmr);
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+        auto inst = make_instance_functions(_lmc);
         auto node_data = make_node_data_functions(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
-        auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
@@ -320,8 +312,8 @@ namespace neuron {
 
 
     static void nrn_jacob_functions(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_functions(_lmr);
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+        auto inst = make_instance_functions(_lmc);
         auto node_data = make_node_data_functions(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
