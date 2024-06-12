@@ -43,6 +43,7 @@ void _nrn_mechanism_register_data_fields(Args&&... args) {
 }  // namespace
 
 Prop* hoc_getdata_range(int type);
+void _nrn_thread_table_reg(int, nrn_thread_table_check_t);
 
 
 namespace neuron {
@@ -77,7 +78,11 @@ namespace neuron {
     /** all global variables */
     struct shared_global_Store {
         int thread_data_in_use{};
-        double thread_data[4] /* TODO init thread_data */;
+        double thread_data[5] /* TODO init thread_data */;
+        double usetable{1};
+        double tmin_compute_g_v1{};
+        double mfac_compute_g_v1{};
+        double t_g_v1[9]{};
     };
     static_assert(std::is_trivially_copy_constructible_v<shared_global_Store>);
     static_assert(std::is_trivially_move_constructible_v<shared_global_Store>);
@@ -121,6 +126,12 @@ namespace neuron {
         }
         double & g_w(size_t id) {
             return thread_data[3 + (id % 1)];
+        }
+        double * g_v1_ptr(size_t id) {
+            return thread_data + 4 + (id % 1);
+        }
+        double & g_v1(size_t id) {
+            return thread_data[4 + (id % 1)];
         }
 
         shared_global_ThreadVariables(double * const thread_data) {
@@ -173,11 +184,24 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
+    inline double sum_arr_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* _nt);
+    inline int set_g_w_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* _nt, double zz);
+    inline int compute_g_v1_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* _nt, double zz);
+    void lazy_update_compute_g_v1_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* _nt);
+    static void _check_table_thread(Memb_list* _ml, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, int _type, const _nrn_model_sorted_token& _sorted_token)
+{
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml, _type};
+        auto inst = make_instance_shared_global(_lmc);
+        auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
+        lazy_update_compute_g_v1_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, _nt);
+    }
 
 
     /** connect global (scalar) variables to hoc -- */
     static DoubScal hoc_scalar_double[] = {
+        {"usetable_shared_global", &shared_global_global.usetable},
         {"g_w_shared_global", &shared_global_global.thread_data[3]},
+        {"g_v1_shared_global", &shared_global_global.thread_data[4]},
         {nullptr, nullptr}
     };
 
@@ -190,19 +214,31 @@ namespace neuron {
 
 
     /* declaration of user functions */
+    static void _hoc_set_g_w(void);
+    static void _hoc_compute_g_v1(void);
+    static void _hoc_sum_arr(void);
+    static double _npy_set_g_w(Prop*);
+    static double _npy_compute_g_v1(Prop*);
+    static double _npy_sum_arr(Prop*);
 
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
         {"setdata_shared_global", _hoc_setdata},
+        {"set_g_w_shared_global", _hoc_set_g_w},
+        {"compute_g_v1_shared_global", _hoc_compute_g_v1},
+        {"sum_arr_shared_global", _hoc_sum_arr},
         {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
+        {"set_g_w", _npy_set_g_w},
+        {"compute_g_v1", _npy_compute_g_v1},
+        {"sum_arr", _npy_sum_arr},
         {nullptr, nullptr}
     };
     static void thread_mem_init(Datum* _thread)  {
         if(shared_global_global.thread_data_in_use) {
-            _thread[0] = {neuron::container::do_not_search, new double[4]{}};
+            _thread[0] = {neuron::container::do_not_search, new double[5]{}};
         }
         else {
             _thread[0] = {neuron::container::do_not_search, shared_global_global.thread_data};
@@ -217,6 +253,171 @@ namespace neuron {
         else {
             delete[] _thread_data_ptr;
         }
+    }
+    static void _hoc_set_g_w(void) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* _nt;
+        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
+        _nrn_mechanism_cache_instance _lmc{_local_prop};
+        size_t const id{};
+        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
+        _thread = _extcall_thread.data();
+        _nt = nrn_threads;
+        auto inst = make_instance_shared_global(_lmc);
+        auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
+        _r = 1.;
+        set_g_w_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, _nt, *getarg(1));
+        hoc_retpushx(_r);
+    }
+    static double _npy_set_g_w(Prop* _prop) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* _nt;
+        _nrn_mechanism_cache_instance _lmc{_prop};
+        size_t const id{};
+        _ppvar = _nrn_mechanism_access_dparam(_prop);
+        _thread = _extcall_thread.data();
+        _nt = nrn_threads;
+        auto inst = make_instance_shared_global(_lmc);
+        auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
+        _r = 1.;
+        set_g_w_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, _nt, *getarg(1));
+        return(_r);
+    }
+    static void _hoc_compute_g_v1(void) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* _nt;
+        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
+        _nrn_mechanism_cache_instance _lmc{_local_prop};
+        size_t const id{};
+        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
+        _thread = _extcall_thread.data();
+        _nt = nrn_threads;
+        auto inst = make_instance_shared_global(_lmc);
+        auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
+        lazy_update_compute_g_v1_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, _nt);
+        _r = 1.;
+        compute_g_v1_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, _nt, *getarg(1));
+        hoc_retpushx(_r);
+    }
+    static double _npy_compute_g_v1(Prop* _prop) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* _nt;
+        _nrn_mechanism_cache_instance _lmc{_prop};
+        size_t const id{};
+        _ppvar = _nrn_mechanism_access_dparam(_prop);
+        _thread = _extcall_thread.data();
+        _nt = nrn_threads;
+        auto inst = make_instance_shared_global(_lmc);
+        auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
+        lazy_update_compute_g_v1_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, _nt);
+        _r = 1.;
+        compute_g_v1_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, _nt, *getarg(1));
+        return(_r);
+    }
+    static void _hoc_sum_arr(void) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* _nt;
+        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
+        _nrn_mechanism_cache_instance _lmc{_local_prop};
+        size_t const id{};
+        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
+        _thread = _extcall_thread.data();
+        _nt = nrn_threads;
+        auto inst = make_instance_shared_global(_lmc);
+        auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
+        _r = sum_arr_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, _nt);
+        hoc_retpushx(_r);
+    }
+    static double _npy_sum_arr(Prop* _prop) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* _nt;
+        _nrn_mechanism_cache_instance _lmc{_prop};
+        size_t const id{};
+        _ppvar = _nrn_mechanism_access_dparam(_prop);
+        _thread = _extcall_thread.data();
+        _nt = nrn_threads;
+        auto inst = make_instance_shared_global(_lmc);
+        auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
+        _r = sum_arr_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, _nt);
+        return(_r);
+    }
+
+
+    inline int set_g_w_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* _nt, double zz) {
+        int ret_set_g_w = 0;
+        auto v = inst.v_unused[id];
+        _thread_vars.g_w(id) = zz;
+        return ret_set_g_w;
+    }
+
+
+    inline static int f_compute_g_v1_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* _nt, double zz) {
+        int ret_f_compute_g_v1 = 0;
+        auto v = inst.v_unused[id];
+        _thread_vars.g_v1(id) = zz * zz;
+        return ret_f_compute_g_v1;
+    }
+
+
+    void lazy_update_compute_g_v1_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* _nt) {
+        if (inst.global->usetable == 0) {
+            return;
+        }
+        static bool make_table = true;
+        if (make_table) {
+            make_table = false;
+            inst.global->tmin_compute_g_v1 = 3.0;
+            double tmax = 4.0;
+            double dx = (tmax-inst.global->tmin_compute_g_v1) / 8.;
+            inst.global->mfac_compute_g_v1 = 1./dx;
+            double x = inst.global->tmin_compute_g_v1;
+            for (std::size_t i = 0; i < 9; x += dx, i++) {
+                f_compute_g_v1_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, _nt, x);
+                inst.global->t_g_v1[i] = _thread_vars.g_v1(id);
+            }
+        }
+    }
+
+
+    inline int compute_g_v1_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* _nt, double zz){
+        if (inst.global->usetable == 0) {
+            f_compute_g_v1_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, _nt, zz);
+            return 0;
+        }
+        double xi = inst.global->mfac_compute_g_v1 * (zz - inst.global->tmin_compute_g_v1);
+        if (isnan(xi)) {
+            _thread_vars.g_v1(id) = xi;
+            return 0;
+        }
+        if (xi <= 0. || xi >= 8.) {
+            int index = (xi <= 0.) ? 0 : 8;
+            _thread_vars.g_v1(id) = inst.global->t_g_v1[index];
+            return 0;
+        }
+        int i = int(xi);
+        double theta = xi - double(i);
+        _thread_vars.g_v1(id) = inst.global->t_g_v1[i] + theta*(inst.global->t_g_v1[i+1]-inst.global->t_g_v1[i]);
+        return 0;
+    }
+
+
+    inline double sum_arr_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* _nt) {
+        double ret_sum_arr = 0.0;
+        auto v = inst.v_unused[id];
+        ret_sum_arr = (_thread_vars.g_arr_ptr(id))[static_cast<int>(0)] + (_thread_vars.g_arr_ptr(id))[static_cast<int>(1)] + (_thread_vars.g_arr_ptr(id))[static_cast<int>(2)];
+        return ret_sum_arr;
     }
 
 
@@ -233,6 +434,7 @@ namespace neuron {
             auto v = node_data.node_voltages[node_id];
             inst.v_unused[id] = v;
             _thread_vars.g_w(id) = 48.0;
+            _thread_vars.g_v1(id) = 0.0;
             (_thread_vars.g_arr_ptr(id))[static_cast<int>(0)] = 10.0 + inst.z[id];
             (_thread_vars.g_arr_ptr(id))[static_cast<int>(1)] = 10.1;
             (_thread_vars.g_arr_ptr(id))[static_cast<int>(2)] = 10.2;
@@ -244,12 +446,13 @@ namespace neuron {
     inline double nrn_current_shared_global(_nrn_mechanism_cache_range& _lmc, NrnThread* _nt, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, size_t id, shared_global_Instance& inst, shared_global_NodeData& node_data, double v) {
         double current = 0.0;
         if (_nt->_t > 0.33) {
-            _thread_vars.g_w(id) = (_thread_vars.g_arr_ptr(id))[static_cast<int>(0)] + (_thread_vars.g_arr_ptr(id))[static_cast<int>(1)] + (_thread_vars.g_arr_ptr(id))[static_cast<int>(2)];
+            _thread_vars.g_w(id) = sum_arr_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, _nt);
         }
         if (_nt->_t > 0.66) {
-            _thread_vars.g_w(id) = inst.z[id];
+            set_g_w_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, _nt, inst.z[id]);
+            compute_g_v1_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, _nt, inst.z[id]);
         }
-        inst.y[id] = _thread_vars.g_w(id);
+        inst.y[id] = _thread_vars.g_w(id) + _thread_vars.g_v1(id);
         inst.il[id] = 0.0000001 * (v - 10.0);
         current += inst.il[id];
         return current;
@@ -316,6 +519,7 @@ namespace neuron {
         register_mech(mechanism_info, nrn_alloc_shared_global, nrn_cur_shared_global, nrn_jacob_shared_global, nrn_state_shared_global, nrn_init_shared_global, hoc_nrnpointerindex, 2);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
+        _nrn_thread_table_reg(mech_type, _check_table_thread);
         _nrn_mechanism_register_data_fields(mech_type,
             _nrn_mechanism_field<double>{"y"} /* 0 */,
             _nrn_mechanism_field<double>{"z"} /* 1 */,
