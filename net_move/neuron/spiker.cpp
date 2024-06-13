@@ -232,6 +232,10 @@ namespace neuron {
         auto * _nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto * _ppvar = _nrn_mechanism_access_dparam(_pnt->prop);
         auto inst = make_instance_spiker(_lmc);
+        // nocmodl has a nullptr dereference for thread variables.
+        // NMODL will fail to compile at a later point, because of
+        // missing '_thread_vars'.
+        Datum * _thread = nullptr;
         size_t id = 0;
         double t = _nt->_t;
         if (flag == 0.0) {

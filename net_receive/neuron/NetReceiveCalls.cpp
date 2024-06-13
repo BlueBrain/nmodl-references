@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : art_spiker
-Filename        : art_spiker.mod
+Model Name      : NetReceiveCalls
+Filename        : NetReceiveCalls.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -27,7 +27,7 @@ NMODL Compiler  : VERSION
 /* VECTORIZED */
 #define NRN_VECTORIZED 1
 
-static constexpr auto number_of_datum_variables = 3;
+static constexpr auto number_of_datum_variables = 2;
 static constexpr auto number_of_floating_point_variables = 4;
 
 namespace {
@@ -57,10 +57,10 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "art_spiker",
+        "NetReceiveCalls",
         0,
-        "y",
-        "z",
+        "c1",
+        "c2",
         0,
         0,
         0
@@ -75,29 +75,28 @@ namespace neuron {
 
 
     /** all global variables */
-    struct art_spiker_Store {
+    struct NetReceiveCalls_Store {
     };
-    static_assert(std::is_trivially_copy_constructible_v<art_spiker_Store>);
-    static_assert(std::is_trivially_move_constructible_v<art_spiker_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<art_spiker_Store>);
-    static_assert(std::is_trivially_move_assignable_v<art_spiker_Store>);
-    static_assert(std::is_trivially_destructible_v<art_spiker_Store>);
-    art_spiker_Store art_spiker_global;
+    static_assert(std::is_trivially_copy_constructible_v<NetReceiveCalls_Store>);
+    static_assert(std::is_trivially_move_constructible_v<NetReceiveCalls_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<NetReceiveCalls_Store>);
+    static_assert(std::is_trivially_move_assignable_v<NetReceiveCalls_Store>);
+    static_assert(std::is_trivially_destructible_v<NetReceiveCalls_Store>);
+    NetReceiveCalls_Store NetReceiveCalls_global;
 
 
     /** all mechanism instance variables and global variables */
-    struct art_spiker_Instance  {
-        double* y{};
-        double* z{};
+    struct NetReceiveCalls_Instance  {
+        double* c1{};
+        double* c2{};
         double* v_unused{};
         double* tsave{};
         const double* const* node_area{};
-        const int* const* tqitem{};
-        art_spiker_Store* global{&art_spiker_global};
+        NetReceiveCalls_Store* global{&NetReceiveCalls_global};
     };
 
 
-    struct art_spiker_NodeData  {
+    struct NetReceiveCalls_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -106,8 +105,8 @@ namespace neuron {
     };
 
 
-    static art_spiker_Instance make_instance_art_spiker(_nrn_mechanism_cache_range& _lmc) {
-        return art_spiker_Instance {
+    static NetReceiveCalls_Instance make_instance_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc) {
+        return NetReceiveCalls_Instance {
             _lmc.template fpfield_ptr<0>(),
             _lmc.template fpfield_ptr<1>(),
             _lmc.template fpfield_ptr<2>(),
@@ -117,8 +116,8 @@ namespace neuron {
     }
 
 
-    static art_spiker_NodeData make_node_data_art_spiker(NrnThread& _nt, Memb_list& _ml_arg) {
-        return art_spiker_NodeData {
+    static NetReceiveCalls_NodeData make_node_data_NetReceiveCalls(NrnThread& _nt, Memb_list& _ml_arg) {
+        return NetReceiveCalls_NodeData {
             _ml_arg.nodeindices,
             _nt.node_voltage_storage(),
             _nt.node_d_storage(),
@@ -128,14 +127,14 @@ namespace neuron {
     }
 
 
-    static void nrn_alloc_art_spiker(Prop* _prop) {
+    static void nrn_alloc_NetReceiveCalls(Prop* _prop) {
         Prop *prop_ion{};
         Datum *_ppvar{};
         if (nrn_point_prop_) {
             _nrn_mechanism_access_alloc_seq(_prop) = _nrn_mechanism_access_alloc_seq(nrn_point_prop_);
             _ppvar = _nrn_mechanism_access_dparam(nrn_point_prop_);
         } else {
-            _ppvar = nrn_prop_datum_alloc(mech_type, 3, _prop);
+            _ppvar = nrn_prop_datum_alloc(mech_type, 2, _prop);
             _nrn_mechanism_access_dparam(_prop) = _ppvar;
             _nrn_mechanism_cache_instance _lmc{_prop};
             size_t const _iml{};
@@ -172,6 +171,8 @@ namespace neuron {
         _setdata(_prop);
     }
     /* Mechanism procedures and functions */
+    inline double one_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
+    inline int increment_c2_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -187,6 +188,8 @@ namespace neuron {
 
 
     /* declaration of user functions */
+    static double _hoc_increment_c2(void*);
+    static double _hoc_one(void*);
 
 
     /* connect user functions to hoc names */
@@ -197,51 +200,105 @@ namespace neuron {
         {"loc", _hoc_loc_pnt},
         {"has_loc", _hoc_has_loc},
         {"get_loc", _hoc_get_loc_pnt},
+        {"increment_c2", _hoc_increment_c2},
+        {"one", _hoc_one},
         {nullptr, nullptr}
     };
+    static double _hoc_increment_c2(void* _vptr) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* _nt;
+        auto* const _pnt = static_cast<Point_process*>(_vptr);
+        auto* const _p = _pnt->prop;
+        if (!_p) {
+            hoc_execerror("POINT_PROCESS data instance not valid", NULL);
+        }
+        _nrn_mechanism_cache_instance _lmc{_p};
+        size_t const id{};
+        _ppvar = _nrn_mechanism_access_dparam(_p);
+        _thread = _extcall_thread.data();
+        _nt = static_cast<NrnThread*>(_pnt->_vnt);
+        auto inst = make_instance_NetReceiveCalls(_lmc);
+        _r = 1.;
+        increment_c2_NetReceiveCalls(_lmc, inst, id, _ppvar, _thread, _nt);
+        return(_r);
+    }
+    static double _hoc_one(void* _vptr) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* _nt;
+        auto* const _pnt = static_cast<Point_process*>(_vptr);
+        auto* const _p = _pnt->prop;
+        if (!_p) {
+            hoc_execerror("POINT_PROCESS data instance not valid", NULL);
+        }
+        _nrn_mechanism_cache_instance _lmc{_p};
+        size_t const id{};
+        _ppvar = _nrn_mechanism_access_dparam(_p);
+        _thread = _extcall_thread.data();
+        _nt = static_cast<NrnThread*>(_pnt->_vnt);
+        auto inst = make_instance_NetReceiveCalls(_lmc);
+        _r = one_NetReceiveCalls(_lmc, inst, id, _ppvar, _thread, _nt);
+        return(_r);
+    }
 
 
-    void nrn_init_art_spiker(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
+    inline int increment_c2_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt) {
+        int ret_increment_c2 = 0;
+        auto v = inst.v_unused[id];
+        inst.c2[id] = inst.c2[id] + 2.0;
+        return ret_increment_c2;
+    }
+
+
+    inline double one_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt) {
+        double ret_one = 0.0;
+        auto v = inst.v_unused[id];
+        ret_one = 1.0;
+        return ret_one;
+    }
+
+
+    void nrn_init_NetReceiveCalls(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_art_spiker(_lmc);
-        auto node_data = make_node_data_art_spiker(*_nt, *_ml_arg);
+        auto inst = make_instance_NetReceiveCalls(_lmc);
+        auto node_data = make_node_data_NetReceiveCalls(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
-            inst.y[id] = 0.0;
-            inst.z[id] = 0.0;
-            net_send(/* tqitem */ &_ppvar[2], nullptr, _ppvar[1].get<Point_process*>(), _nt->_t + 1.8, 1.0);
+            int node_id = node_data.nodeindices[id];
+            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = v;
+            inst.c1[id] = 0.0;
+            inst.c2[id] = 0.0;
         }
     }
 
 
-    static void nrn_jacob_art_spiker(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_NetReceiveCalls(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_art_spiker(_lmc);
-        auto node_data = make_node_data_art_spiker(*_nt, *_ml_arg);
+        auto inst = make_instance_NetReceiveCalls(_lmc);
+        auto node_data = make_node_data_NetReceiveCalls(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
     }
-    static void nrn_net_receive_art_spiker(Point_process* _pnt, double* _args, double flag) {
+    static void nrn_net_receive_NetReceiveCalls(Point_process* _pnt, double* _args, double flag) {
         _nrn_mechanism_cache_instance _lmc{_pnt->prop};
         auto * _nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto * _ppvar = _nrn_mechanism_access_dparam(_pnt->prop);
-        auto inst = make_instance_art_spiker(_lmc);
+        auto inst = make_instance_NetReceiveCalls(_lmc);
         // nocmodl has a nullptr dereference for thread variables.
         // NMODL will fail to compile at a later point, because of
         // missing '_thread_vars'.
         Datum * _thread = nullptr;
         size_t id = 0;
         double t = _nt->_t;
-        if (flag == 0.0) {
-            inst.y[id] = inst.y[id] + 1.0;
-            net_move(/* tqitem */ &_ppvar[2], _pnt, _nt->_t + 0.1);
-        } else {
-            inst.z[id] = inst.z[id] + 1.0;
-            net_send(/* tqitem */ &_ppvar[2], nullptr, _pnt, _nt->_t + 2.0, 1.0);
-        }
+        inst.c1[id] = inst.c1[id] + one_NetReceiveCalls(_lmc, inst, id, _ppvar, _thread, _nt);
+        increment_c2_NetReceiveCalls(_lmc, inst, id, _ppvar, _thread, _nt);
 
     }
 
@@ -251,29 +308,26 @@ namespace neuron {
 
 
     /** register channel with the simulator */
-    extern "C" void _art_spiker_reg() {
+    extern "C" void _NetReceiveCalls_reg() {
         _initlists();
 
-        _pointtype = point_register_mech(mechanism_info, nrn_alloc_art_spiker, nullptr, nullptr, nullptr, nrn_init_art_spiker, hoc_nrnpointerindex, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
+        _pointtype = point_register_mech(mechanism_info, nrn_alloc_NetReceiveCalls, nullptr, nullptr, nullptr, nrn_init_NetReceiveCalls, hoc_nrnpointerindex, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         _nrn_mechanism_register_data_fields(mech_type,
-            _nrn_mechanism_field<double>{"y"} /* 0 */,
-            _nrn_mechanism_field<double>{"z"} /* 1 */,
+            _nrn_mechanism_field<double>{"c1"} /* 0 */,
+            _nrn_mechanism_field<double>{"c2"} /* 1 */,
             _nrn_mechanism_field<double>{"v_unused"} /* 2 */,
             _nrn_mechanism_field<double>{"tsave"} /* 3 */,
             _nrn_mechanism_field<double*>{"node_area", "area"} /* 0 */,
-            _nrn_mechanism_field<Point_process*>{"point_process", "pntproc"} /* 1 */,
-            _nrn_mechanism_field<void*>{"tqitem", "netsend"} /* 2 */
+            _nrn_mechanism_field<Point_process*>{"point_process", "pntproc"} /* 1 */
         );
 
-        hoc_register_prop_size(mech_type, 4, 3);
+        hoc_register_prop_size(mech_type, 4, 2);
         hoc_register_dparam_semantics(mech_type, 0, "area");
         hoc_register_dparam_semantics(mech_type, 1, "pntproc");
-        hoc_register_dparam_semantics(mech_type, 2, "netsend");
-        add_nrn_artcell(mech_type, 2);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
-        pnt_receive[mech_type] = nrn_net_receive_art_spiker;
+        pnt_receive[mech_type] = nrn_net_receive_NetReceiveCalls;
         pnt_receive_size[mech_type] = 1;
     }
 }
