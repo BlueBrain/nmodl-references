@@ -1,5 +1,5 @@
 /*********************************************************
-Model Name      : pump
+Model Name      : X2Y
 Filename        : X2Y.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
@@ -57,12 +57,12 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "pump",
+        "X2Y",
         0,
-        "il_pump",
+        "il_X2Y",
         0,
-        "X_pump",
-        "Y_pump",
+        "X_X2Y",
+        "Y_X2Y",
         0,
         0
     };
@@ -79,20 +79,20 @@ namespace neuron {
 
 
     /** all global variables */
-    struct pump_Store {
+    struct X2Y_Store {
         double X0{};
         double Y0{};
     };
-    static_assert(std::is_trivially_copy_constructible_v<pump_Store>);
-    static_assert(std::is_trivially_move_constructible_v<pump_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<pump_Store>);
-    static_assert(std::is_trivially_move_assignable_v<pump_Store>);
-    static_assert(std::is_trivially_destructible_v<pump_Store>);
-    pump_Store pump_global;
+    static_assert(std::is_trivially_copy_constructible_v<X2Y_Store>);
+    static_assert(std::is_trivially_move_constructible_v<X2Y_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<X2Y_Store>);
+    static_assert(std::is_trivially_move_assignable_v<X2Y_Store>);
+    static_assert(std::is_trivially_destructible_v<X2Y_Store>);
+    X2Y_Store X2Y_global;
 
 
     /** all mechanism instance variables and global variables */
-    struct pump_Instance  {
+    struct X2Y_Instance  {
         double* il{};
         double* X{};
         double* Y{};
@@ -101,11 +101,11 @@ namespace neuron {
         double* i{};
         double* v_unused{};
         double* g_unused{};
-        pump_Store* global{&pump_global};
+        X2Y_Store* global{&X2Y_global};
     };
 
 
-    struct pump_NodeData  {
+    struct X2Y_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -114,8 +114,8 @@ namespace neuron {
     };
 
 
-    static pump_Instance make_instance_pump(_nrn_mechanism_cache_range& _lmc) {
-        return pump_Instance {
+    static X2Y_Instance make_instance_X2Y(_nrn_mechanism_cache_range& _lmc) {
+        return X2Y_Instance {
             _lmc.template fpfield_ptr<0>(),
             _lmc.template fpfield_ptr<1>(),
             _lmc.template fpfield_ptr<2>(),
@@ -128,8 +128,8 @@ namespace neuron {
     }
 
 
-    static pump_NodeData make_node_data_pump(NrnThread& _nt, Memb_list& _ml_arg) {
-        return pump_NodeData {
+    static X2Y_NodeData make_node_data_X2Y(NrnThread& _nt, Memb_list& _ml_arg) {
+        return X2Y_NodeData {
             _ml_arg.nodeindices,
             _nt.node_voltage_storage(),
             _nt.node_d_storage(),
@@ -139,7 +139,7 @@ namespace neuron {
     }
 
 
-    static void nrn_alloc_pump(Prop* _prop) {
+    static void nrn_alloc_X2Y(Prop* _prop) {
         Prop *prop_ion{};
         Datum *_ppvar{};
         _nrn_mechanism_cache_instance _lmc{_prop};
@@ -163,9 +163,9 @@ namespace neuron {
     /* Mechanism procedures and functions */
 
 
-    struct functor_pump_0 {
+    struct functor_X2Y_0 {
         NrnThread* _nt;
-        pump_Instance& inst;
+        X2Y_Instance& inst;
         int id;
         double v;
         Datum* _thread;
@@ -179,7 +179,7 @@ namespace neuron {
             old_Y = inst.Y[id];
         }
 
-        functor_pump_0(NrnThread* _nt, pump_Instance& inst, int id, double v, Datum* _thread)
+        functor_X2Y_0(NrnThread* _nt, X2Y_Instance& inst, int id, double v, Datum* _thread)
             : _nt(_nt), inst(inst), id(id), v(v), _thread(_thread)
         {}
         void operator()(const Eigen::Matrix<double, 2, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 2, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 2, 2>& nmodl_eigen_jm) const {
@@ -216,7 +216,7 @@ namespace neuron {
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
-        {"setdata_pump", _hoc_setdata},
+        {"setdata_X2Y", _hoc_setdata},
         {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
@@ -224,10 +224,10 @@ namespace neuron {
     };
 
 
-    void nrn_init_pump(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
+    void nrn_init_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_pump(_lmc);
-        auto node_data = make_node_data_pump(*_nt, *_ml_arg);
+        auto inst = make_instance_X2Y(_lmc);
+        auto node_data = make_node_data_X2Y(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
@@ -241,7 +241,7 @@ namespace neuron {
     }
 
 
-    inline double nrn_current_pump(_nrn_mechanism_cache_range& _lmc, NrnThread* _nt, Datum* _ppvar, Datum* _thread, size_t id, pump_Instance& inst, pump_NodeData& node_data, double v) {
+    inline double nrn_current_X2Y(_nrn_mechanism_cache_range& _lmc, NrnThread* _nt, Datum* _ppvar, Datum* _thread, size_t id, X2Y_Instance& inst, X2Y_NodeData& node_data, double v) {
         double current = 0.0;
         inst.il[id] = inst.i[id];
         current += inst.il[id];
@@ -250,18 +250,18 @@ namespace neuron {
 
 
     /** update current */
-    void nrn_cur_pump(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
+    void nrn_cur_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_pump(_lmc);
-        auto node_data = make_node_data_pump(*_nt, *_ml_arg);
+        auto inst = make_instance_X2Y(_lmc);
+        auto node_data = make_node_data_X2Y(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             double v = node_data.node_voltages[node_id];
             auto* _ppvar = _ml_arg->pdata[id];
-            double I1 = nrn_current_pump(_lmc, _nt, _ppvar, _thread, id, inst, node_data, v+0.001);
-            double I0 = nrn_current_pump(_lmc, _nt, _ppvar, _thread, id, inst, node_data, v);
+            double I1 = nrn_current_X2Y(_lmc, _nt, _ppvar, _thread, id, inst, node_data, v+0.001);
+            double I0 = nrn_current_X2Y(_lmc, _nt, _ppvar, _thread, id, inst, node_data, v);
             double rhs = I0;
             double g = (I1-I0)/0.001;
             node_data.node_rhs[node_id] -= rhs;
@@ -270,10 +270,10 @@ namespace neuron {
     }
 
 
-    void nrn_state_pump(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
+    void nrn_state_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_pump(_lmc);
-        auto node_data = make_node_data_pump(*_nt, *_ml_arg);
+        auto inst = make_instance_X2Y(_lmc);
+        auto node_data = make_node_data_X2Y(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
@@ -286,7 +286,7 @@ namespace neuron {
             nmodl_eigen_x[static_cast<int>(0)] = inst.X[id];
             nmodl_eigen_x[static_cast<int>(1)] = inst.Y[id];
             // call newton solver
-            functor_pump_0 newton_functor(_nt, inst, id, v, _thread);
+            functor_X2Y_0 newton_functor(_nt, inst, id, v, _thread);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
@@ -298,10 +298,10 @@ namespace neuron {
     }
 
 
-    static void nrn_jacob_pump(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_pump(_lmc);
-        auto node_data = make_node_data_pump(*_nt, *_ml_arg);
+        auto inst = make_instance_X2Y(_lmc);
+        auto node_data = make_node_data_X2Y(*_nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
@@ -326,7 +326,7 @@ namespace neuron {
     extern "C" void _X2Y_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_pump, nrn_cur_pump, nrn_jacob_pump, nrn_state_pump, nrn_init_pump, hoc_nrnpointerindex, 1);
+        register_mech(mechanism_info, nrn_alloc_X2Y, nrn_cur_X2Y, nrn_jacob_X2Y, nrn_state_X2Y, nrn_init_X2Y, hoc_nrnpointerindex, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         _nrn_mechanism_register_data_fields(mech_type,
