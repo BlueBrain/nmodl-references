@@ -1,5 +1,5 @@
 /*********************************************************
-Model Name      : pump
+Model Name      : X2Y
 Filename        : X2Y.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
@@ -37,19 +37,19 @@ namespace coreneuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "pump",
+        "X2Y",
         0,
-        "il_pump",
+        "il_X2Y",
         0,
-        "X_pump",
-        "Y_pump",
+        "X_X2Y",
+        "Y_X2Y",
         0,
         0
     };
 
 
     /** all global variables */
-    struct pump_Store {
+    struct X2Y_Store {
         double X0{};
         double Y0{};
         int reset{};
@@ -57,16 +57,16 @@ namespace coreneuron {
         int slist1[2]{1, 2};
         int dlist1[2]{3, 4};
     };
-    static_assert(std::is_trivially_copy_constructible_v<pump_Store>);
-    static_assert(std::is_trivially_move_constructible_v<pump_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<pump_Store>);
-    static_assert(std::is_trivially_move_assignable_v<pump_Store>);
-    static_assert(std::is_trivially_destructible_v<pump_Store>);
-    pump_Store pump_global;
+    static_assert(std::is_trivially_copy_constructible_v<X2Y_Store>);
+    static_assert(std::is_trivially_move_constructible_v<X2Y_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<X2Y_Store>);
+    static_assert(std::is_trivially_move_assignable_v<X2Y_Store>);
+    static_assert(std::is_trivially_destructible_v<X2Y_Store>);
+    X2Y_Store X2Y_global;
 
 
     /** all mechanism instance variables and global variables */
-    struct pump_Instance  {
+    struct X2Y_Instance  {
         double* il{};
         double* X{};
         double* Y{};
@@ -75,7 +75,7 @@ namespace coreneuron {
         double* i{};
         double* v_unused{};
         double* g_unused{};
-        pump_Store* global{&pump_global};
+        X2Y_Store* global{&X2Y_global};
     };
 
 
@@ -112,7 +112,7 @@ namespace coreneuron {
 
 
     static inline int get_mech_type() {
-        return pump_global.mech_type;
+        return X2Y_global.mech_type;
     }
 
 
@@ -142,25 +142,25 @@ namespace coreneuron {
     }
 
     // Allocate instance structure
-    static void nrn_private_constructor_pump(NrnThread* nt, Memb_list* ml, int type) {
+    static void nrn_private_constructor_X2Y(NrnThread* nt, Memb_list* ml, int type) {
         assert(!ml->instance);
         assert(!ml->global_variables);
         assert(ml->global_variables_size == 0);
-        auto* const inst = new pump_Instance{};
-        assert(inst->global == &pump_global);
+        auto* const inst = new X2Y_Instance{};
+        assert(inst->global == &X2Y_global);
         ml->instance = inst;
         ml->global_variables = inst->global;
-        ml->global_variables_size = sizeof(pump_Store);
+        ml->global_variables_size = sizeof(X2Y_Store);
     }
 
     // Deallocate the instance structure
-    static void nrn_private_destructor_pump(NrnThread* nt, Memb_list* ml, int type) {
-        auto* const inst = static_cast<pump_Instance*>(ml->instance);
+    static void nrn_private_destructor_X2Y(NrnThread* nt, Memb_list* ml, int type) {
+        auto* const inst = static_cast<X2Y_Instance*>(ml->instance);
         assert(inst);
         assert(inst->global);
-        assert(inst->global == &pump_global);
+        assert(inst->global == &X2Y_global);
         assert(inst->global == ml->global_variables);
-        assert(ml->global_variables_size == sizeof(pump_Store));
+        assert(ml->global_variables_size == sizeof(X2Y_Store));
         delete inst;
         ml->instance = nullptr;
         ml->global_variables = nullptr;
@@ -169,12 +169,12 @@ namespace coreneuron {
 
     /** initialize mechanism instance variables */
     static inline void setup_instance(NrnThread* nt, Memb_list* ml) {
-        auto* const inst = static_cast<pump_Instance*>(ml->instance);
+        auto* const inst = static_cast<X2Y_Instance*>(ml->instance);
         assert(inst);
         assert(inst->global);
-        assert(inst->global == &pump_global);
+        assert(inst->global == &X2Y_global);
         assert(inst->global == ml->global_variables);
-        assert(ml->global_variables_size == sizeof(pump_Store));
+        assert(ml->global_variables_size == sizeof(X2Y_Store));
         int pnodecount = ml->_nodecount_padded;
         Datum* indexes = ml->pdata;
         inst->il = ml->data+0*pnodecount;
@@ -189,12 +189,12 @@ namespace coreneuron {
 
 
 
-    static void nrn_alloc_pump(double* data, Datum* indexes, int type) {
+    static void nrn_alloc_X2Y(double* data, Datum* indexes, int type) {
         // do nothing
     }
 
 
-    void nrn_constructor_pump(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_constructor_X2Y(NrnThread* nt, Memb_list* ml, int type) {
         #ifndef CORENEURON_BUILD
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
@@ -203,13 +203,13 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<pump_Instance*>(ml->instance);
+        auto* const inst = static_cast<X2Y_Instance*>(ml->instance);
 
         #endif
     }
 
 
-    void nrn_destructor_pump(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_destructor_X2Y(NrnThread* nt, Memb_list* ml, int type) {
         #ifndef CORENEURON_BUILD
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
@@ -218,15 +218,15 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<pump_Instance*>(ml->instance);
+        auto* const inst = static_cast<X2Y_Instance*>(ml->instance);
 
         #endif
     }
 
 
-    struct functor_pump_0 {
+    struct functor_X2Y_0 {
         NrnThread* nt;
-        pump_Instance* inst;
+        X2Y_Instance* inst;
         int id;
         int pnodecount;
         double v;
@@ -243,7 +243,7 @@ namespace coreneuron {
             old_Y = inst->Y[id];
         }
 
-        functor_pump_0(NrnThread* nt, pump_Instance* inst, int id, int pnodecount, double v, const Datum* indexes, double* data, ThreadDatum* thread)
+        functor_X2Y_0(NrnThread* nt, X2Y_Instance* inst, int id, int pnodecount, double v, const Datum* indexes, double* data, ThreadDatum* thread)
             : nt(nt), inst(inst), id(id), pnodecount(pnodecount), v(v), indexes(indexes), data(data), thread(thread)
         {}
         void operator()(const Eigen::Matrix<double, 2, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 2, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 2, 2>& nmodl_eigen_jm) const {
@@ -264,7 +264,7 @@ namespace coreneuron {
 
 
     /** initialize channel */
-    void nrn_init_pump(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_init_X2Y(NrnThread* nt, Memb_list* ml, int type) {
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
         const int* node_index = ml->nodeindices;
@@ -274,7 +274,7 @@ namespace coreneuron {
         ThreadDatum* thread = ml->_thread;
 
         setup_instance(nt, ml);
-        auto* const inst = static_cast<pump_Instance*>(ml->instance);
+        auto* const inst = static_cast<X2Y_Instance*>(ml->instance);
 
         if (_nrn_skip_initmodel == 0) {
             #pragma omp simd
@@ -294,7 +294,7 @@ namespace coreneuron {
     }
 
 
-    inline double nrn_current_pump(int id, int pnodecount, pump_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
+    inline double nrn_current_X2Y(int id, int pnodecount, X2Y_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
         double current = 0.0;
         inst->il[id] = inst->i[id];
         current += inst->il[id];
@@ -303,7 +303,7 @@ namespace coreneuron {
 
 
     /** update current */
-    void nrn_cur_pump(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_cur_X2Y(NrnThread* nt, Memb_list* ml, int type) {
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
         const int* node_index = ml->nodeindices;
@@ -313,7 +313,7 @@ namespace coreneuron {
         double* vec_d = nt->_actual_d;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<pump_Instance*>(ml->instance);
+        auto* const inst = static_cast<X2Y_Instance*>(ml->instance);
 
         #pragma omp simd
         #pragma ivdep
@@ -323,8 +323,8 @@ namespace coreneuron {
             #if NRN_PRCELLSTATE
             inst->v_unused[id] = v;
             #endif
-            double g = nrn_current_pump(id, pnodecount, inst, data, indexes, thread, nt, v+0.001);
-            double rhs = nrn_current_pump(id, pnodecount, inst, data, indexes, thread, nt, v);
+            double g = nrn_current_X2Y(id, pnodecount, inst, data, indexes, thread, nt, v+0.001);
+            double rhs = nrn_current_X2Y(id, pnodecount, inst, data, indexes, thread, nt, v);
             g = (g-rhs)/0.001;
             #if NRN_PRCELLSTATE
             inst->g_unused[id] = g;
@@ -336,7 +336,7 @@ namespace coreneuron {
 
 
     /** update state */
-    void nrn_state_pump(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_state_X2Y(NrnThread* nt, Memb_list* ml, int type) {
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
         const int* node_index = ml->nodeindices;
@@ -344,7 +344,7 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<pump_Instance*>(ml->instance);
+        auto* const inst = static_cast<X2Y_Instance*>(ml->instance);
 
         #pragma omp simd
         #pragma ivdep
@@ -360,7 +360,7 @@ namespace coreneuron {
             nmodl_eigen_x[static_cast<int>(0)] = inst->X[id];
             nmodl_eigen_x[static_cast<int>(1)] = inst->Y[id];
             // call newton solver
-            functor_pump_0 newton_functor(nt, inst, id, pnodecount, v, indexes, data, thread);
+            functor_X2Y_0 newton_functor(nt, inst, id, pnodecount, v, indexes, data, thread);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
@@ -375,14 +375,14 @@ namespace coreneuron {
     /** register channel with the simulator */
     void _X2Y_reg() {
 
-        int mech_type = nrn_get_mechtype("pump");
-        pump_global.mech_type = mech_type;
+        int mech_type = nrn_get_mechtype("X2Y");
+        X2Y_global.mech_type = mech_type;
         if (mech_type == -1) {
             return;
         }
 
         _nrn_layout_reg(mech_type, 0);
-        register_mech(mechanism_info, nrn_alloc_pump, nrn_cur_pump, nullptr, nrn_state_pump, nrn_init_pump, nrn_private_constructor_pump, nrn_private_destructor_pump, first_pointer_var_index(), 1);
+        register_mech(mechanism_info, nrn_alloc_X2Y, nrn_cur_X2Y, nullptr, nrn_state_X2Y, nrn_init_X2Y, nrn_private_constructor_X2Y, nrn_private_destructor_X2Y, first_pointer_var_index(), 1);
 
         hoc_register_prop_size(mech_type, float_variables_size(), int_variables_size());
         hoc_register_var(hoc_scalar_double, hoc_vector_double, NULL);
