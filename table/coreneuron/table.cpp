@@ -532,7 +532,6 @@ namespace coreneuron {
             return;
         }
 
-        _nrn_layout_reg(mech_type, 0);
         register_mech(mechanism_info, nrn_alloc_tbl, nrn_cur_tbl, nullptr, nrn_state_tbl, nrn_init_tbl, nrn_private_constructor_tbl, nrn_private_destructor_tbl, first_pointer_var_index(), 1);
 
         _nrn_thread_table_reg(mech_type, check_table_thread_tbl);

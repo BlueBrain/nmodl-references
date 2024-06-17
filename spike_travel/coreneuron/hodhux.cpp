@@ -455,7 +455,6 @@ namespace coreneuron {
             return;
         }
 
-        _nrn_layout_reg(mech_type, 0);
         register_mech(mechanism_info, nrn_alloc_hodhux, nrn_cur_hodhux, nullptr, nrn_state_hodhux, nrn_init_hodhux, nrn_private_constructor_hodhux, nrn_private_destructor_hodhux, first_pointer_var_index(), 1);
         hodhux_global.na_type = nrn_get_mechtype("na_ion");
         hodhux_global.k_type = nrn_get_mechtype("k_ion");

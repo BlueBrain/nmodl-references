@@ -411,7 +411,6 @@ namespace coreneuron {
             return;
         }
 
-        _nrn_layout_reg(mech_type, 0);
         point_register_mech(mechanism_info, nrn_alloc_ExpSyn2, nrn_cur_ExpSyn2, nullptr, nrn_state_ExpSyn2, nrn_init_ExpSyn2, nrn_private_constructor_ExpSyn2, nrn_private_destructor_ExpSyn2, first_pointer_var_index(), nullptr, nullptr, 1);
 
         hoc_register_prop_size(mech_type, float_variables_size(), int_variables_size());

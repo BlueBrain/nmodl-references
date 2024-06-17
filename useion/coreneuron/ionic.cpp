@@ -277,7 +277,6 @@ namespace coreneuron {
             return;
         }
 
-        _nrn_layout_reg(mech_type, 0);
         register_mech(mechanism_info, nrn_alloc_ionic, nullptr, nullptr, nrn_state_ionic, nrn_init_ionic, nrn_private_constructor_ionic, nrn_private_destructor_ionic, first_pointer_var_index(), 1);
         ionic_global.na_type = nrn_get_mechtype("na_ion");
 
