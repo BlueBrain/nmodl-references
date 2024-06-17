@@ -108,12 +108,12 @@ namespace neuron {
     }
 
 
-    static recursion_NodeData make_node_data_recursion(NrnThread& _nt, Memb_list& _ml_arg) {
+    static recursion_NodeData make_node_data_recursion(NrnThread& nt, Memb_list& _ml_arg) {
         return recursion_NodeData {
             _ml_arg.nodeindices,
-            _nt.node_voltage_storage(),
-            _nt.node_d_storage(),
-            _nt.node_rhs_storage(),
+            nt.node_voltage_storage(),
+            nt.node_d_storage(),
+            nt.node_rhs_storage(),
             _ml_arg.nodecount
         };
     }
@@ -141,7 +141,7 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
-    inline double fibonacci_recursion(_nrn_mechanism_cache_range& _lmc, recursion_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double n);
+    inline double fibonacci_recursion(_nrn_mechanism_cache_range& _lmc, recursion_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double n);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -175,49 +175,49 @@ namespace neuron {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
-        NrnThread* _nt;
+        NrnThread* nt;
         Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
         _nrn_mechanism_cache_instance _lmc{_local_prop};
         size_t const id{};
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
-        _nt = nrn_threads;
+        nt = nrn_threads;
         auto inst = make_instance_recursion(_lmc);
-        _r = fibonacci_recursion(_lmc, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        _r = fibonacci_recursion(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_fibonacci(Prop* _prop) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
-        NrnThread* _nt;
+        NrnThread* nt;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const id{};
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
-        _nt = nrn_threads;
+        nt = nrn_threads;
         auto inst = make_instance_recursion(_lmc);
-        _r = fibonacci_recursion(_lmc, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        _r = fibonacci_recursion(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
 
 
-    inline double fibonacci_recursion(_nrn_mechanism_cache_range& _lmc, recursion_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double n) {
+    inline double fibonacci_recursion(_nrn_mechanism_cache_range& _lmc, recursion_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double n) {
         double ret_fibonacci = 0.0;
         auto v = inst.v_unused[id];
         if (n == 0.0 || n == 1.0) {
             ret_fibonacci = 1.0;
         } else {
-            ret_fibonacci = fibonacci_recursion(_lmc, inst, id, _ppvar, _thread, _nt, n - 1.0) + fibonacci_recursion(_lmc, inst, id, _ppvar, _thread, _nt, n - 2.0);
+            ret_fibonacci = fibonacci_recursion(_lmc, inst, id, _ppvar, _thread, nt, n - 1.0) + fibonacci_recursion(_lmc, inst, id, _ppvar, _thread, nt, n - 2.0);
         }
         return ret_fibonacci;
     }
 
 
-    void nrn_init_recursion(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    void nrn_init_recursion(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_recursion(_lmc);
-        auto node_data = make_node_data_recursion(*_nt, *_ml_arg);
+        auto node_data = make_node_data_recursion(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
@@ -229,10 +229,10 @@ namespace neuron {
     }
 
 
-    static void nrn_jacob_recursion(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    static void nrn_jacob_recursion(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_recursion(_lmc);
-        auto node_data = make_node_data_recursion(*_nt, *_ml_arg);
+        auto node_data = make_node_data_recursion(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }

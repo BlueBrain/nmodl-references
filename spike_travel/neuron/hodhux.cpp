@@ -186,12 +186,12 @@ namespace neuron {
     }
 
 
-    static hodhux_NodeData make_node_data_hodhux(NrnThread& _nt, Memb_list& _ml_arg) {
+    static hodhux_NodeData make_node_data_hodhux(NrnThread& nt, Memb_list& _ml_arg) {
         return hodhux_NodeData {
             _ml_arg.nodeindices,
-            _nt.node_voltage_storage(),
-            _nt.node_d_storage(),
-            _nt.node_rhs_storage(),
+            nt.node_voltage_storage(),
+            nt.node_d_storage(),
+            nt.node_rhs_storage(),
             _ml_arg.nodecount
         };
     }
@@ -236,9 +236,9 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
-    inline double vtrap_hodhux(_nrn_mechanism_cache_range& _lmc, hodhux_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double x, double y);
-    inline int states_hodhux(_nrn_mechanism_cache_range& _lmc, hodhux_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
-    inline int rates_hodhux(_nrn_mechanism_cache_range& _lmc, hodhux_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double v);
+    inline double vtrap_hodhux(_nrn_mechanism_cache_range& _lmc, hodhux_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x, double y);
+    inline int states_hodhux(_nrn_mechanism_cache_range& _lmc, hodhux_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline int rates_hodhux(_nrn_mechanism_cache_range& _lmc, hodhux_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -280,7 +280,7 @@ namespace neuron {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
-        NrnThread* _nt;
+        NrnThread* nt;
         if (!_prop_id) {
             hoc_execerror("No data for states_hodhux. Requires prior call to setdata_hodhux and that the specified mechanism instance still be in existence.", NULL);
         }
@@ -289,32 +289,32 @@ namespace neuron {
         size_t const id{};
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
-        _nt = nrn_threads;
+        nt = nrn_threads;
         auto inst = make_instance_hodhux(_lmc);
         _r = 1.;
-        states_hodhux(_lmc, inst, id, _ppvar, _thread, _nt);
+        states_hodhux(_lmc, inst, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_states(Prop* _prop) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
-        NrnThread* _nt;
+        NrnThread* nt;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const id{};
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
-        _nt = nrn_threads;
+        nt = nrn_threads;
         auto inst = make_instance_hodhux(_lmc);
         _r = 1.;
-        states_hodhux(_lmc, inst, id, _ppvar, _thread, _nt);
+        states_hodhux(_lmc, inst, id, _ppvar, _thread, nt);
         return(_r);
     }
     static void _hoc_rates(void) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
-        NrnThread* _nt;
+        NrnThread* nt;
         if (!_prop_id) {
             hoc_execerror("No data for rates_hodhux. Requires prior call to setdata_hodhux and that the specified mechanism instance still be in existence.", NULL);
         }
@@ -323,62 +323,62 @@ namespace neuron {
         size_t const id{};
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
-        _nt = nrn_threads;
+        nt = nrn_threads;
         auto inst = make_instance_hodhux(_lmc);
         _r = 1.;
-        rates_hodhux(_lmc, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        rates_hodhux(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_rates(Prop* _prop) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
-        NrnThread* _nt;
+        NrnThread* nt;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const id{};
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
-        _nt = nrn_threads;
+        nt = nrn_threads;
         auto inst = make_instance_hodhux(_lmc);
         _r = 1.;
-        rates_hodhux(_lmc, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        rates_hodhux(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
     static void _hoc_vtrap(void) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
-        NrnThread* _nt;
+        NrnThread* nt;
         Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
         _nrn_mechanism_cache_instance _lmc{_local_prop};
         size_t const id{};
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
-        _nt = nrn_threads;
+        nt = nrn_threads;
         auto inst = make_instance_hodhux(_lmc);
-        _r = vtrap_hodhux(_lmc, inst, id, _ppvar, _thread, _nt, *getarg(1), *getarg(2));
+        _r = vtrap_hodhux(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1), *getarg(2));
         hoc_retpushx(_r);
     }
     static double _npy_vtrap(Prop* _prop) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
-        NrnThread* _nt;
+        NrnThread* nt;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const id{};
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
-        _nt = nrn_threads;
+        nt = nrn_threads;
         auto inst = make_instance_hodhux(_lmc);
-        _r = vtrap_hodhux(_lmc, inst, id, _ppvar, _thread, _nt, *getarg(1), *getarg(2));
+        _r = vtrap_hodhux(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1), *getarg(2));
         return(_r);
     }
 
 
-    inline int states_hodhux(_nrn_mechanism_cache_range& _lmc, hodhux_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt) {
+    inline int states_hodhux(_nrn_mechanism_cache_range& _lmc, hodhux_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         int ret_states = 0;
         auto v = inst.v_unused[id];
-        rates_hodhux(_lmc, inst, id, _ppvar, _thread, _nt, v);
+        rates_hodhux(_lmc, inst, id, _ppvar, _thread, nt, v);
         inst.m[id] = inst.m[id] + inst.mexp[id] * (inst.minf[id] - inst.m[id]);
         inst.h[id] = inst.h[id] + inst.hexp[id] * (inst.hinf[id] - inst.h[id]);
         inst.n[id] = inst.n[id] + inst.nexp[id] * (inst.ninf[id] - inst.n[id]);
@@ -386,12 +386,12 @@ namespace neuron {
     }
 
 
-    inline int rates_hodhux(_nrn_mechanism_cache_range& _lmc, hodhux_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double v) {
+    inline int rates_hodhux(_nrn_mechanism_cache_range& _lmc, hodhux_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v) {
         int ret_rates = 0;
         double q10, tinc, alpha, beta, sum;
         q10 = pow(3.0, ((*(inst.celsius) - 6.3) / 10.0));
-        tinc =  -_nt->_dt * q10;
-        alpha = .1 * vtrap_hodhux(_lmc, inst, id, _ppvar, _thread, _nt,  -(v + 40.0), 10.0);
+        tinc =  -nt->_dt * q10;
+        alpha = .1 * vtrap_hodhux(_lmc, inst, id, _ppvar, _thread, nt,  -(v + 40.0), 10.0);
         beta = 4.0 * exp( -(v + 65.0) / 18.0);
         sum = alpha + beta;
         inst.minf[id] = alpha / sum;
@@ -401,7 +401,7 @@ namespace neuron {
         sum = alpha + beta;
         inst.hinf[id] = alpha / sum;
         inst.hexp[id] = 1.0 - exp(tinc * sum);
-        alpha = .01 * vtrap_hodhux(_lmc, inst, id, _ppvar, _thread, _nt,  -(v + 55.0), 10.0);
+        alpha = .01 * vtrap_hodhux(_lmc, inst, id, _ppvar, _thread, nt,  -(v + 55.0), 10.0);
         beta = .125 * exp( -(v + 65.0) / 80.0);
         sum = alpha + beta;
         inst.ninf[id] = alpha / sum;
@@ -410,7 +410,7 @@ namespace neuron {
     }
 
 
-    inline double vtrap_hodhux(_nrn_mechanism_cache_range& _lmc, hodhux_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double x, double y) {
+    inline double vtrap_hodhux(_nrn_mechanism_cache_range& _lmc, hodhux_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x, double y) {
         double ret_vtrap = 0.0;
         auto v = inst.v_unused[id];
         if (fabs(x / y) < 1e-6) {
@@ -422,10 +422,10 @@ namespace neuron {
     }
 
 
-    void nrn_init_hodhux(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    void nrn_init_hodhux(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_hodhux(_lmc);
-        auto node_data = make_node_data_hodhux(*_nt, *_ml_arg);
+        auto node_data = make_node_data_hodhux(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
@@ -435,7 +435,7 @@ namespace neuron {
             inst.v_unused[id] = v;
             inst.ena[id] = (*inst.ion_ena[id]);
             inst.ek[id] = (*inst.ion_ek[id]);
-            rates_hodhux(_lmc, inst, id, _ppvar, _thread, _nt, v);
+            rates_hodhux(_lmc, inst, id, _ppvar, _thread, nt, v);
             inst.m[id] = inst.minf[id];
             inst.h[id] = inst.hinf[id];
             inst.n[id] = inst.ninf[id];
@@ -443,7 +443,7 @@ namespace neuron {
     }
 
 
-    inline double nrn_current_hodhux(_nrn_mechanism_cache_range& _lmc, NrnThread* _nt, Datum* _ppvar, Datum* _thread, size_t id, hodhux_Instance& inst, hodhux_NodeData& node_data, double v) {
+    inline double nrn_current_hodhux(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, hodhux_Instance& inst, hodhux_NodeData& node_data, double v) {
         double current = 0.0;
         inst.ina[id] = inst.gnabar[id] * inst.m[id] * inst.m[id] * inst.m[id] * inst.h[id] * (v - inst.ena[id]);
         inst.ik[id] = inst.gkbar[id] * inst.n[id] * inst.n[id] * inst.n[id] * inst.n[id] * (v - inst.ek[id]);
@@ -456,10 +456,10 @@ namespace neuron {
 
 
     /** update current */
-    void nrn_cur_hodhux(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    void nrn_cur_hodhux(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_hodhux(_lmc);
-        auto node_data = make_node_data_hodhux(*_nt, *_ml_arg);
+        auto node_data = make_node_data_hodhux(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
@@ -468,10 +468,10 @@ namespace neuron {
             auto* _ppvar = _ml_arg->pdata[id];
             inst.ena[id] = (*inst.ion_ena[id]);
             inst.ek[id] = (*inst.ion_ek[id]);
-            double I1 = nrn_current_hodhux(_lmc, _nt, _ppvar, _thread, id, inst, node_data, v+0.001);
+            double I1 = nrn_current_hodhux(_lmc, nt, _ppvar, _thread, id, inst, node_data, v+0.001);
             double dina = inst.ina[id];
             double dik = inst.ik[id];
-            double I0 = nrn_current_hodhux(_lmc, _nt, _ppvar, _thread, id, inst, node_data, v);
+            double I0 = nrn_current_hodhux(_lmc, nt, _ppvar, _thread, id, inst, node_data, v);
             double rhs = I0;
             double g = (I1-I0)/0.001;
             (*inst.ion_dinadv[id]) += (dina-inst.ina[id])/0.001;
@@ -484,10 +484,10 @@ namespace neuron {
     }
 
 
-    void nrn_state_hodhux(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    void nrn_state_hodhux(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_hodhux(_lmc);
-        auto node_data = make_node_data_hodhux(*_nt, *_ml_arg);
+        auto node_data = make_node_data_hodhux(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
@@ -496,7 +496,7 @@ namespace neuron {
             auto v = node_data.node_voltages[node_id];
             inst.ena[id] = (*inst.ion_ena[id]);
             inst.ek[id] = (*inst.ion_ek[id]);
-            rates_hodhux(_lmc, inst, id, _ppvar, _thread, _nt, v);
+            rates_hodhux(_lmc, inst, id, _ppvar, _thread, nt, v);
             inst.m[id] = inst.m[id] + inst.mexp[id] * (inst.minf[id] - inst.m[id]);
             inst.h[id] = inst.h[id] + inst.hexp[id] * (inst.hinf[id] - inst.h[id]);
             inst.n[id] = inst.n[id] + inst.nexp[id] * (inst.ninf[id] - inst.n[id]);
@@ -504,10 +504,10 @@ namespace neuron {
     }
 
 
-    static void nrn_jacob_hodhux(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    static void nrn_jacob_hodhux(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_hodhux(_lmc);
-        auto node_data = make_node_data_hodhux(*_nt, *_ml_arg);
+        auto node_data = make_node_data_hodhux(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];

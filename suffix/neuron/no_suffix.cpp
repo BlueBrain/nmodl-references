@@ -111,12 +111,12 @@ namespace neuron {
     }
 
 
-    static no_suffix_NodeData make_node_data_no_suffix(NrnThread& _nt, Memb_list& _ml_arg) {
+    static no_suffix_NodeData make_node_data_no_suffix(NrnThread& nt, Memb_list& _ml_arg) {
         return no_suffix_NodeData {
             _ml_arg.nodeindices,
-            _nt.node_voltage_storage(),
-            _nt.node_d_storage(),
-            _nt.node_rhs_storage(),
+            nt.node_voltage_storage(),
+            nt.node_d_storage(),
+            nt.node_rhs_storage(),
             _ml_arg.nodecount
         };
     }
@@ -171,10 +171,10 @@ namespace neuron {
     };
 
 
-    void nrn_init_no_suffix(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    void nrn_init_no_suffix(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_no_suffix(_lmc);
-        auto node_data = make_node_data_no_suffix(*_nt, *_ml_arg);
+        auto node_data = make_node_data_no_suffix(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
@@ -187,10 +187,10 @@ namespace neuron {
     }
 
 
-    static void nrn_jacob_no_suffix(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    static void nrn_jacob_no_suffix(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_no_suffix(_lmc);
-        auto node_data = make_node_data_no_suffix(*_nt, *_ml_arg);
+        auto node_data = make_node_data_no_suffix(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
