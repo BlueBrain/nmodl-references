@@ -192,7 +192,7 @@ namespace neuron {
     inline int set_g_w_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* _nt, double zz);
     inline int compute_g_v1_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* _nt, double zz);
     void lazy_update_compute_g_v1_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* _nt);
-    static void _check_table_thread(Memb_list* _ml, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, int _type, const _nrn_model_sorted_token& _sorted_token)
+    static void _check_table_thread(Memb_list* _ml, size_t id, Datum* _ppvar, Datum* _thread, double* _globals, NrnThread* _nt, int _type, const _nrn_model_sorted_token& _sorted_token)
 {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml, _type};
         auto inst = make_instance_shared_global(_lmc);
