@@ -47,6 +47,7 @@ void _nrn_mechanism_register_data_fields(Args&&... args) {
 }  // namespace
 
 Prop* hoc_getdata_range(int type);
+extern Node* nrn_alloc_node_;
 
 
 namespace neuron {

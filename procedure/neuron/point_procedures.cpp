@@ -46,6 +46,7 @@ void _nrn_mechanism_register_data_fields(Args&&... args) {
 }  // namespace
 
 extern Prop* nrn_point_prop_;
+extern Node* nrn_alloc_node_;
 
 
 namespace neuron {
