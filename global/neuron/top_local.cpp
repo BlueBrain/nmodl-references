@@ -135,12 +135,12 @@ namespace neuron {
     }
 
 
-    static top_local_NodeData make_node_data_top_local(NrnThread& _nt, Memb_list& _ml_arg) {
+    static top_local_NodeData make_node_data_top_local(NrnThread& nt, Memb_list& _ml_arg) {
         return top_local_NodeData {
             _ml_arg.nodeindices,
-            _nt.node_voltage_storage(),
-            _nt.node_d_storage(),
-            _nt.node_rhs_storage(),
+            nt.node_voltage_storage(),
+            nt.node_d_storage(),
+            nt.node_rhs_storage(),
             _ml_arg.nodecount
         };
     }
@@ -213,10 +213,10 @@ namespace neuron {
     }
 
 
-    void nrn_init_top_local(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    void nrn_init_top_local(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_top_local(_lmc);
-        auto node_data = make_node_data_top_local(*_nt, *_ml_arg);
+        auto node_data = make_node_data_top_local(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         auto _thread_vars = top_local_ThreadVariables(_thread[0].get<double*>());
@@ -230,9 +230,9 @@ namespace neuron {
     }
 
 
-    inline double nrn_current_top_local(_nrn_mechanism_cache_range& _lmc, NrnThread* _nt, Datum* _ppvar, Datum* _thread, top_local_ThreadVariables& _thread_vars, size_t id, top_local_Instance& inst, top_local_NodeData& node_data, double v) {
+    inline double nrn_current_top_local(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, top_local_ThreadVariables& _thread_vars, size_t id, top_local_Instance& inst, top_local_NodeData& node_data, double v) {
         double current = 0.0;
-        if (_nt->_t > 0.33) {
+        if (nt->_t > 0.33) {
             _thread_vars.gbl(id) = 3.0;
         }
         inst.y[id] = _thread_vars.gbl(id);
@@ -243,10 +243,10 @@ namespace neuron {
 
 
     /** update current */
-    void nrn_cur_top_local(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    void nrn_cur_top_local(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_top_local(_lmc);
-        auto node_data = make_node_data_top_local(*_nt, *_ml_arg);
+        auto node_data = make_node_data_top_local(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         auto _thread_vars = top_local_ThreadVariables(_thread[0].get<double*>());
@@ -254,8 +254,8 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             double v = node_data.node_voltages[node_id];
             auto* _ppvar = _ml_arg->pdata[id];
-            double I1 = nrn_current_top_local(_lmc, _nt, _ppvar, _thread, _thread_vars, id, inst, node_data, v+0.001);
-            double I0 = nrn_current_top_local(_lmc, _nt, _ppvar, _thread, _thread_vars, id, inst, node_data, v);
+            double I1 = nrn_current_top_local(_lmc, nt, _ppvar, _thread, _thread_vars, id, inst, node_data, v+0.001);
+            double I0 = nrn_current_top_local(_lmc, nt, _ppvar, _thread, _thread_vars, id, inst, node_data, v);
             double rhs = I0;
             double g = (I1-I0)/0.001;
             node_data.node_rhs[node_id] -= rhs;
@@ -264,10 +264,10 @@ namespace neuron {
     }
 
 
-    void nrn_state_top_local(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    void nrn_state_top_local(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_top_local(_lmc);
-        auto node_data = make_node_data_top_local(*_nt, *_ml_arg);
+        auto node_data = make_node_data_top_local(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         auto _thread_vars = top_local_ThreadVariables(_thread[0].get<double*>());
@@ -279,10 +279,10 @@ namespace neuron {
     }
 
 
-    static void nrn_jacob_top_local(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    static void nrn_jacob_top_local(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_top_local(_lmc);
-        auto node_data = make_node_data_top_local(*_nt, *_ml_arg);
+        auto node_data = make_node_data_top_local(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];

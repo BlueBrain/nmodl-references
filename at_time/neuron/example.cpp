@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : leonhard
-Filename        : leonhard.mod
+Model Name      : example
+Filename        : example.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -28,7 +28,7 @@ NMODL Compiler  : VERSION
 #define NRN_VECTORIZED 1
 
 static constexpr auto number_of_datum_variables = 0;
-static constexpr auto number_of_floating_point_variables = 4;
+static constexpr auto number_of_floating_point_variables = 1;
 
 namespace {
 template <typename T>
@@ -57,10 +57,8 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "leonhard",
-        "c_leonhard",
+        "example",
         0,
-        "il_leonhard",
         0,
         0,
         0
@@ -77,27 +75,24 @@ namespace neuron {
 
 
     /** all global variables */
-    struct leonhard_Store {
+    struct example_Store {
     };
-    static_assert(std::is_trivially_copy_constructible_v<leonhard_Store>);
-    static_assert(std::is_trivially_move_constructible_v<leonhard_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<leonhard_Store>);
-    static_assert(std::is_trivially_move_assignable_v<leonhard_Store>);
-    static_assert(std::is_trivially_destructible_v<leonhard_Store>);
-    leonhard_Store leonhard_global;
+    static_assert(std::is_trivially_copy_constructible_v<example_Store>);
+    static_assert(std::is_trivially_move_constructible_v<example_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<example_Store>);
+    static_assert(std::is_trivially_move_assignable_v<example_Store>);
+    static_assert(std::is_trivially_destructible_v<example_Store>);
+    example_Store example_global;
 
 
     /** all mechanism instance variables and global variables */
-    struct leonhard_Instance  {
-        double* c{};
-        double* il{};
+    struct example_Instance  {
         double* v_unused{};
-        double* g_unused{};
-        leonhard_Store* global{&leonhard_global};
+        example_Store* global{&example_global};
     };
 
 
-    struct leonhard_NodeData  {
+    struct example_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -106,18 +101,15 @@ namespace neuron {
     };
 
 
-    static leonhard_Instance make_instance_leonhard(_nrn_mechanism_cache_range& _lmc) {
-        return leonhard_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>()
+    static example_Instance make_instance_example(_nrn_mechanism_cache_range& _lmc) {
+        return example_Instance {
+            _lmc.template fpfield_ptr<0>()
         };
     }
 
 
-    static leonhard_NodeData make_node_data_leonhard(NrnThread& nt, Memb_list& _ml_arg) {
-        return leonhard_NodeData {
+    static example_NodeData make_node_data_example(NrnThread& nt, Memb_list& _ml_arg) {
+        return example_NodeData {
             _ml_arg.nodeindices,
             nt.node_voltage_storage(),
             nt.node_d_storage(),
@@ -127,14 +119,13 @@ namespace neuron {
     }
 
 
-    static void nrn_alloc_leonhard(Prop* _prop) {
+    static void nrn_alloc_example(Prop* _prop) {
         Prop *prop_ion{};
         Datum *_ppvar{};
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const _iml{};
-        assert(_nrn_mechanism_get_num_vars(_prop) == 4);
+        assert(_nrn_mechanism_get_num_vars(_prop) == 1);
         /*initialize range parameters*/
-        _lmc.template fpfield<0>(_iml) = 0.005; /* c */
     }
 
 
@@ -150,6 +141,7 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
+    inline double f_example(_nrn_mechanism_cache_range& _lmc, example_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -165,22 +157,63 @@ namespace neuron {
 
 
     /* declaration of user functions */
+    static void _hoc_f(void);
+    static double _npy_f(Prop*);
 
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
-        {"setdata_leonhard", _hoc_setdata},
+        {"setdata_example", _hoc_setdata},
+        {"f_example", _hoc_f},
         {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
+        {"f", _npy_f},
         {nullptr, nullptr}
     };
+    static void _hoc_f(void) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
+        _nrn_mechanism_cache_instance _lmc{_local_prop};
+        size_t const id{};
+        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
+        _thread = _extcall_thread.data();
+        nt = nrn_threads;
+        auto inst = make_instance_example(_lmc);
+        _r = f_example(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
+        hoc_retpushx(_r);
+    }
+    static double _npy_f(Prop* _prop) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        _nrn_mechanism_cache_instance _lmc{_prop};
+        size_t const id{};
+        _ppvar = _nrn_mechanism_access_dparam(_prop);
+        _thread = _extcall_thread.data();
+        nt = nrn_threads;
+        auto inst = make_instance_example(_lmc);
+        _r = f_example(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
+        return(_r);
+    }
 
 
-    void nrn_init_leonhard(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    inline double f_example(_nrn_mechanism_cache_range& _lmc, example_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x) {
+        double ret_f = 0.0;
+        auto v = inst.v_unused[id];
+        ret_f = at_time(nt, x);
+        return ret_f;
+    }
+
+
+    void nrn_init_example(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_leonhard(_lmc);
-        auto node_data = make_node_data_leonhard(*nt, *_ml_arg);
+        auto inst = make_instance_example(_lmc);
+        auto node_data = make_node_data_example(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
@@ -192,57 +225,12 @@ namespace neuron {
     }
 
 
-    inline double nrn_current_leonhard(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, leonhard_Instance& inst, leonhard_NodeData& node_data, double v) {
-        double current = 0.0;
-        inst.il[id] = inst.c[id] * (v - 1.5);
-        current += inst.il[id];
-        return current;
-    }
-
-
-    /** update current */
-    void nrn_cur_leonhard(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_example(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_leonhard(_lmc);
-        auto node_data = make_node_data_leonhard(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
-        auto* _thread = _ml_arg->_thread;
-        for (int id = 0; id < nodecount; id++) {
-            int node_id = node_data.nodeindices[id];
-            double v = node_data.node_voltages[node_id];
-            auto* _ppvar = _ml_arg->pdata[id];
-            double I1 = nrn_current_leonhard(_lmc, nt, _ppvar, _thread, id, inst, node_data, v+0.001);
-            double I0 = nrn_current_leonhard(_lmc, nt, _ppvar, _thread, id, inst, node_data, v);
-            double rhs = I0;
-            double g = (I1-I0)/0.001;
-            node_data.node_rhs[node_id] -= rhs;
-            inst.g_unused[id] = g;
-        }
-    }
-
-
-    void nrn_state_leonhard(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_leonhard(_lmc);
-        auto node_data = make_node_data_leonhard(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
-        auto* _thread = _ml_arg->_thread;
-        for (int id = 0; id < nodecount; id++) {
-            int node_id = node_data.nodeindices[id];
-            auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
-        }
-    }
-
-
-    static void nrn_jacob_leonhard(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_leonhard(_lmc);
-        auto node_data = make_node_data_leonhard(*nt, *_ml_arg);
+        auto inst = make_instance_example(_lmc);
+        auto node_data = make_node_data_example(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
-            int node_id = node_data.nodeindices[id];
-            node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
 
@@ -252,20 +240,17 @@ namespace neuron {
 
 
     /** register channel with the simulator */
-    extern "C" void _leonhard_reg() {
+    extern "C" void _example_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_leonhard, nrn_cur_leonhard, nrn_jacob_leonhard, nrn_state_leonhard, nrn_init_leonhard, hoc_nrnpointerindex, 1);
+        register_mech(mechanism_info, nrn_alloc_example, nullptr, nullptr, nullptr, nrn_init_example, hoc_nrnpointerindex, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         _nrn_mechanism_register_data_fields(mech_type,
-            _nrn_mechanism_field<double>{"c"} /* 0 */,
-            _nrn_mechanism_field<double>{"il"} /* 1 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 2 */,
-            _nrn_mechanism_field<double>{"g_unused"} /* 3 */
+            _nrn_mechanism_field<double>{"v_unused"} /* 0 */
         );
 
-        hoc_register_prop_size(mech_type, 4, 0);
+        hoc_register_prop_size(mech_type, 1, 0);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
     }

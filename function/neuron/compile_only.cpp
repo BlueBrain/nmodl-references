@@ -114,12 +114,12 @@ namespace neuron {
     }
 
 
-    static func_in_breakpoint_NodeData make_node_data_func_in_breakpoint(NrnThread& _nt, Memb_list& _ml_arg) {
+    static func_in_breakpoint_NodeData make_node_data_func_in_breakpoint(NrnThread& nt, Memb_list& _ml_arg) {
         return func_in_breakpoint_NodeData {
             _ml_arg.nodeindices,
-            _nt.node_voltage_storage(),
-            _nt.node_d_storage(),
-            _nt.node_rhs_storage(),
+            nt.node_voltage_storage(),
+            nt.node_d_storage(),
+            nt.node_rhs_storage(),
             _ml_arg.nodecount
         };
     }
@@ -147,9 +147,9 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
-    inline int func_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
-    inline int func_with_v_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double v);
-    inline int func_with_other_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double q);
+    inline int func_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline int func_with_v_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v);
+    inline int func_with_other_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double q);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -192,121 +192,121 @@ namespace neuron {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
-        NrnThread* _nt;
+        NrnThread* nt;
         Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
         _nrn_mechanism_cache_instance _lmc{_local_prop};
         size_t const id{};
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
-        _nt = nrn_threads;
+        nt = nrn_threads;
         auto inst = make_instance_func_in_breakpoint(_lmc);
         _r = 1.;
-        func_func_in_breakpoint(_lmc, inst, id, _ppvar, _thread, _nt);
+        func_func_in_breakpoint(_lmc, inst, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_func(Prop* _prop) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
-        NrnThread* _nt;
+        NrnThread* nt;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const id{};
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
-        _nt = nrn_threads;
+        nt = nrn_threads;
         auto inst = make_instance_func_in_breakpoint(_lmc);
         _r = 1.;
-        func_func_in_breakpoint(_lmc, inst, id, _ppvar, _thread, _nt);
+        func_func_in_breakpoint(_lmc, inst, id, _ppvar, _thread, nt);
         return(_r);
     }
     static void _hoc_func_with_v(void) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
-        NrnThread* _nt;
+        NrnThread* nt;
         Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
         _nrn_mechanism_cache_instance _lmc{_local_prop};
         size_t const id{};
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
-        _nt = nrn_threads;
+        nt = nrn_threads;
         auto inst = make_instance_func_in_breakpoint(_lmc);
         _r = 1.;
-        func_with_v_func_in_breakpoint(_lmc, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        func_with_v_func_in_breakpoint(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_func_with_v(Prop* _prop) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
-        NrnThread* _nt;
+        NrnThread* nt;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const id{};
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
-        _nt = nrn_threads;
+        nt = nrn_threads;
         auto inst = make_instance_func_in_breakpoint(_lmc);
         _r = 1.;
-        func_with_v_func_in_breakpoint(_lmc, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        func_with_v_func_in_breakpoint(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
     static void _hoc_func_with_other(void) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
-        NrnThread* _nt;
+        NrnThread* nt;
         Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
         _nrn_mechanism_cache_instance _lmc{_local_prop};
         size_t const id{};
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
-        _nt = nrn_threads;
+        nt = nrn_threads;
         auto inst = make_instance_func_in_breakpoint(_lmc);
         _r = 1.;
-        func_with_other_func_in_breakpoint(_lmc, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        func_with_other_func_in_breakpoint(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_func_with_other(Prop* _prop) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
-        NrnThread* _nt;
+        NrnThread* nt;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const id{};
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
-        _nt = nrn_threads;
+        nt = nrn_threads;
         auto inst = make_instance_func_in_breakpoint(_lmc);
         _r = 1.;
-        func_with_other_func_in_breakpoint(_lmc, inst, id, _ppvar, _thread, _nt, *getarg(1));
+        func_with_other_func_in_breakpoint(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
 
 
-    inline int func_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt) {
+    inline int func_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         int ret_func = 0;
         auto v = inst.v_unused[id];
         return ret_func;
     }
 
 
-    inline int func_with_v_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double v) {
+    inline int func_with_v_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v) {
         int ret_func_with_v = 0;
         return ret_func_with_v;
     }
 
 
-    inline int func_with_other_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt, double q) {
+    inline int func_with_other_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double q) {
         int ret_func_with_other = 0;
         auto v = inst.v_unused[id];
         return ret_func_with_other;
     }
 
 
-    void nrn_init_func_in_breakpoint(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    void nrn_init_func_in_breakpoint(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_func_in_breakpoint(_lmc);
-        auto node_data = make_node_data_func_in_breakpoint(*_nt, *_ml_arg);
+        auto node_data = make_node_data_func_in_breakpoint(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
@@ -318,29 +318,29 @@ namespace neuron {
     }
 
 
-    inline double nrn_current_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, NrnThread* _nt, Datum* _ppvar, Datum* _thread, size_t id, func_in_breakpoint_Instance& inst, func_in_breakpoint_NodeData& node_data, double v) {
+    inline double nrn_current_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, func_in_breakpoint_Instance& inst, func_in_breakpoint_NodeData& node_data, double v) {
         double current = 0.0;
-        func_func_in_breakpoint(_lmc, inst, id, _ppvar, _thread, _nt);
-        func_with_v_func_in_breakpoint(_lmc, inst, id, _ppvar, _thread, _nt, v);
-        func_with_other_func_in_breakpoint(_lmc, inst, id, _ppvar, _thread, _nt, inst.global->c);
+        func_func_in_breakpoint(_lmc, inst, id, _ppvar, _thread, nt);
+        func_with_v_func_in_breakpoint(_lmc, inst, id, _ppvar, _thread, nt, v);
+        func_with_other_func_in_breakpoint(_lmc, inst, id, _ppvar, _thread, nt, inst.global->c);
         current += inst.il[id];
         return current;
     }
 
 
     /** update current */
-    void nrn_cur_func_in_breakpoint(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    void nrn_cur_func_in_breakpoint(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_func_in_breakpoint(_lmc);
-        auto node_data = make_node_data_func_in_breakpoint(*_nt, *_ml_arg);
+        auto node_data = make_node_data_func_in_breakpoint(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             double v = node_data.node_voltages[node_id];
             auto* _ppvar = _ml_arg->pdata[id];
-            double I1 = nrn_current_func_in_breakpoint(_lmc, _nt, _ppvar, _thread, id, inst, node_data, v+0.001);
-            double I0 = nrn_current_func_in_breakpoint(_lmc, _nt, _ppvar, _thread, id, inst, node_data, v);
+            double I1 = nrn_current_func_in_breakpoint(_lmc, nt, _ppvar, _thread, id, inst, node_data, v+0.001);
+            double I0 = nrn_current_func_in_breakpoint(_lmc, nt, _ppvar, _thread, id, inst, node_data, v);
             double rhs = I0;
             double g = (I1-I0)/0.001;
             node_data.node_rhs[node_id] -= rhs;
@@ -349,10 +349,10 @@ namespace neuron {
     }
 
 
-    void nrn_state_func_in_breakpoint(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    void nrn_state_func_in_breakpoint(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_func_in_breakpoint(_lmc);
-        auto node_data = make_node_data_func_in_breakpoint(*_nt, *_ml_arg);
+        auto node_data = make_node_data_func_in_breakpoint(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
@@ -363,10 +363,10 @@ namespace neuron {
     }
 
 
-    static void nrn_jacob_func_in_breakpoint(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    static void nrn_jacob_func_in_breakpoint(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_func_in_breakpoint(_lmc);
-        auto node_data = make_node_data_func_in_breakpoint(*_nt, *_ml_arg);
+        auto node_data = make_node_data_func_in_breakpoint(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];

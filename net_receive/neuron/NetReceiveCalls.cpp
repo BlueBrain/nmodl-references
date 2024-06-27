@@ -116,12 +116,12 @@ namespace neuron {
     }
 
 
-    static NetReceiveCalls_NodeData make_node_data_NetReceiveCalls(NrnThread& _nt, Memb_list& _ml_arg) {
+    static NetReceiveCalls_NodeData make_node_data_NetReceiveCalls(NrnThread& nt, Memb_list& _ml_arg) {
         return NetReceiveCalls_NodeData {
             _ml_arg.nodeindices,
-            _nt.node_voltage_storage(),
-            _nt.node_d_storage(),
-            _nt.node_rhs_storage(),
+            nt.node_voltage_storage(),
+            nt.node_d_storage(),
+            nt.node_rhs_storage(),
             _ml_arg.nodecount
         };
     }
@@ -171,8 +171,8 @@ namespace neuron {
         _setdata(_prop);
     }
     /* Mechanism procedures and functions */
-    inline double one_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
-    inline int increment_c2_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt);
+    inline double one_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline int increment_c2_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -208,7 +208,7 @@ namespace neuron {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
-        NrnThread* _nt;
+        NrnThread* nt;
         auto* const _pnt = static_cast<Point_process*>(_vptr);
         auto* const _p = _pnt->prop;
         if (!_p) {
@@ -218,17 +218,17 @@ namespace neuron {
         size_t const id{};
         _ppvar = _nrn_mechanism_access_dparam(_p);
         _thread = _extcall_thread.data();
-        _nt = static_cast<NrnThread*>(_pnt->_vnt);
+        nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto inst = make_instance_NetReceiveCalls(_lmc);
         _r = 1.;
-        increment_c2_NetReceiveCalls(_lmc, inst, id, _ppvar, _thread, _nt);
+        increment_c2_NetReceiveCalls(_lmc, inst, id, _ppvar, _thread, nt);
         return(_r);
     }
     static double _hoc_one(void* _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
-        NrnThread* _nt;
+        NrnThread* nt;
         auto* const _pnt = static_cast<Point_process*>(_vptr);
         auto* const _p = _pnt->prop;
         if (!_p) {
@@ -238,14 +238,14 @@ namespace neuron {
         size_t const id{};
         _ppvar = _nrn_mechanism_access_dparam(_p);
         _thread = _extcall_thread.data();
-        _nt = static_cast<NrnThread*>(_pnt->_vnt);
+        nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto inst = make_instance_NetReceiveCalls(_lmc);
-        _r = one_NetReceiveCalls(_lmc, inst, id, _ppvar, _thread, _nt);
+        _r = one_NetReceiveCalls(_lmc, inst, id, _ppvar, _thread, nt);
         return(_r);
     }
 
 
-    inline int increment_c2_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt) {
+    inline int increment_c2_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         int ret_increment_c2 = 0;
         auto v = inst.v_unused[id];
         inst.c2[id] = inst.c2[id] + 2.0;
@@ -253,7 +253,7 @@ namespace neuron {
     }
 
 
-    inline double one_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* _nt) {
+    inline double one_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         double ret_one = 0.0;
         auto v = inst.v_unused[id];
         ret_one = 1.0;
@@ -261,10 +261,10 @@ namespace neuron {
     }
 
 
-    void nrn_init_NetReceiveCalls(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    void nrn_init_NetReceiveCalls(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_NetReceiveCalls(_lmc);
-        auto node_data = make_node_data_NetReceiveCalls(*_nt, *_ml_arg);
+        auto node_data = make_node_data_NetReceiveCalls(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
@@ -278,17 +278,17 @@ namespace neuron {
     }
 
 
-    static void nrn_jacob_NetReceiveCalls(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    static void nrn_jacob_NetReceiveCalls(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_NetReceiveCalls(_lmc);
-        auto node_data = make_node_data_NetReceiveCalls(*_nt, *_ml_arg);
+        auto node_data = make_node_data_NetReceiveCalls(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
     }
     static void nrn_net_receive_NetReceiveCalls(Point_process* _pnt, double* _args, double flag) {
         _nrn_mechanism_cache_instance _lmc{_pnt->prop};
-        auto * _nt = static_cast<NrnThread*>(_pnt->_vnt);
+        auto * nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto * _ppvar = _nrn_mechanism_access_dparam(_pnt->prop);
         auto inst = make_instance_NetReceiveCalls(_lmc);
         // nocmodl has a nullptr dereference for thread variables.
@@ -296,9 +296,9 @@ namespace neuron {
         // missing '_thread_vars'.
         Datum * _thread = nullptr;
         size_t id = 0;
-        double t = _nt->_t;
-        inst.c1[id] = inst.c1[id] + one_NetReceiveCalls(_lmc, inst, id, _ppvar, _thread, _nt);
-        increment_c2_NetReceiveCalls(_lmc, inst, id, _ppvar, _thread, _nt);
+        double t = nt->_t;
+        inst.c1[id] = inst.c1[id] + one_NetReceiveCalls(_lmc, inst, id, _ppvar, _thread, nt);
+        increment_c2_NetReceiveCalls(_lmc, inst, id, _ppvar, _thread, nt);
 
     }
 

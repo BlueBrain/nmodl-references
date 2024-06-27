@@ -117,12 +117,12 @@ namespace neuron {
     }
 
 
-    static art_spiker_NodeData make_node_data_art_spiker(NrnThread& _nt, Memb_list& _ml_arg) {
+    static art_spiker_NodeData make_node_data_art_spiker(NrnThread& nt, Memb_list& _ml_arg) {
         return art_spiker_NodeData {
             _ml_arg.nodeindices,
-            _nt.node_voltage_storage(),
-            _nt.node_d_storage(),
-            _nt.node_rhs_storage(),
+            nt.node_voltage_storage(),
+            nt.node_d_storage(),
+            nt.node_rhs_storage(),
             _ml_arg.nodecount
         };
     }
@@ -201,32 +201,32 @@ namespace neuron {
     };
 
 
-    void nrn_init_art_spiker(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    void nrn_init_art_spiker(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_art_spiker(_lmc);
-        auto node_data = make_node_data_art_spiker(*_nt, *_ml_arg);
+        auto node_data = make_node_data_art_spiker(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             inst.y[id] = 0.0;
             inst.z[id] = 0.0;
-            net_send(/* tqitem */ &_ppvar[2], nullptr, _ppvar[1].get<Point_process*>(), _nt->_t + 1.8, 1.0);
+            net_send(/* tqitem */ &_ppvar[2], nullptr, _ppvar[1].get<Point_process*>(), nt->_t + 1.8, 1.0);
         }
     }
 
 
-    static void nrn_jacob_art_spiker(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    static void nrn_jacob_art_spiker(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_art_spiker(_lmc);
-        auto node_data = make_node_data_art_spiker(*_nt, *_ml_arg);
+        auto node_data = make_node_data_art_spiker(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
     }
     static void nrn_net_receive_art_spiker(Point_process* _pnt, double* _args, double flag) {
         _nrn_mechanism_cache_instance _lmc{_pnt->prop};
-        auto * _nt = static_cast<NrnThread*>(_pnt->_vnt);
+        auto * nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto * _ppvar = _nrn_mechanism_access_dparam(_pnt->prop);
         auto inst = make_instance_art_spiker(_lmc);
         // nocmodl has a nullptr dereference for thread variables.
@@ -234,13 +234,13 @@ namespace neuron {
         // missing '_thread_vars'.
         Datum * _thread = nullptr;
         size_t id = 0;
-        double t = _nt->_t;
+        double t = nt->_t;
         if (flag == 0.0) {
             inst.y[id] = inst.y[id] + 1.0;
-            net_move(/* tqitem */ &_ppvar[2], _pnt, _nt->_t + 0.1);
+            net_move(/* tqitem */ &_ppvar[2], _pnt, nt->_t + 0.1);
         } else {
             inst.z[id] = inst.z[id] + 1.0;
-            net_send(/* tqitem */ &_ppvar[2], nullptr, _pnt, _nt->_t + 2.0, 1.0);
+            net_send(/* tqitem */ &_ppvar[2], nullptr, _pnt, nt->_t + 2.0, 1.0);
         }
 
     }

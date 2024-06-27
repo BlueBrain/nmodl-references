@@ -128,12 +128,12 @@ namespace neuron {
     }
 
 
-    static X2Y_NodeData make_node_data_X2Y(NrnThread& _nt, Memb_list& _ml_arg) {
+    static X2Y_NodeData make_node_data_X2Y(NrnThread& nt, Memb_list& _ml_arg) {
         return X2Y_NodeData {
             _ml_arg.nodeindices,
-            _nt.node_voltage_storage(),
-            _nt.node_d_storage(),
-            _nt.node_rhs_storage(),
+            nt.node_voltage_storage(),
+            nt.node_d_storage(),
+            nt.node_rhs_storage(),
             _ml_arg.nodecount
         };
     }
@@ -164,7 +164,7 @@ namespace neuron {
 
 
     struct functor_X2Y_0 {
-        NrnThread* _nt;
+        NrnThread* nt;
         X2Y_Instance& inst;
         int id;
         double v;
@@ -179,19 +179,19 @@ namespace neuron {
             old_Y = inst.Y[id];
         }
 
-        functor_X2Y_0(NrnThread* _nt, X2Y_Instance& inst, int id, double v, Datum* _thread)
-            : _nt(_nt), inst(inst), id(id), v(v), _thread(_thread)
+        functor_X2Y_0(NrnThread* nt, X2Y_Instance& inst, int id, double v, Datum* _thread)
+            : nt(nt), inst(inst), id(id), v(v), _thread(_thread)
         {}
         void operator()(const Eigen::Matrix<double, 2, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 2, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 2, 2>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
             double* nmodl_eigen_j = nmodl_eigen_jm.data();
             double* nmodl_eigen_f = nmodl_eigen_fm.data();
-            nmodl_eigen_f[static_cast<int>(0)] =  -nmodl_eigen_x[static_cast<int>(0)] * _nt->_dt * kf0_ - nmodl_eigen_x[static_cast<int>(0)] + nmodl_eigen_x[static_cast<int>(1)] * _nt->_dt * kb0_ + old_X;
-            nmodl_eigen_j[static_cast<int>(0)] =  -_nt->_dt * kf0_ - 1.0;
-            nmodl_eigen_j[static_cast<int>(2)] = _nt->_dt * kb0_;
-            nmodl_eigen_f[static_cast<int>(1)] = nmodl_eigen_x[static_cast<int>(0)] * _nt->_dt * kf0_ - nmodl_eigen_x[static_cast<int>(1)] * _nt->_dt * kb0_ - nmodl_eigen_x[static_cast<int>(1)] + old_Y;
-            nmodl_eigen_j[static_cast<int>(1)] = _nt->_dt * kf0_;
-            nmodl_eigen_j[static_cast<int>(3)] =  -_nt->_dt * kb0_ - 1.0;
+            nmodl_eigen_f[static_cast<int>(0)] =  -nmodl_eigen_x[static_cast<int>(0)] * nt->_dt * kf0_ - nmodl_eigen_x[static_cast<int>(0)] + nmodl_eigen_x[static_cast<int>(1)] * nt->_dt * kb0_ + old_X;
+            nmodl_eigen_j[static_cast<int>(0)] =  -nt->_dt * kf0_ - 1.0;
+            nmodl_eigen_j[static_cast<int>(2)] = nt->_dt * kb0_;
+            nmodl_eigen_f[static_cast<int>(1)] = nmodl_eigen_x[static_cast<int>(0)] * nt->_dt * kf0_ - nmodl_eigen_x[static_cast<int>(1)] * nt->_dt * kb0_ - nmodl_eigen_x[static_cast<int>(1)] + old_Y;
+            nmodl_eigen_j[static_cast<int>(1)] = nt->_dt * kf0_;
+            nmodl_eigen_j[static_cast<int>(3)] =  -nt->_dt * kb0_ - 1.0;
         }
 
         void finalize() {
@@ -224,10 +224,10 @@ namespace neuron {
     };
 
 
-    void nrn_init_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    void nrn_init_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_X2Y(_lmc);
-        auto node_data = make_node_data_X2Y(*_nt, *_ml_arg);
+        auto node_data = make_node_data_X2Y(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
@@ -241,7 +241,7 @@ namespace neuron {
     }
 
 
-    inline double nrn_current_X2Y(_nrn_mechanism_cache_range& _lmc, NrnThread* _nt, Datum* _ppvar, Datum* _thread, size_t id, X2Y_Instance& inst, X2Y_NodeData& node_data, double v) {
+    inline double nrn_current_X2Y(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, X2Y_Instance& inst, X2Y_NodeData& node_data, double v) {
         double current = 0.0;
         inst.il[id] = inst.i[id];
         current += inst.il[id];
@@ -250,18 +250,18 @@ namespace neuron {
 
 
     /** update current */
-    void nrn_cur_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    void nrn_cur_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_X2Y(_lmc);
-        auto node_data = make_node_data_X2Y(*_nt, *_ml_arg);
+        auto node_data = make_node_data_X2Y(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             double v = node_data.node_voltages[node_id];
             auto* _ppvar = _ml_arg->pdata[id];
-            double I1 = nrn_current_X2Y(_lmc, _nt, _ppvar, _thread, id, inst, node_data, v+0.001);
-            double I0 = nrn_current_X2Y(_lmc, _nt, _ppvar, _thread, id, inst, node_data, v);
+            double I1 = nrn_current_X2Y(_lmc, nt, _ppvar, _thread, id, inst, node_data, v+0.001);
+            double I0 = nrn_current_X2Y(_lmc, nt, _ppvar, _thread, id, inst, node_data, v);
             double rhs = I0;
             double g = (I1-I0)/0.001;
             node_data.node_rhs[node_id] -= rhs;
@@ -270,10 +270,10 @@ namespace neuron {
     }
 
 
-    void nrn_state_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    void nrn_state_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_X2Y(_lmc);
-        auto node_data = make_node_data_X2Y(*_nt, *_ml_arg);
+        auto node_data = make_node_data_X2Y(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
@@ -286,7 +286,7 @@ namespace neuron {
             nmodl_eigen_x[static_cast<int>(0)] = inst.X[id];
             nmodl_eigen_x[static_cast<int>(1)] = inst.Y[id];
             // call newton solver
-            functor_X2Y_0 newton_functor(_nt, inst, id, v, _thread);
+            functor_X2Y_0 newton_functor(nt, inst, id, v, _thread);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
@@ -298,10 +298,10 @@ namespace neuron {
     }
 
 
-    static void nrn_jacob_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    static void nrn_jacob_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_X2Y(_lmc);
-        auto node_data = make_node_data_X2Y(*_nt, *_ml_arg);
+        auto node_data = make_node_data_X2Y(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];

@@ -126,12 +126,12 @@ namespace neuron {
     }
 
 
-    static cnexp_array_NodeData make_node_data_cnexp_array(NrnThread& _nt, Memb_list& _ml_arg) {
+    static cnexp_array_NodeData make_node_data_cnexp_array(NrnThread& nt, Memb_list& _ml_arg) {
         return cnexp_array_NodeData {
             _ml_arg.nodeindices,
-            _nt.node_voltage_storage(),
-            _nt.node_d_storage(),
-            _nt.node_rhs_storage(),
+            nt.node_voltage_storage(),
+            nt.node_d_storage(),
+            nt.node_rhs_storage(),
             _ml_arg.nodecount
         };
     }
@@ -186,10 +186,10 @@ namespace neuron {
     };
 
 
-    void nrn_init_cnexp_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    void nrn_init_cnexp_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_cnexp_array(_lmc);
-        auto node_data = make_node_data_cnexp_array(*_nt, *_ml_arg);
+        auto node_data = make_node_data_cnexp_array(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
@@ -207,25 +207,25 @@ namespace neuron {
     }
 
 
-    void nrn_state_cnexp_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    void nrn_state_cnexp_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_cnexp_array(_lmc);
-        auto node_data = make_node_data_cnexp_array(*_nt, *_ml_arg);
+        auto node_data = make_node_data_cnexp_array(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
-            inst.x[id] = inst.x[id] + (1.0 - exp(_nt->_dt * ((((inst.s+id*2)[static_cast<int>(0)] + (inst.s+id*2)[static_cast<int>(1)]) * ((inst.z+id*3)[static_cast<int>(0)] * (inst.z+id*3)[static_cast<int>(1)] * (inst.z+id*3)[static_cast<int>(2)])) * (1.0)))) * ( -(0.0) / (((((inst.s+id*2)[static_cast<int>(0)] + (inst.s+id*2)[static_cast<int>(1)])) * (((((inst.z+id*3)[static_cast<int>(0)]) * ((inst.z+id*3)[static_cast<int>(1)])) * ((inst.z+id*3)[static_cast<int>(2)])))) * (1.0)) - inst.x[id]);
+            inst.x[id] = inst.x[id] + (1.0 - exp(nt->_dt * ((((inst.s+id*2)[static_cast<int>(0)] + (inst.s+id*2)[static_cast<int>(1)]) * ((inst.z+id*3)[static_cast<int>(0)] * (inst.z+id*3)[static_cast<int>(1)] * (inst.z+id*3)[static_cast<int>(2)])) * (1.0)))) * ( -(0.0) / (((((inst.s+id*2)[static_cast<int>(0)] + (inst.s+id*2)[static_cast<int>(1)])) * (((((inst.z+id*3)[static_cast<int>(0)]) * ((inst.z+id*3)[static_cast<int>(1)])) * ((inst.z+id*3)[static_cast<int>(2)])))) * (1.0)) - inst.x[id]);
         }
     }
 
 
-    static void nrn_jacob_cnexp_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *_nt, *_ml_arg, _type};
+    static void nrn_jacob_cnexp_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_cnexp_array(_lmc);
-        auto node_data = make_node_data_cnexp_array(*_nt, *_ml_arg);
+        auto node_data = make_node_data_cnexp_array(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
