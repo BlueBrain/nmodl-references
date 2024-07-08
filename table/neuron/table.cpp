@@ -476,6 +476,7 @@ void _nrn_mechanism_register_data_fields(Args&&... args) {
 
 Prop* hoc_getdata_range(int type);
 void _nrn_thread_table_reg(int, nrn_thread_table_check_t);
+extern Node* nrn_alloc_node_;
 
 
 namespace neuron {
