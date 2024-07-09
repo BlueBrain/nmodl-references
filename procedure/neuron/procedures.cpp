@@ -553,10 +553,9 @@ namespace neuron {
 
 
     static void nrn_alloc_procedures(Prop* _prop) {
-        Prop *prop_ion{};
-        Datum *_ppvar{};
+        Datum *_ppvar = nullptr;
         _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const _iml{};
+        size_t const _iml = 0;
         assert(_nrn_mechanism_get_num_vars(_prop) == 2);
         /*initialize range parameters*/
     }
