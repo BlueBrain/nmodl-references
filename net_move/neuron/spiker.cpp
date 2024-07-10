@@ -522,6 +522,7 @@ namespace neuron {
         double* v_unused{};
         double* tsave{};
         const double* const* node_area{};
+        const int* const* tqitem{};
         spiker_Store* global{&spiker_global};
     };
 

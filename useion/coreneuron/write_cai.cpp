@@ -1,5 +1,5 @@
 /*********************************************************
-Model Name      : style_ion
+Model Name      : write_cai
 Filename        : write_cai.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
@@ -36,7 +36,7 @@ namespace coreneuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "style_ion",
+        "write_cai",
         0,
         0,
         0,
@@ -45,28 +45,28 @@ namespace coreneuron {
 
 
     /** all global variables */
-    struct style_ion_Store {
+    struct write_cai_Store {
         int ca_type{};
         int reset{};
         int mech_type{};
     };
-    static_assert(std::is_trivially_copy_constructible_v<style_ion_Store>);
-    static_assert(std::is_trivially_move_constructible_v<style_ion_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<style_ion_Store>);
-    static_assert(std::is_trivially_move_assignable_v<style_ion_Store>);
-    static_assert(std::is_trivially_destructible_v<style_ion_Store>);
-    style_ion_Store style_ion_global;
+    static_assert(std::is_trivially_copy_constructible_v<write_cai_Store>);
+    static_assert(std::is_trivially_move_constructible_v<write_cai_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<write_cai_Store>);
+    static_assert(std::is_trivially_move_assignable_v<write_cai_Store>);
+    static_assert(std::is_trivially_destructible_v<write_cai_Store>);
+    write_cai_Store write_cai_global;
 
 
     /** all mechanism instance variables and global variables */
-    struct style_ion_Instance  {
+    struct write_cai_Instance  {
         double* cai{};
         double* v_unused{};
         const double* ion_cao{};
         double* ion_cai{};
         double* ion_ca_erev{};
         const int* style_ca{};
-        style_ion_Store* global{&style_ion_global};
+        write_cai_Store* global{&write_cai_global};
     };
 
 
@@ -103,7 +103,7 @@ namespace coreneuron {
 
 
     static inline int get_mech_type() {
-        return style_ion_global.mech_type;
+        return write_cai_global.mech_type;
     }
 
 
@@ -133,25 +133,25 @@ namespace coreneuron {
     }
 
     // Allocate instance structure
-    static void nrn_private_constructor_style_ion(NrnThread* nt, Memb_list* ml, int type) {
+    static void nrn_private_constructor_write_cai(NrnThread* nt, Memb_list* ml, int type) {
         assert(!ml->instance);
         assert(!ml->global_variables);
         assert(ml->global_variables_size == 0);
-        auto* const inst = new style_ion_Instance{};
-        assert(inst->global == &style_ion_global);
+        auto* const inst = new write_cai_Instance{};
+        assert(inst->global == &write_cai_global);
         ml->instance = inst;
         ml->global_variables = inst->global;
-        ml->global_variables_size = sizeof(style_ion_Store);
+        ml->global_variables_size = sizeof(write_cai_Store);
     }
 
     // Deallocate the instance structure
-    static void nrn_private_destructor_style_ion(NrnThread* nt, Memb_list* ml, int type) {
-        auto* const inst = static_cast<style_ion_Instance*>(ml->instance);
+    static void nrn_private_destructor_write_cai(NrnThread* nt, Memb_list* ml, int type) {
+        auto* const inst = static_cast<write_cai_Instance*>(ml->instance);
         assert(inst);
         assert(inst->global);
-        assert(inst->global == &style_ion_global);
+        assert(inst->global == &write_cai_global);
         assert(inst->global == ml->global_variables);
-        assert(ml->global_variables_size == sizeof(style_ion_Store));
+        assert(ml->global_variables_size == sizeof(write_cai_Store));
         delete inst;
         ml->instance = nullptr;
         ml->global_variables = nullptr;
@@ -160,12 +160,12 @@ namespace coreneuron {
 
     /** initialize mechanism instance variables */
     static inline void setup_instance(NrnThread* nt, Memb_list* ml) {
-        auto* const inst = static_cast<style_ion_Instance*>(ml->instance);
+        auto* const inst = static_cast<write_cai_Instance*>(ml->instance);
         assert(inst);
         assert(inst->global);
-        assert(inst->global == &style_ion_global);
+        assert(inst->global == &write_cai_global);
         assert(inst->global == ml->global_variables);
-        assert(ml->global_variables_size == sizeof(style_ion_Store));
+        assert(ml->global_variables_size == sizeof(write_cai_Store));
         int pnodecount = ml->_nodecount_padded;
         Datum* indexes = ml->pdata;
         inst->cai = ml->data+0*pnodecount;
@@ -178,12 +178,12 @@ namespace coreneuron {
 
 
 
-    static void nrn_alloc_style_ion(double* data, Datum* indexes, int type) {
+    static void nrn_alloc_write_cai(double* data, Datum* indexes, int type) {
         // do nothing
     }
 
 
-    void nrn_constructor_style_ion(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_constructor_write_cai(NrnThread* nt, Memb_list* ml, int type) {
         #ifndef CORENEURON_BUILD
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
@@ -192,13 +192,13 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<style_ion_Instance*>(ml->instance);
+        auto* const inst = static_cast<write_cai_Instance*>(ml->instance);
 
         #endif
     }
 
 
-    void nrn_destructor_style_ion(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_destructor_write_cai(NrnThread* nt, Memb_list* ml, int type) {
         #ifndef CORENEURON_BUILD
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
@@ -207,14 +207,14 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<style_ion_Instance*>(ml->instance);
+        auto* const inst = static_cast<write_cai_Instance*>(ml->instance);
 
         #endif
     }
 
 
     /** initialize channel */
-    void nrn_init_style_ion(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_init_write_cai(NrnThread* nt, Memb_list* ml, int type) {
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
         const int* node_index = ml->nodeindices;
@@ -224,7 +224,7 @@ namespace coreneuron {
         ThreadDatum* thread = ml->_thread;
 
         setup_instance(nt, ml);
-        auto* const inst = static_cast<style_ion_Instance*>(ml->instance);
+        auto* const inst = static_cast<write_cai_Instance*>(ml->instance);
 
         if (_nrn_skip_initmodel == 0) {
             #pragma omp simd
@@ -248,15 +248,15 @@ namespace coreneuron {
     /** register channel with the simulator */
     void _write_cai_reg() {
 
-        int mech_type = nrn_get_mechtype("style_ion");
-        style_ion_global.mech_type = mech_type;
+        int mech_type = nrn_get_mechtype("write_cai");
+        write_cai_global.mech_type = mech_type;
         if (mech_type == -1) {
             return;
         }
 
         _nrn_layout_reg(mech_type, 0);
-        register_mech(mechanism_info, nrn_alloc_style_ion, nullptr, nullptr, nullptr, nrn_init_style_ion, nrn_private_constructor_style_ion, nrn_private_destructor_style_ion, first_pointer_var_index(), 1);
-        style_ion_global.ca_type = nrn_get_mechtype("ca_ion");
+        register_mech(mechanism_info, nrn_alloc_write_cai, nullptr, nullptr, nullptr, nrn_init_write_cai, nrn_private_constructor_write_cai, nrn_private_destructor_write_cai, first_pointer_var_index(), 1);
+        write_cai_global.ca_type = nrn_get_mechtype("ca_ion");
 
         hoc_register_prop_size(mech_type, float_variables_size(), int_variables_size());
         hoc_register_dparam_semantics(mech_type, 0, "ca_ion");

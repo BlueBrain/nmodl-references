@@ -1,5 +1,5 @@
 /*********************************************************
-Model Name      : style_ion
+Model Name      : write_cai
 Filename        : write_cai.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
@@ -487,7 +487,7 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "style_ion",
+        "write_cai",
         0,
         0,
         0,
@@ -506,28 +506,29 @@ namespace neuron {
 
 
     /** all global variables */
-    struct style_ion_Store {
+    struct write_cai_Store {
     };
-    static_assert(std::is_trivially_copy_constructible_v<style_ion_Store>);
-    static_assert(std::is_trivially_move_constructible_v<style_ion_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<style_ion_Store>);
-    static_assert(std::is_trivially_move_assignable_v<style_ion_Store>);
-    static_assert(std::is_trivially_destructible_v<style_ion_Store>);
-    style_ion_Store style_ion_global;
+    static_assert(std::is_trivially_copy_constructible_v<write_cai_Store>);
+    static_assert(std::is_trivially_move_constructible_v<write_cai_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<write_cai_Store>);
+    static_assert(std::is_trivially_move_assignable_v<write_cai_Store>);
+    static_assert(std::is_trivially_destructible_v<write_cai_Store>);
+    write_cai_Store write_cai_global;
 
 
     /** all mechanism instance variables and global variables */
-    struct style_ion_Instance  {
+    struct write_cai_Instance  {
         double* cai{};
         double* v_unused{};
         const double* const* ion_cao{};
         double* const* ion_cai{};
         double* const* ion_ca_erev{};
-        style_ion_Store* global{&style_ion_global};
+        const int* const* style_ca{};
+        write_cai_Store* global{&write_cai_global};
     };
 
 
-    struct style_ion_NodeData  {
+    struct write_cai_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -536,8 +537,8 @@ namespace neuron {
     };
 
 
-    static style_ion_Instance make_instance_style_ion(_nrn_mechanism_cache_range& _lmc) {
-        return style_ion_Instance {
+    static write_cai_Instance make_instance_write_cai(_nrn_mechanism_cache_range& _lmc) {
+        return write_cai_Instance {
             _lmc.template fpfield_ptr<0>(),
             _lmc.template fpfield_ptr<1>(),
             _lmc.template dptr_field_ptr<0>(),
@@ -547,8 +548,8 @@ namespace neuron {
     }
 
 
-    static style_ion_NodeData make_node_data_style_ion(NrnThread& nt, Memb_list& _ml_arg) {
-        return style_ion_NodeData {
+    static write_cai_NodeData make_node_data_write_cai(NrnThread& nt, Memb_list& _ml_arg) {
+        return write_cai_NodeData {
             _ml_arg.nodeindices,
             nt.node_voltage_storage(),
             nt.node_d_storage(),
@@ -558,7 +559,7 @@ namespace neuron {
     }
 
 
-    static void nrn_alloc_style_ion(Prop* _prop) {
+    static void nrn_alloc_write_cai(Prop* _prop) {
         Datum *_ppvar = nullptr;
         _ppvar = nrn_prop_datum_alloc(mech_type, 4, _prop);
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
@@ -609,7 +610,7 @@ namespace neuron {
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
-        {"setdata_style_ion", _hoc_setdata},
+        {"setdata_write_cai", _hoc_setdata},
         {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
@@ -617,10 +618,10 @@ namespace neuron {
     };
 
 
-    void nrn_init_style_ion(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    void nrn_init_write_cai(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_style_ion(_lmc);
-        auto node_data = make_node_data_style_ion(*nt, *_ml_arg);
+        auto inst = make_instance_write_cai(_lmc);
+        auto node_data = make_node_data_write_cai(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
@@ -637,10 +638,10 @@ namespace neuron {
     }
 
 
-    static void nrn_jacob_style_ion(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_write_cai(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_style_ion(_lmc);
-        auto node_data = make_node_data_style_ion(*nt, *_ml_arg);
+        auto inst = make_instance_write_cai(_lmc);
+        auto node_data = make_node_data_write_cai(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
@@ -659,7 +660,7 @@ namespace neuron {
 
         _ca_sym = hoc_lookup("ca_ion");
 
-        register_mech(mechanism_info, nrn_alloc_style_ion, nullptr, nullptr, nullptr, nrn_init_style_ion, hoc_nrnpointerindex, 1);
+        register_mech(mechanism_info, nrn_alloc_write_cai, nullptr, nullptr, nullptr, nrn_init_write_cai, hoc_nrnpointerindex, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         _nrn_mechanism_register_data_fields(mech_type,

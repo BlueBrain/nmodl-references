@@ -523,6 +523,7 @@ namespace neuron {
         const double* const* ion_cai{};
         double* const* ion_cao{};
         double* const* ion_ca_erev{};
+        const int* const* style_ca{};
         write_cao_Store* global{&write_cao_global};
     };
 

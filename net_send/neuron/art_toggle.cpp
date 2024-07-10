@@ -520,6 +520,7 @@ namespace neuron {
         double* v_unused{};
         double* tsave{};
         const double* const* node_area{};
+        const int* const* tqitem{};
         art_toggle_Store* global{&art_toggle_global};
     };
 
