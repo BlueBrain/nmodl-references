@@ -556,8 +556,7 @@ namespace neuron {
 
 
     static void nrn_alloc_art_toggle(Prop* _prop) {
-        Prop *prop_ion{};
-        Datum *_ppvar{};
+        Datum *_ppvar = nullptr;
         if (nrn_point_prop_) {
             _nrn_mechanism_access_alloc_seq(_prop) = _nrn_mechanism_access_alloc_seq(nrn_point_prop_);
             _ppvar = _nrn_mechanism_access_dparam(nrn_point_prop_);
@@ -565,7 +564,7 @@ namespace neuron {
             _ppvar = nrn_prop_datum_alloc(mech_type, 3, _prop);
             _nrn_mechanism_access_dparam(_prop) = _ppvar;
             _nrn_mechanism_cache_instance _lmc{_prop};
-            size_t const _iml{};
+            size_t const _iml = 0;
             assert(_nrn_mechanism_get_num_vars(_prop) == 3);
             /*initialize range parameters*/
         }

@@ -561,17 +561,17 @@ namespace neuron {
 
 
     static void nrn_alloc_ionic(Prop* _prop) {
-        Prop *prop_ion{};
-        Datum *_ppvar{};
+        Datum *_ppvar = nullptr;
         _ppvar = nrn_prop_datum_alloc(mech_type, 2, _prop);
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
         _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const _iml{};
+        size_t const _iml = 0;
         assert(_nrn_mechanism_get_num_vars(_prop) == 4);
         /*initialize range parameters*/
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
         Symbol * na_sym = hoc_lookup("na_ion");
         Prop * na_prop = need_memb(na_sym);
+        nrn_promote(na_prop, 0, 3);
         _ppvar[0] = _nrn_mechanism_get_param_handle(na_prop, 3);
         _ppvar[1] = _nrn_mechanism_get_param_handle(na_prop, 0);
     }
