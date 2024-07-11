@@ -628,12 +628,11 @@ namespace neuron {
 
 
     static void nrn_alloc_hodhux(Prop* _prop) {
-        Prop *prop_ion{};
-        Datum *_ppvar{};
+        Datum *_ppvar = nullptr;
         _ppvar = nrn_prop_datum_alloc(mech_type, 6, _prop);
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
         _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const _iml{};
+        size_t const _iml = 0;
         assert(_nrn_mechanism_get_num_vars(_prop) == 23);
         /*initialize range parameters*/
         _lmc.template fpfield<0>(_iml) = 0.12; /* gnabar */
@@ -643,11 +642,13 @@ namespace neuron {
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
         Symbol * na_sym = hoc_lookup("na_ion");
         Prop * na_prop = need_memb(na_sym);
+        nrn_promote(na_prop, 0, 1);
         _ppvar[0] = _nrn_mechanism_get_param_handle(na_prop, 0);
         _ppvar[1] = _nrn_mechanism_get_param_handle(na_prop, 3);
         _ppvar[2] = _nrn_mechanism_get_param_handle(na_prop, 4);
         Symbol * k_sym = hoc_lookup("k_ion");
         Prop * k_prop = need_memb(k_sym);
+        nrn_promote(k_prop, 0, 1);
         _ppvar[3] = _nrn_mechanism_get_param_handle(k_prop, 0);
         _ppvar[4] = _nrn_mechanism_get_param_handle(k_prop, 3);
         _ppvar[5] = _nrn_mechanism_get_param_handle(k_prop, 4);

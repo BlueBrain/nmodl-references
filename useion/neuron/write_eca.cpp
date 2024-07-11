@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : leonhard
-Filename        : leonhard.mod
+Model Name      : write_eca
+Filename        : write_eca.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -456,8 +456,8 @@ EIGEN_DEVICE_FUNC int newton_solver(Eigen::Matrix<double, 4, 1>& X,
 /* VECTORIZED */
 #define NRN_VECTORIZED 1
 
-static constexpr auto number_of_datum_variables = 0;
-static constexpr auto number_of_floating_point_variables = 4;
+static constexpr auto number_of_datum_variables = 1;
+static constexpr auto number_of_floating_point_variables = 2;
 
 namespace {
 template <typename T>
@@ -487,10 +487,8 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "leonhard",
-        "c_leonhard",
+        "write_eca",
         0,
-        "il_leonhard",
         0,
         0,
         0
@@ -498,6 +496,7 @@ namespace neuron {
 
 
     /* NEURON global variables */
+    static Symbol* _ca_sym;
     static int mech_type;
     static Prop* _extcall_prop;
     /* _prop_id kind of shadows _extcall_prop to allow validity checking. */
@@ -507,27 +506,26 @@ namespace neuron {
 
 
     /** all global variables */
-    struct leonhard_Store {
+    struct write_eca_Store {
     };
-    static_assert(std::is_trivially_copy_constructible_v<leonhard_Store>);
-    static_assert(std::is_trivially_move_constructible_v<leonhard_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<leonhard_Store>);
-    static_assert(std::is_trivially_move_assignable_v<leonhard_Store>);
-    static_assert(std::is_trivially_destructible_v<leonhard_Store>);
-    leonhard_Store leonhard_global;
+    static_assert(std::is_trivially_copy_constructible_v<write_eca_Store>);
+    static_assert(std::is_trivially_move_constructible_v<write_eca_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<write_eca_Store>);
+    static_assert(std::is_trivially_move_assignable_v<write_eca_Store>);
+    static_assert(std::is_trivially_destructible_v<write_eca_Store>);
+    write_eca_Store write_eca_global;
 
 
     /** all mechanism instance variables and global variables */
-    struct leonhard_Instance  {
-        double* c{};
-        double* il{};
+    struct write_eca_Instance  {
+        double* eca{};
         double* v_unused{};
-        double* g_unused{};
-        leonhard_Store* global{&leonhard_global};
+        double* const* ion_eca{};
+        write_eca_Store* global{&write_eca_global};
     };
 
 
-    struct leonhard_NodeData  {
+    struct write_eca_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -536,18 +534,17 @@ namespace neuron {
     };
 
 
-    static leonhard_Instance make_instance_leonhard(_nrn_mechanism_cache_range& _lmc) {
-        return leonhard_Instance {
+    static write_eca_Instance make_instance_write_eca(_nrn_mechanism_cache_range& _lmc) {
+        return write_eca_Instance {
             _lmc.template fpfield_ptr<0>(),
             _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>()
+            _lmc.template dptr_field_ptr<0>()
         };
     }
 
 
-    static leonhard_NodeData make_node_data_leonhard(NrnThread& nt, Memb_list& _ml_arg) {
-        return leonhard_NodeData {
+    static write_eca_NodeData make_node_data_write_eca(NrnThread& nt, Memb_list& _ml_arg) {
+        return write_eca_NodeData {
             _ml_arg.nodeindices,
             nt.node_voltage_storage(),
             nt.node_d_storage(),
@@ -557,13 +554,19 @@ namespace neuron {
     }
 
 
-    static void nrn_alloc_leonhard(Prop* _prop) {
+    static void nrn_alloc_write_eca(Prop* _prop) {
         Datum *_ppvar = nullptr;
+        _ppvar = nrn_prop_datum_alloc(mech_type, 1, _prop);
+        _nrn_mechanism_access_dparam(_prop) = _ppvar;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const _iml = 0;
-        assert(_nrn_mechanism_get_num_vars(_prop) == 4);
+        assert(_nrn_mechanism_get_num_vars(_prop) == 2);
         /*initialize range parameters*/
-        _lmc.template fpfield<0>(_iml) = 0.005; /* c */
+        _nrn_mechanism_access_dparam(_prop) = _ppvar;
+        Symbol * ca_sym = hoc_lookup("ca_ion");
+        Prop * ca_prop = need_memb(ca_sym);
+        nrn_promote(ca_prop, 0, 3);
+        _ppvar[0] = _nrn_mechanism_get_param_handle(ca_prop, 0);
     }
 
 
@@ -598,7 +601,7 @@ namespace neuron {
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
-        {"setdata_leonhard", _hoc_setdata},
+        {"setdata_write_eca", _hoc_setdata},
         {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
@@ -606,10 +609,10 @@ namespace neuron {
     };
 
 
-    void nrn_init_leonhard(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    void nrn_init_write_eca(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_leonhard(_lmc);
-        auto node_data = make_node_data_leonhard(*nt, *_ml_arg);
+        auto inst = make_instance_write_eca(_lmc);
+        auto node_data = make_node_data_write_eca(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
@@ -617,61 +620,18 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
             inst.v_unused[id] = v;
+            inst.eca[id] = 1124.0;
+            (*inst.ion_eca[id]) = inst.eca[id];
         }
     }
 
 
-    inline double nrn_current_leonhard(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, leonhard_Instance& inst, leonhard_NodeData& node_data, double v) {
-        double current = 0.0;
-        inst.il[id] = inst.c[id] * (v - 1.5);
-        current += inst.il[id];
-        return current;
-    }
-
-
-    /** update current */
-    void nrn_cur_leonhard(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_write_eca(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_leonhard(_lmc);
-        auto node_data = make_node_data_leonhard(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
-        auto* _thread = _ml_arg->_thread;
-        for (int id = 0; id < nodecount; id++) {
-            int node_id = node_data.nodeindices[id];
-            double v = node_data.node_voltages[node_id];
-            auto* _ppvar = _ml_arg->pdata[id];
-            double I1 = nrn_current_leonhard(_lmc, nt, _ppvar, _thread, id, inst, node_data, v+0.001);
-            double I0 = nrn_current_leonhard(_lmc, nt, _ppvar, _thread, id, inst, node_data, v);
-            double rhs = I0;
-            double g = (I1-I0)/0.001;
-            node_data.node_rhs[node_id] -= rhs;
-            inst.g_unused[id] = g;
-        }
-    }
-
-
-    void nrn_state_leonhard(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_leonhard(_lmc);
-        auto node_data = make_node_data_leonhard(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
-        auto* _thread = _ml_arg->_thread;
-        for (int id = 0; id < nodecount; id++) {
-            int node_id = node_data.nodeindices[id];
-            auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
-        }
-    }
-
-
-    static void nrn_jacob_leonhard(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_leonhard(_lmc);
-        auto node_data = make_node_data_leonhard(*nt, *_ml_arg);
+        auto inst = make_instance_write_eca(_lmc);
+        auto node_data = make_node_data_write_eca(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
-            int node_id = node_data.nodeindices[id];
-            node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
 
@@ -681,20 +641,24 @@ namespace neuron {
 
 
     /** register channel with the simulator */
-    extern "C" void _leonhard_reg() {
+    extern "C" void _write_eca_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_leonhard, nrn_cur_leonhard, nrn_jacob_leonhard, nrn_state_leonhard, nrn_init_leonhard, hoc_nrnpointerindex, 1);
+        ion_reg("ca", -10000.);
+
+        _ca_sym = hoc_lookup("ca_ion");
+
+        register_mech(mechanism_info, nrn_alloc_write_eca, nullptr, nullptr, nullptr, nrn_init_write_eca, hoc_nrnpointerindex, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         _nrn_mechanism_register_data_fields(mech_type,
-            _nrn_mechanism_field<double>{"c"} /* 0 */,
-            _nrn_mechanism_field<double>{"il"} /* 1 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 2 */,
-            _nrn_mechanism_field<double>{"g_unused"} /* 3 */
+            _nrn_mechanism_field<double>{"eca"} /* 0 */,
+            _nrn_mechanism_field<double>{"v_unused"} /* 1 */,
+            _nrn_mechanism_field<double*>{"ion_eca", "ca_ion"} /* 0 */
         );
 
-        hoc_register_prop_size(mech_type, 4, 0);
+        hoc_register_prop_size(mech_type, 2, 1);
+        hoc_register_dparam_semantics(mech_type, 0, "ca_ion");
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
     }
