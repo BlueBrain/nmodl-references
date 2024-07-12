@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : read_cai
-Filename        : read_cai.mod
+Model Name      : valence_mod
+Filename        : valence.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -487,9 +487,9 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "read_cai",
+        "valence_mod",
         0,
-        "x_read_cai",
+        "x_valence_mod",
         0,
         0,
         0
@@ -497,7 +497,7 @@ namespace neuron {
 
 
     /* NEURON global variables */
-    static Symbol* _ca_sym;
+    static Symbol* _K_sym;
     static int mech_type;
     static Prop* _extcall_prop;
     /* _prop_id kind of shadows _extcall_prop to allow validity checking. */
@@ -507,28 +507,28 @@ namespace neuron {
 
 
     /** all global variables */
-    struct read_cai_Store {
+    struct valence_mod_Store {
     };
-    static_assert(std::is_trivially_copy_constructible_v<read_cai_Store>);
-    static_assert(std::is_trivially_move_constructible_v<read_cai_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<read_cai_Store>);
-    static_assert(std::is_trivially_move_assignable_v<read_cai_Store>);
-    static_assert(std::is_trivially_destructible_v<read_cai_Store>);
-    read_cai_Store read_cai_global;
+    static_assert(std::is_trivially_copy_constructible_v<valence_mod_Store>);
+    static_assert(std::is_trivially_move_constructible_v<valence_mod_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<valence_mod_Store>);
+    static_assert(std::is_trivially_move_assignable_v<valence_mod_Store>);
+    static_assert(std::is_trivially_destructible_v<valence_mod_Store>);
+    valence_mod_Store valence_mod_global;
 
 
     /** all mechanism instance variables and global variables */
-    struct read_cai_Instance  {
+    struct valence_mod_Instance  {
         double* x{};
-        double* cai{};
+        double* Ki{};
         double* v_unused{};
-        const double* const* ion_cai{};
-        const double* const* ion_cao{};
-        read_cai_Store* global{&read_cai_global};
+        const double* const* ion_Ki{};
+        const double* const* ion_Ko{};
+        valence_mod_Store* global{&valence_mod_global};
     };
 
 
-    struct read_cai_NodeData  {
+    struct valence_mod_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -537,8 +537,8 @@ namespace neuron {
     };
 
 
-    static read_cai_Instance make_instance_read_cai(_nrn_mechanism_cache_range& _lmc) {
-        return read_cai_Instance {
+    static valence_mod_Instance make_instance_valence_mod(_nrn_mechanism_cache_range& _lmc) {
+        return valence_mod_Instance {
             _lmc.template fpfield_ptr<0>(),
             _lmc.template fpfield_ptr<1>(),
             _lmc.template fpfield_ptr<2>(),
@@ -548,8 +548,8 @@ namespace neuron {
     }
 
 
-    static read_cai_NodeData make_node_data_read_cai(NrnThread& nt, Memb_list& _ml_arg) {
-        return read_cai_NodeData {
+    static valence_mod_NodeData make_node_data_valence_mod(NrnThread& nt, Memb_list& _ml_arg) {
+        return valence_mod_NodeData {
             _ml_arg.nodeindices,
             nt.node_voltage_storage(),
             nt.node_d_storage(),
@@ -559,7 +559,7 @@ namespace neuron {
     }
 
 
-    static void nrn_alloc_read_cai(Prop* _prop) {
+    static void nrn_alloc_valence_mod(Prop* _prop) {
         Datum *_ppvar = nullptr;
         _ppvar = nrn_prop_datum_alloc(mech_type, 2, _prop);
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
@@ -568,11 +568,11 @@ namespace neuron {
         assert(_nrn_mechanism_get_num_vars(_prop) == 3);
         /*initialize range parameters*/
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
-        Symbol * ca_sym = hoc_lookup("ca_ion");
-        Prop * ca_prop = need_memb(ca_sym);
-        nrn_promote(ca_prop, 1, 0);
-        _ppvar[0] = _nrn_mechanism_get_param_handle(ca_prop, 1);
-        _ppvar[1] = _nrn_mechanism_get_param_handle(ca_prop, 2);
+        Symbol * K_sym = hoc_lookup("K_ion");
+        Prop * K_prop = need_memb(K_sym);
+        nrn_promote(K_prop, 1, 0);
+        _ppvar[0] = _nrn_mechanism_get_param_handle(K_prop, 1);
+        _ppvar[1] = _nrn_mechanism_get_param_handle(K_prop, 2);
     }
 
 
@@ -607,7 +607,7 @@ namespace neuron {
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
-        {"setdata_read_cai", _hoc_setdata},
+        {"setdata_valence_mod", _hoc_setdata},
         {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
@@ -615,10 +615,10 @@ namespace neuron {
     };
 
 
-    void nrn_init_read_cai(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    void nrn_init_valence_mod(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_read_cai(_lmc);
-        auto node_data = make_node_data_read_cai(*nt, *_ml_arg);
+        auto inst = make_instance_valence_mod(_lmc);
+        auto node_data = make_node_data_valence_mod(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
@@ -626,16 +626,16 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
             inst.v_unused[id] = v;
-            inst.cai[id] = (*inst.ion_cai[id]);
-            inst.x[id] = inst.cai[id];
+            inst.Ki[id] = (*inst.ion_Ki[id]);
+            inst.x[id] = inst.Ki[id];
         }
     }
 
 
-    static void nrn_jacob_read_cai(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_valence_mod(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_read_cai(_lmc);
-        auto node_data = make_node_data_read_cai(*nt, *_ml_arg);
+        auto inst = make_instance_valence_mod(_lmc);
+        auto node_data = make_node_data_valence_mod(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
@@ -647,27 +647,27 @@ namespace neuron {
 
 
     /** register channel with the simulator */
-    extern "C" void _read_cai_reg() {
+    extern "C" void _valence_reg() {
         _initlists();
 
-        ion_reg("ca", -10000);
+        ion_reg("K", 222);
 
-        _ca_sym = hoc_lookup("ca_ion");
+        _K_sym = hoc_lookup("K_ion");
 
-        register_mech(mechanism_info, nrn_alloc_read_cai, nullptr, nullptr, nullptr, nrn_init_read_cai, hoc_nrnpointerindex, 1);
+        register_mech(mechanism_info, nrn_alloc_valence_mod, nullptr, nullptr, nullptr, nrn_init_valence_mod, hoc_nrnpointerindex, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         _nrn_mechanism_register_data_fields(mech_type,
             _nrn_mechanism_field<double>{"x"} /* 0 */,
-            _nrn_mechanism_field<double>{"cai"} /* 1 */,
+            _nrn_mechanism_field<double>{"Ki"} /* 1 */,
             _nrn_mechanism_field<double>{"v_unused"} /* 2 */,
-            _nrn_mechanism_field<double*>{"ion_cai", "ca_ion"} /* 0 */,
-            _nrn_mechanism_field<double*>{"ion_cao", "ca_ion"} /* 1 */
+            _nrn_mechanism_field<double*>{"ion_Ki", "K_ion"} /* 0 */,
+            _nrn_mechanism_field<double*>{"ion_Ko", "K_ion"} /* 1 */
         );
 
         hoc_register_prop_size(mech_type, 3, 2);
-        hoc_register_dparam_semantics(mech_type, 0, "ca_ion");
-        hoc_register_dparam_semantics(mech_type, 1, "ca_ion");
+        hoc_register_dparam_semantics(mech_type, 0, "K_ion");
+        hoc_register_dparam_semantics(mech_type, 1, "K_ion");
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
     }

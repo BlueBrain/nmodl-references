@@ -670,7 +670,7 @@ namespace neuron {
     extern "C" void _ionic_reg() {
         _initlists();
 
-        ion_reg("na", -10000.);
+        ion_reg("na", -10000);
 
         _na_sym = hoc_lookup("na_ion");
 

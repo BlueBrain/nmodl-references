@@ -955,8 +955,8 @@ namespace neuron {
     extern "C" void _hodhux_reg() {
         _initlists();
 
-        ion_reg("na", -10000.);
-        ion_reg("k", -10000.);
+        ion_reg("na", -10000);
+        ion_reg("k", -10000);
 
         _na_sym = hoc_lookup("na_ion");
         _k_sym = hoc_lookup("k_ion");
