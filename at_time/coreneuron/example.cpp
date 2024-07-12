@@ -76,32 +76,32 @@ namespace coreneuron {
     };
 
 
-    static inline int first_pointer_var_index() {
+    static int first_pointer_var_index() {
         return -1;
     }
 
 
-    static inline int first_random_var_index() {
+    static int first_random_var_index() {
         return -1;
     }
 
 
-    static inline int float_variables_size() {
+    static int float_variables_size() {
         return 1;
     }
 
 
-    static inline int int_variables_size() {
+    static int int_variables_size() {
         return 0;
     }
 
 
-    static inline int get_mech_type() {
+    static int get_mech_type() {
         return example_global.mech_type;
     }
 
 
-    static inline Memb_list* get_memb_list(NrnThread* nt) {
+    static Memb_list* get_memb_list(NrnThread* nt) {
         if (!nt->_ml_list) {
             return nullptr;
         }
