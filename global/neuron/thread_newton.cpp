@@ -604,12 +604,14 @@ namespace neuron {
 
 
     struct functor_thread_newton_0 {
-        NrnThread* nt;
+        _nrn_mechanism_cache_range& _lmc;
         thread_newton_Instance& inst;
-        int id;
-        double v;
+        size_t id;
+        Datum* _ppvar;
         Datum* _thread;
         thread_newton_ThreadVariables& _thread_vars;
+        NrnThread* nt;
+        double v;
         double source0_, old_X;
 
         void initialize() {
@@ -617,8 +619,8 @@ namespace neuron {
             old_X = inst.X[id];
         }
 
-        functor_thread_newton_0(NrnThread* nt, thread_newton_Instance& inst, int id, double v, Datum* _thread, thread_newton_ThreadVariables& _thread_vars)
-            : nt(nt), inst(inst), id(id), v(v), _thread(_thread), _thread_vars(_thread_vars)
+        functor_thread_newton_0(_nrn_mechanism_cache_range& _lmc, thread_newton_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, thread_newton_ThreadVariables& _thread_vars, NrnThread* nt, double v)
+            : _lmc(_lmc), inst(inst), id(id), _ppvar(_ppvar), _thread(_thread), _thread_vars(_thread_vars), nt(nt), v(v)
         {}
         void operator()(const Eigen::Matrix<double, 1, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
@@ -712,7 +714,7 @@ namespace neuron {
             double* nmodl_eigen_x = nmodl_eigen_xm.data();
             nmodl_eigen_x[static_cast<int>(0)] = inst.X[id];
             // call newton solver
-            functor_thread_newton_0 newton_functor(nt, inst, id, v, _thread, _thread_vars);
+            functor_thread_newton_0 newton_functor(_lmc, inst, id, _ppvar, _thread, _thread_vars, nt, v);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
