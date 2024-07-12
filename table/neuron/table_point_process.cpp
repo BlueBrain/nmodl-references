@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : shared_global
-Filename        : thread_variable.mod
+Model Name      : tbl_point_process
+Filename        : table_point_process.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -451,14 +451,13 @@ EIGEN_DEVICE_FUNC int newton_solver(Eigen::Matrix<double, 4, 1>& X,
 #include "neuron/cache/mechanism_range.hpp"
 #include "nrniv_mf.h"
 #include "section_fwd.hpp"
-extern void _nrn_thread_reg(int, int, void(*)(Datum*));
 
 /* NEURON global macro definitions */
 /* VECTORIZED */
 #define NRN_VECTORIZED 1
 
-static constexpr auto number_of_datum_variables = 0;
-static constexpr auto number_of_floating_point_variables = 5;
+static constexpr auto number_of_datum_variables = 2;
+static constexpr auto number_of_floating_point_variables = 7;
 
 namespace {
 template <typename T>
@@ -475,7 +474,7 @@ void _nrn_mechanism_register_data_fields(Args&&... args) {
 }
 }  // namespace
 
-Prop* hoc_getdata_range(int type);
+extern Prop* nrn_point_prop_;
 void _nrn_thread_table_reg(int, nrn_thread_table_check_t);
 extern Node* nrn_alloc_node_;
 
@@ -489,11 +488,12 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "shared_global",
+        "tbl_point_process",
         0,
-        "y_shared_global",
-        "z_shared_global",
-        "il_shared_global",
+        "g",
+        "i",
+        "v1",
+        "v2",
         0,
         0,
         0
@@ -502,42 +502,52 @@ namespace neuron {
 
     /* NEURON global variables */
     static int mech_type;
-    static Prop* _extcall_prop;
-    /* _prop_id kind of shadows _extcall_prop to allow validity checking. */
-    static _nrn_non_owning_id_without_container _prop_id{};
+    static int _pointtype;
     static int hoc_nrnpointerindex = -1;
     static _nrn_mechanism_std_vector<Datum> _extcall_thread;
 
 
     /** all global variables */
-    struct shared_global_Store {
-        int thread_data_in_use{};
-        double thread_data[5];
+    struct tbl_point_process_Store {
         double usetable{1};
-        double tmin_compute_g_v1{};
-        double mfac_compute_g_v1{};
-        double t_g_v1[9]{};
+        double tmin_sigmoidal{};
+        double mfac_sigmoidal{};
+        double tmin_quadratic{};
+        double mfac_quadratic{};
+        double tmin_sinusoidal{};
+        double mfac_sinusoidal{};
+        double t_v1[801]{};
+        double t_v2[801]{};
+        double t_sig[156]{};
+        double t_quadratic[501]{};
+        double k{0.1};
+        double d{-50};
+        double c1{1};
+        double c2{2};
     };
-    static_assert(std::is_trivially_copy_constructible_v<shared_global_Store>);
-    static_assert(std::is_trivially_move_constructible_v<shared_global_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<shared_global_Store>);
-    static_assert(std::is_trivially_move_assignable_v<shared_global_Store>);
-    static_assert(std::is_trivially_destructible_v<shared_global_Store>);
-    shared_global_Store shared_global_global;
+    static_assert(std::is_trivially_copy_constructible_v<tbl_point_process_Store>);
+    static_assert(std::is_trivially_move_constructible_v<tbl_point_process_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<tbl_point_process_Store>);
+    static_assert(std::is_trivially_move_assignable_v<tbl_point_process_Store>);
+    static_assert(std::is_trivially_destructible_v<tbl_point_process_Store>);
+    tbl_point_process_Store tbl_point_process_global;
 
 
     /** all mechanism instance variables and global variables */
-    struct shared_global_Instance  {
-        double* y{};
-        double* z{};
-        double* il{};
+    struct tbl_point_process_Instance  {
+        double* g{};
+        double* i{};
+        double* v1{};
+        double* v2{};
+        double* sig{};
         double* v_unused{};
         double* g_unused{};
-        shared_global_Store* global{&shared_global_global};
+        const double* const* node_area{};
+        tbl_point_process_Store* global{&tbl_point_process_global};
     };
 
 
-    struct shared_global_NodeData  {
+    struct tbl_point_process_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -546,47 +556,22 @@ namespace neuron {
     };
 
 
-    struct shared_global_ThreadVariables  {
-        double * thread_data;
-
-        double * g_arr_ptr(size_t id) {
-            return thread_data + 0 + (id % 1);
-        }
-        double & g_arr(size_t id) {
-            return thread_data[0 + (id % 1)];
-        }
-        double * g_w_ptr(size_t id) {
-            return thread_data + 3 + (id % 1);
-        }
-        double & g_w(size_t id) {
-            return thread_data[3 + (id % 1)];
-        }
-        double * g_v1_ptr(size_t id) {
-            return thread_data + 4 + (id % 1);
-        }
-        double & g_v1(size_t id) {
-            return thread_data[4 + (id % 1)];
-        }
-
-        shared_global_ThreadVariables(double * const thread_data) {
-            this->thread_data = thread_data;
-        }
-    };
-
-
-    static shared_global_Instance make_instance_shared_global(_nrn_mechanism_cache_range& _lmc) {
-        return shared_global_Instance {
+    static tbl_point_process_Instance make_instance_tbl_point_process(_nrn_mechanism_cache_range& _lmc) {
+        return tbl_point_process_Instance {
             _lmc.template fpfield_ptr<0>(),
             _lmc.template fpfield_ptr<1>(),
             _lmc.template fpfield_ptr<2>(),
             _lmc.template fpfield_ptr<3>(),
-            _lmc.template fpfield_ptr<4>()
+            _lmc.template fpfield_ptr<4>(),
+            _lmc.template fpfield_ptr<5>(),
+            _lmc.template fpfield_ptr<6>(),
+            _lmc.template dptr_field_ptr<0>()
         };
     }
 
 
-    static shared_global_NodeData make_node_data_shared_global(NrnThread& nt, Memb_list& _ml_arg) {
-        return shared_global_NodeData {
+    static tbl_point_process_NodeData make_node_data_tbl_point_process(NrnThread& nt, Memb_list& _ml_arg) {
+        return tbl_point_process_NodeData {
             _ml_arg.nodeindices,
             nt.node_voltage_storage(),
             nt.node_d_storage(),
@@ -596,331 +581,399 @@ namespace neuron {
     }
 
 
-    static void nrn_alloc_shared_global(Prop* _prop) {
+    static void nrn_alloc_tbl_point_process(Prop* _prop) {
         Datum *_ppvar = nullptr;
-        _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const _iml = 0;
-        assert(_nrn_mechanism_get_num_vars(_prop) == 5);
-        /*initialize range parameters*/
+        if (nrn_point_prop_) {
+            _nrn_mechanism_access_alloc_seq(_prop) = _nrn_mechanism_access_alloc_seq(nrn_point_prop_);
+            _ppvar = _nrn_mechanism_access_dparam(nrn_point_prop_);
+        } else {
+            _ppvar = nrn_prop_datum_alloc(mech_type, 2, _prop);
+            _nrn_mechanism_access_dparam(_prop) = _ppvar;
+            _nrn_mechanism_cache_instance _lmc{_prop};
+            size_t const _iml = 0;
+            assert(_nrn_mechanism_get_num_vars(_prop) == 7);
+            /*initialize range parameters*/
+        }
+        _nrn_mechanism_access_dparam(_prop) = _ppvar;
     }
 
 
+    /* Point Process specific functions */
+    static void* _hoc_create_pnt(Object* _ho) {
+        return create_point_process(_pointtype, _ho);
+    }
+    static void _hoc_destroy_pnt(void* _vptr) {
+        destroy_point_process(_vptr);
+    }
+    static double _hoc_loc_pnt(void* _vptr) {
+        return loc_point_process(_pointtype, _vptr);
+    }
+    static double _hoc_has_loc(void* _vptr) {
+        return has_loc_point(_vptr);
+    }
+    static double _hoc_get_loc_pnt(void* _vptr) {
+        return (get_loc_point_process(_vptr));
+    }
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {
-        _extcall_prop = _prop;
-        _prop_id = _nrn_get_prop_id(_prop);
     }
-    static void _hoc_setdata() {
-        Prop *_prop = hoc_getdata_range(mech_type);
+    static void _hoc_setdata(void* _vptr) {
+        Prop* _prop;
+        _prop = ((Point_process*)_vptr)->prop;
         _setdata(_prop);
-        hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
-    inline double sum_arr_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* nt);
-    inline int set_g_w_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* nt, double zz);
-    inline int compute_g_v1_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* nt, double zz);
-    void update_table_compute_g_v1_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* nt);
+    inline double quadratic_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x);
+    inline int sigmoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v);
+    inline int sinusoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x);
+    void update_table_sigmoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    void update_table_quadratic_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    void update_table_sinusoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     static void _check_table_thread(Memb_list* _ml, size_t id, Datum* _ppvar, Datum* _thread, double* _globals, NrnThread* nt, int _type, const _nrn_model_sorted_token& _sorted_token)
 {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml, _type};
-        auto inst = make_instance_shared_global(_lmc);
-        auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
-        update_table_compute_g_v1_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, nt);
+        auto inst = make_instance_tbl_point_process(_lmc);
+        update_table_sigmoidal_tbl_point_process(_lmc, inst, id, _ppvar, _thread, nt);
+        update_table_quadratic_tbl_point_process(_lmc, inst, id, _ppvar, _thread, nt);
+        update_table_sinusoidal_tbl_point_process(_lmc, inst, id, _ppvar, _thread, nt);
     }
 
 
     /** connect global (scalar) variables to hoc -- */
     static DoubScal hoc_scalar_double[] = {
-        {"usetable_shared_global", &shared_global_global.usetable},
-        {"g_w_shared_global", &shared_global_global.thread_data[3]},
-        {"g_v1_shared_global", &shared_global_global.thread_data[4]},
+        {"k_tbl_point_process", &tbl_point_process_global.k},
+        {"d_tbl_point_process", &tbl_point_process_global.d},
+        {"c1_tbl_point_process", &tbl_point_process_global.c1},
+        {"c2_tbl_point_process", &tbl_point_process_global.c2},
+        {"usetable_tbl_point_process", &tbl_point_process_global.usetable},
         {nullptr, nullptr}
     };
 
 
     /** connect global (array) variables to hoc -- */
     static DoubVec hoc_vector_double[] = {
-        {"g_arr_shared_global", (shared_global_global.thread_data + 0), 3},
         {nullptr, nullptr, 0}
     };
 
 
     /* declaration of user functions */
-    static void _hoc_set_g_w(void);
-    static void _hoc_compute_g_v1(void);
-    static void _hoc_sum_arr(void);
-    static double _npy_set_g_w(Prop*);
-    static double _npy_compute_g_v1(Prop*);
-    static double _npy_sum_arr(Prop*);
+    static double _hoc_sigmoidal(void*);
+    static double _hoc_sinusoidal(void*);
+    static double _hoc_quadratic(void*);
 
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
-        {"setdata_shared_global", _hoc_setdata},
-        {"set_g_w_shared_global", _hoc_set_g_w},
-        {"compute_g_v1_shared_global", _hoc_compute_g_v1},
-        {"sum_arr_shared_global", _hoc_sum_arr},
+        {0, 0}
+    };
+    static Member_func _member_func[] = {
+        {"loc", _hoc_loc_pnt},
+        {"has_loc", _hoc_has_loc},
+        {"get_loc", _hoc_get_loc_pnt},
+        {"sigmoidal", _hoc_sigmoidal},
+        {"sinusoidal", _hoc_sinusoidal},
+        {"quadratic", _hoc_quadratic},
         {nullptr, nullptr}
     };
-    static NPyDirectMechFunc npy_direct_func_proc[] = {
-        {"set_g_w", _npy_set_g_w},
-        {"compute_g_v1", _npy_compute_g_v1},
-        {"sum_arr", _npy_sum_arr},
-        {nullptr, nullptr}
-    };
-    static void thread_mem_init(Datum* _thread)  {
-        if(shared_global_global.thread_data_in_use) {
-            _thread[0] = {neuron::container::do_not_search, new double[5]{}};
-        }
-        else {
-            _thread[0] = {neuron::container::do_not_search, shared_global_global.thread_data};
-            shared_global_global.thread_data_in_use = 1;
-        }
-    }
-    static void thread_mem_cleanup(Datum* _thread)  {
-        double * _thread_data_ptr = _thread[0].get<double*>();
-        if(_thread_data_ptr == shared_global_global.thread_data) {
-            shared_global_global.thread_data_in_use = 0;
-        }
-        else {
-            delete[] _thread_data_ptr;
-        }
-    }
-    static void _hoc_set_g_w(void) {
+    static double _hoc_sigmoidal(void* _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
-        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
-        _nrn_mechanism_cache_instance _lmc{_local_prop};
+        auto* const _pnt = static_cast<Point_process*>(_vptr);
+        auto* const _p = _pnt->prop;
+        if (!_p) {
+            hoc_execerror("POINT_PROCESS data instance not valid", NULL);
+        }
+        _nrn_mechanism_cache_instance _lmc{_p};
         size_t const id{};
-        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
+        _ppvar = _nrn_mechanism_access_dparam(_p);
         _thread = _extcall_thread.data();
-        nt = nrn_threads;
-        auto inst = make_instance_shared_global(_lmc);
-        auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
+        nt = static_cast<NrnThread*>(_pnt->_vnt);
+        auto inst = make_instance_tbl_point_process(_lmc);
+        update_table_sigmoidal_tbl_point_process(_lmc, inst, id, _ppvar, _thread, nt);
         _r = 1.;
-        set_g_w_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
-        hoc_retpushx(_r);
-    }
-    static double _npy_set_g_w(Prop* _prop) {
-        double _r{};
-        Datum* _ppvar;
-        Datum* _thread;
-        NrnThread* nt;
-        _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const id{};
-        _ppvar = _nrn_mechanism_access_dparam(_prop);
-        _thread = _extcall_thread.data();
-        nt = nrn_threads;
-        auto inst = make_instance_shared_global(_lmc);
-        auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
-        _r = 1.;
-        set_g_w_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
+        sigmoidal_tbl_point_process(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_compute_g_v1(void) {
+    static double _hoc_sinusoidal(void* _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
-        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
-        _nrn_mechanism_cache_instance _lmc{_local_prop};
+        auto* const _pnt = static_cast<Point_process*>(_vptr);
+        auto* const _p = _pnt->prop;
+        if (!_p) {
+            hoc_execerror("POINT_PROCESS data instance not valid", NULL);
+        }
+        _nrn_mechanism_cache_instance _lmc{_p};
         size_t const id{};
-        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
+        _ppvar = _nrn_mechanism_access_dparam(_p);
         _thread = _extcall_thread.data();
-        nt = nrn_threads;
-        auto inst = make_instance_shared_global(_lmc);
-        auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
-        update_table_compute_g_v1_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, nt);
+        nt = static_cast<NrnThread*>(_pnt->_vnt);
+        auto inst = make_instance_tbl_point_process(_lmc);
+        update_table_sinusoidal_tbl_point_process(_lmc, inst, id, _ppvar, _thread, nt);
         _r = 1.;
-        compute_g_v1_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
-        hoc_retpushx(_r);
-    }
-    static double _npy_compute_g_v1(Prop* _prop) {
-        double _r{};
-        Datum* _ppvar;
-        Datum* _thread;
-        NrnThread* nt;
-        _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const id{};
-        _ppvar = _nrn_mechanism_access_dparam(_prop);
-        _thread = _extcall_thread.data();
-        nt = nrn_threads;
-        auto inst = make_instance_shared_global(_lmc);
-        auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
-        update_table_compute_g_v1_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, nt);
-        _r = 1.;
-        compute_g_v1_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
+        sinusoidal_tbl_point_process(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_sum_arr(void) {
+    static double _hoc_quadratic(void* _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
-        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
-        _nrn_mechanism_cache_instance _lmc{_local_prop};
+        auto* const _pnt = static_cast<Point_process*>(_vptr);
+        auto* const _p = _pnt->prop;
+        if (!_p) {
+            hoc_execerror("POINT_PROCESS data instance not valid", NULL);
+        }
+        _nrn_mechanism_cache_instance _lmc{_p};
         size_t const id{};
-        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
+        _ppvar = _nrn_mechanism_access_dparam(_p);
         _thread = _extcall_thread.data();
-        nt = nrn_threads;
-        auto inst = make_instance_shared_global(_lmc);
-        auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
-        _r = sum_arr_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, nt);
-        hoc_retpushx(_r);
-    }
-    static double _npy_sum_arr(Prop* _prop) {
-        double _r{};
-        Datum* _ppvar;
-        Datum* _thread;
-        NrnThread* nt;
-        _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const id{};
-        _ppvar = _nrn_mechanism_access_dparam(_prop);
-        _thread = _extcall_thread.data();
-        nt = nrn_threads;
-        auto inst = make_instance_shared_global(_lmc);
-        auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
-        _r = sum_arr_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, nt);
+        nt = static_cast<NrnThread*>(_pnt->_vnt);
+        auto inst = make_instance_tbl_point_process(_lmc);
+        update_table_quadratic_tbl_point_process(_lmc, inst, id, _ppvar, _thread, nt);
+        _r = quadratic_tbl_point_process(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
 
 
-    inline int set_g_w_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* nt, double zz) {
-        int ret_set_g_w = 0;
-        auto v = inst.v_unused[id];
-        _thread_vars.g_w(id) = zz;
-        return ret_set_g_w;
+    inline static int f_sigmoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v) {
+        int ret_f_sigmoidal = 0;
+        inst.sig[id] = 1.0 / (1.0 + exp(inst.global->k * (v - inst.global->d)));
+        return ret_f_sigmoidal;
     }
 
 
-    inline static int f_compute_g_v1_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* nt, double zz) {
-        int ret_f_compute_g_v1 = 0;
-        auto v = inst.v_unused[id];
-        _thread_vars.g_v1(id) = zz * zz;
-        return ret_f_compute_g_v1;
-    }
-
-
-    void update_table_compute_g_v1_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* nt) {
+    void update_table_sigmoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         if (inst.global->usetable == 0) {
             return;
         }
         static bool make_table = true;
+        static double save_k;
+        static double save_d;
+        if (save_k != inst.global->k) {
+            make_table = true;
+        }
+        if (save_d != inst.global->d) {
+            make_table = true;
+        }
         if (make_table) {
             make_table = false;
-            inst.global->tmin_compute_g_v1 = 3.0;
-            double tmax = 4.0;
-            double dx = (tmax-inst.global->tmin_compute_g_v1) / 8.;
-            inst.global->mfac_compute_g_v1 = 1./dx;
-            double x = inst.global->tmin_compute_g_v1;
-            for (std::size_t i = 0; i < 9; x += dx, i++) {
-                f_compute_g_v1_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, nt, x);
-                inst.global->t_g_v1[i] = _thread_vars.g_v1(id);
+            inst.global->tmin_sigmoidal =  -127.0;
+            double tmax = 128.0;
+            double dx = (tmax-inst.global->tmin_sigmoidal) / 155.;
+            inst.global->mfac_sigmoidal = 1./dx;
+            double x = inst.global->tmin_sigmoidal;
+            for (std::size_t i = 0; i < 156; x += dx, i++) {
+                f_sigmoidal_tbl_point_process(_lmc, inst, id, _ppvar, _thread, nt, x);
+                inst.global->t_sig[i] = inst.sig[id];
             }
+            save_k = inst.global->k;
+            save_d = inst.global->d;
         }
     }
 
 
-    inline int compute_g_v1_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* nt, double zz){
+    inline int sigmoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v){
         if (inst.global->usetable == 0) {
-            f_compute_g_v1_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, nt, zz);
+            f_sigmoidal_tbl_point_process(_lmc, inst, id, _ppvar, _thread, nt, v);
             return 0;
         }
-        double xi = inst.global->mfac_compute_g_v1 * (zz - inst.global->tmin_compute_g_v1);
+        double xi = inst.global->mfac_sigmoidal * (v - inst.global->tmin_sigmoidal);
         if (isnan(xi)) {
-            _thread_vars.g_v1(id) = xi;
+            inst.sig[id] = xi;
             return 0;
         }
-        if (xi <= 0. || xi >= 8.) {
-            int index = (xi <= 0.) ? 0 : 8;
-            _thread_vars.g_v1(id) = inst.global->t_g_v1[index];
+        if (xi <= 0. || xi >= 155.) {
+            int index = (xi <= 0.) ? 0 : 155;
+            inst.sig[id] = inst.global->t_sig[index];
             return 0;
         }
         int i = int(xi);
         double theta = xi - double(i);
-        _thread_vars.g_v1(id) = inst.global->t_g_v1[i] + theta*(inst.global->t_g_v1[i+1]-inst.global->t_g_v1[i]);
+        inst.sig[id] = inst.global->t_sig[i] + theta*(inst.global->t_sig[i+1]-inst.global->t_sig[i]);
         return 0;
     }
 
 
-    inline double sum_arr_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* nt) {
-        double ret_sum_arr = 0.0;
+    inline static int f_sinusoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x) {
+        int ret_f_sinusoidal = 0;
         auto v = inst.v_unused[id];
-        ret_sum_arr = (_thread_vars.g_arr_ptr(id))[static_cast<int>(0)] + (_thread_vars.g_arr_ptr(id))[static_cast<int>(1)] + (_thread_vars.g_arr_ptr(id))[static_cast<int>(2)];
-        return ret_sum_arr;
+        inst.v1[id] = sin(inst.global->c1 * x) + 2.0;
+        inst.v2[id] = cos(inst.global->c2 * x) + 2.0;
+        return ret_f_sinusoidal;
     }
 
 
-    void nrn_init_shared_global(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    void update_table_sinusoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+        if (inst.global->usetable == 0) {
+            return;
+        }
+        static bool make_table = true;
+        static double save_c1;
+        static double save_c2;
+        if (save_c1 != inst.global->c1) {
+            make_table = true;
+        }
+        if (save_c2 != inst.global->c2) {
+            make_table = true;
+        }
+        if (make_table) {
+            make_table = false;
+            inst.global->tmin_sinusoidal =  -4.0;
+            double tmax = 6.0;
+            double dx = (tmax-inst.global->tmin_sinusoidal) / 800.;
+            inst.global->mfac_sinusoidal = 1./dx;
+            double x = inst.global->tmin_sinusoidal;
+            for (std::size_t i = 0; i < 801; x += dx, i++) {
+                f_sinusoidal_tbl_point_process(_lmc, inst, id, _ppvar, _thread, nt, x);
+                inst.global->t_v1[i] = inst.v1[id];
+                inst.global->t_v2[i] = inst.v2[id];
+            }
+            save_c1 = inst.global->c1;
+            save_c2 = inst.global->c2;
+        }
+    }
+
+
+    inline int sinusoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x){
+        if (inst.global->usetable == 0) {
+            f_sinusoidal_tbl_point_process(_lmc, inst, id, _ppvar, _thread, nt, x);
+            return 0;
+        }
+        double xi = inst.global->mfac_sinusoidal * (x - inst.global->tmin_sinusoidal);
+        if (isnan(xi)) {
+            inst.v1[id] = xi;
+            inst.v2[id] = xi;
+            return 0;
+        }
+        if (xi <= 0. || xi >= 800.) {
+            int index = (xi <= 0.) ? 0 : 800;
+            inst.v1[id] = inst.global->t_v1[index];
+            inst.v2[id] = inst.global->t_v2[index];
+            return 0;
+        }
+        int i = int(xi);
+        double theta = xi - double(i);
+        inst.v1[id] = inst.global->t_v1[i] + theta*(inst.global->t_v1[i+1]-inst.global->t_v1[i]);
+        inst.v2[id] = inst.global->t_v2[i] + theta*(inst.global->t_v2[i+1]-inst.global->t_v2[i]);
+        return 0;
+    }
+
+
+    inline static double f_quadratic_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x) {
+        double ret_f_quadratic = 0.0;
+        auto v = inst.v_unused[id];
+        ret_f_quadratic = inst.global->c1 * x * x + inst.global->c2;
+        return ret_f_quadratic;
+    }
+
+
+    void update_table_quadratic_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+        if (inst.global->usetable == 0) {
+            return;
+        }
+        static bool make_table = true;
+        static double save_c1;
+        static double save_c2;
+        if (save_c1 != inst.global->c1) {
+            make_table = true;
+        }
+        if (save_c2 != inst.global->c2) {
+            make_table = true;
+        }
+        if (make_table) {
+            make_table = false;
+            inst.global->tmin_quadratic =  -3.0;
+            double tmax = 5.0;
+            double dx = (tmax-inst.global->tmin_quadratic) / 500.;
+            inst.global->mfac_quadratic = 1./dx;
+            double x = inst.global->tmin_quadratic;
+            for (std::size_t i = 0; i < 501; x += dx, i++) {
+                inst.global->t_quadratic[i] = f_quadratic_tbl_point_process(_lmc, inst, id, _ppvar, _thread, nt, x);
+            }
+            save_c1 = inst.global->c1;
+            save_c2 = inst.global->c2;
+        }
+    }
+
+
+    inline double quadratic_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x){
+        if (inst.global->usetable == 0) {
+            return f_quadratic_tbl_point_process(_lmc, inst, id, _ppvar, _thread, nt, x);
+        }
+        double xi = inst.global->mfac_quadratic * (x - inst.global->tmin_quadratic);
+        if (isnan(xi)) {
+            return xi;
+        }
+        if (xi <= 0. || xi >= 500.) {
+            int index = (xi <= 0.) ? 0 : 500;
+            return inst.global->t_quadratic[index];
+        }
+        int i = int(xi);
+        double theta = xi - double(i);
+        return inst.global->t_quadratic[i] + theta * (inst.global->t_quadratic[i+1] - inst.global->t_quadratic[i]);
+    }
+
+
+    void nrn_init_tbl_point_process(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_shared_global(_lmc);
-        auto node_data = make_node_data_shared_global(*nt, *_ml_arg);
+        auto inst = make_instance_tbl_point_process(_lmc);
+        auto node_data = make_node_data_tbl_point_process(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
-        auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
             inst.v_unused[id] = v;
-            _thread_vars.g_w(id) = 48.0;
-            _thread_vars.g_v1(id) = 0.0;
-            (_thread_vars.g_arr_ptr(id))[static_cast<int>(0)] = 10.0 + inst.z[id];
-            (_thread_vars.g_arr_ptr(id))[static_cast<int>(1)] = 10.1;
-            (_thread_vars.g_arr_ptr(id))[static_cast<int>(2)] = 10.2;
-            inst.y[id] = 10.0;
         }
     }
 
 
-    inline double nrn_current_shared_global(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, size_t id, shared_global_Instance& inst, shared_global_NodeData& node_data, double v) {
+    inline double nrn_current_tbl_point_process(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, double v) {
         double current = 0.0;
-        if (nt->_t > 0.33) {
-            _thread_vars.g_w(id) = sum_arr_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, nt);
-        }
-        if (nt->_t > 0.66) {
-            set_g_w_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, nt, inst.z[id]);
-            compute_g_v1_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, nt, inst.z[id]);
-        }
-        inst.y[id] = _thread_vars.g_w(id) + _thread_vars.g_v1(id);
-        inst.il[id] = 0.0000001 * (v - 10.0);
-        current += inst.il[id];
+        sigmoidal_tbl_point_process(_lmc, inst, id, _ppvar, _thread, nt, v);
+        inst.g[id] = 0.001 * inst.sig[id];
+        inst.i[id] = inst.g[id] * (v - 30.0);
+        current += inst.i[id];
         return current;
     }
 
 
     /** update current */
-    void nrn_cur_shared_global(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    void nrn_cur_tbl_point_process(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_shared_global(_lmc);
-        auto node_data = make_node_data_shared_global(*nt, *_ml_arg);
+        auto inst = make_instance_tbl_point_process(_lmc);
+        auto node_data = make_node_data_tbl_point_process(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
-        auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             double v = node_data.node_voltages[node_id];
             auto* _ppvar = _ml_arg->pdata[id];
-            double I1 = nrn_current_shared_global(_lmc, nt, _ppvar, _thread, _thread_vars, id, inst, node_data, v+0.001);
-            double I0 = nrn_current_shared_global(_lmc, nt, _ppvar, _thread, _thread_vars, id, inst, node_data, v);
+            double I1 = nrn_current_tbl_point_process(_lmc, nt, _ppvar, _thread, id, inst, node_data, v+0.001);
+            double I0 = nrn_current_tbl_point_process(_lmc, nt, _ppvar, _thread, id, inst, node_data, v);
             double rhs = I0;
             double g = (I1-I0)/0.001;
+            double mfactor = 1.e2/(*inst.node_area[id]);
+            g = g*mfactor;
+            rhs = rhs*mfactor;
             node_data.node_rhs[node_id] -= rhs;
             inst.g_unused[id] = g;
         }
     }
 
 
-    void nrn_state_shared_global(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    void nrn_state_tbl_point_process(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_shared_global(_lmc);
-        auto node_data = make_node_data_shared_global(*nt, *_ml_arg);
+        auto inst = make_instance_tbl_point_process(_lmc);
+        auto node_data = make_node_data_tbl_point_process(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
-        auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
@@ -929,10 +982,10 @@ namespace neuron {
     }
 
 
-    static void nrn_jacob_shared_global(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_tbl_point_process(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_shared_global(_lmc);
-        auto node_data = make_node_data_shared_global(*nt, *_ml_arg);
+        auto inst = make_instance_tbl_point_process(_lmc);
+        auto node_data = make_node_data_tbl_point_process(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
@@ -946,25 +999,28 @@ namespace neuron {
 
 
     /** register channel with the simulator */
-    extern "C" void _thread_variable_reg() {
+    extern "C" void _table_point_process_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_shared_global, nrn_cur_shared_global, nrn_jacob_shared_global, nrn_state_shared_global, nrn_init_shared_global, hoc_nrnpointerindex, 2);
+        _pointtype = point_register_mech(mechanism_info, nrn_alloc_tbl_point_process, nrn_cur_tbl_point_process, nrn_jacob_tbl_point_process, nrn_state_tbl_point_process, nrn_init_tbl_point_process, hoc_nrnpointerindex, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         _nrn_thread_table_reg(mech_type, _check_table_thread);
         _nrn_mechanism_register_data_fields(mech_type,
-            _nrn_mechanism_field<double>{"y"} /* 0 */,
-            _nrn_mechanism_field<double>{"z"} /* 1 */,
-            _nrn_mechanism_field<double>{"il"} /* 2 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 3 */,
-            _nrn_mechanism_field<double>{"g_unused"} /* 4 */
+            _nrn_mechanism_field<double>{"g"} /* 0 */,
+            _nrn_mechanism_field<double>{"i"} /* 1 */,
+            _nrn_mechanism_field<double>{"v1"} /* 2 */,
+            _nrn_mechanism_field<double>{"v2"} /* 3 */,
+            _nrn_mechanism_field<double>{"sig"} /* 4 */,
+            _nrn_mechanism_field<double>{"v_unused"} /* 5 */,
+            _nrn_mechanism_field<double>{"g_unused"} /* 6 */,
+            _nrn_mechanism_field<double*>{"node_area", "area"} /* 0 */,
+            _nrn_mechanism_field<Point_process*>{"point_process", "pntproc"} /* 1 */
         );
 
-        hoc_register_prop_size(mech_type, 5, 0);
+        hoc_register_prop_size(mech_type, 7, 2);
+        hoc_register_dparam_semantics(mech_type, 0, "area");
+        hoc_register_dparam_semantics(mech_type, 1, "pntproc");
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
-        hoc_register_npy_direct(mech_type, npy_direct_func_proc);
-        _nrn_thread_reg(mech_type, 1, thread_mem_init);
-        _nrn_thread_reg(mech_type, 0, thread_mem_cleanup);
     }
 }
