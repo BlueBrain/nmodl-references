@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : tbl
-Filename        : table.mod
+Model Name      : tbl_point_process
+Filename        : table_point_process.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -36,12 +36,12 @@ namespace coreneuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "tbl",
+        "tbl_point_process",
         0,
-        "g_tbl",
-        "i_tbl",
-        "v1_tbl",
-        "v2_tbl",
+        "g",
+        "i",
+        "v1",
+        "v2",
         0,
         0,
         0
@@ -49,7 +49,8 @@ namespace coreneuron {
 
 
     /** all global variables */
-    struct tbl_Store {
+    struct tbl_point_process_Store {
+        int point_type{};
         int reset{};
         int mech_type{};
         double k{0.1};
@@ -68,16 +69,16 @@ namespace coreneuron {
         double t_sig[156]{};
         double t_quadratic[501]{};
     };
-    static_assert(std::is_trivially_copy_constructible_v<tbl_Store>);
-    static_assert(std::is_trivially_move_constructible_v<tbl_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<tbl_Store>);
-    static_assert(std::is_trivially_move_assignable_v<tbl_Store>);
-    static_assert(std::is_trivially_destructible_v<tbl_Store>);
-    tbl_Store tbl_global;
+    static_assert(std::is_trivially_copy_constructible_v<tbl_point_process_Store>);
+    static_assert(std::is_trivially_move_constructible_v<tbl_point_process_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<tbl_point_process_Store>);
+    static_assert(std::is_trivially_move_assignable_v<tbl_point_process_Store>);
+    static_assert(std::is_trivially_destructible_v<tbl_point_process_Store>);
+    tbl_point_process_Store tbl_point_process_global;
 
 
     /** all mechanism instance variables and global variables */
-    struct tbl_Instance  {
+    struct tbl_point_process_Instance  {
         double* g{};
         double* i{};
         double* v1{};
@@ -85,17 +86,19 @@ namespace coreneuron {
         double* sig{};
         double* v_unused{};
         double* g_unused{};
-        tbl_Store* global{&tbl_global};
+        const double* node_area{};
+        const int* point_process{};
+        tbl_point_process_Store* global{&tbl_point_process_global};
     };
 
 
     /** connect global (scalar) variables to hoc -- */
     static DoubScal hoc_scalar_double[] = {
-        {"k_tbl", &tbl_global.k},
-        {"d_tbl", &tbl_global.d},
-        {"c1_tbl", &tbl_global.c1},
-        {"c2_tbl", &tbl_global.c2},
-        {"usetable_tbl", &tbl_global.usetable},
+        {"k_tbl_point_process", &tbl_point_process_global.k},
+        {"d_tbl_point_process", &tbl_point_process_global.d},
+        {"c1_tbl_point_process", &tbl_point_process_global.c1},
+        {"c2_tbl_point_process", &tbl_point_process_global.c2},
+        {"usetable_tbl_point_process", &tbl_point_process_global.usetable},
         {nullptr, nullptr}
     };
 
@@ -122,12 +125,12 @@ namespace coreneuron {
 
 
     static inline int int_variables_size() {
-        return 0;
+        return 2;
     }
 
 
     static inline int get_mech_type() {
-        return tbl_global.mech_type;
+        return tbl_point_process_global.mech_type;
     }
 
 
@@ -157,25 +160,25 @@ namespace coreneuron {
     }
 
     // Allocate instance structure
-    static void nrn_private_constructor_tbl(NrnThread* nt, Memb_list* ml, int type) {
+    static void nrn_private_constructor_tbl_point_process(NrnThread* nt, Memb_list* ml, int type) {
         assert(!ml->instance);
         assert(!ml->global_variables);
         assert(ml->global_variables_size == 0);
-        auto* const inst = new tbl_Instance{};
-        assert(inst->global == &tbl_global);
+        auto* const inst = new tbl_point_process_Instance{};
+        assert(inst->global == &tbl_point_process_global);
         ml->instance = inst;
         ml->global_variables = inst->global;
-        ml->global_variables_size = sizeof(tbl_Store);
+        ml->global_variables_size = sizeof(tbl_point_process_Store);
     }
 
     // Deallocate the instance structure
-    static void nrn_private_destructor_tbl(NrnThread* nt, Memb_list* ml, int type) {
-        auto* const inst = static_cast<tbl_Instance*>(ml->instance);
+    static void nrn_private_destructor_tbl_point_process(NrnThread* nt, Memb_list* ml, int type) {
+        auto* const inst = static_cast<tbl_point_process_Instance*>(ml->instance);
         assert(inst);
         assert(inst->global);
-        assert(inst->global == &tbl_global);
+        assert(inst->global == &tbl_point_process_global);
         assert(inst->global == ml->global_variables);
-        assert(ml->global_variables_size == sizeof(tbl_Store));
+        assert(ml->global_variables_size == sizeof(tbl_point_process_Store));
         delete inst;
         ml->instance = nullptr;
         ml->global_variables = nullptr;
@@ -184,12 +187,12 @@ namespace coreneuron {
 
     /** initialize mechanism instance variables */
     static inline void setup_instance(NrnThread* nt, Memb_list* ml) {
-        auto* const inst = static_cast<tbl_Instance*>(ml->instance);
+        auto* const inst = static_cast<tbl_point_process_Instance*>(ml->instance);
         assert(inst);
         assert(inst->global);
-        assert(inst->global == &tbl_global);
+        assert(inst->global == &tbl_point_process_global);
         assert(inst->global == ml->global_variables);
-        assert(ml->global_variables_size == sizeof(tbl_Store));
+        assert(ml->global_variables_size == sizeof(tbl_point_process_Store));
         int pnodecount = ml->_nodecount_padded;
         Datum* indexes = ml->pdata;
         inst->g = ml->data+0*pnodecount;
@@ -199,16 +202,18 @@ namespace coreneuron {
         inst->sig = ml->data+4*pnodecount;
         inst->v_unused = ml->data+5*pnodecount;
         inst->g_unused = ml->data+6*pnodecount;
+        inst->node_area = nt->_data;
+        inst->point_process = ml->pdata;
     }
 
 
 
-    static void nrn_alloc_tbl(double* data, Datum* indexes, int type) {
+    static void nrn_alloc_tbl_point_process(double* data, Datum* indexes, int type) {
         // do nothing
     }
 
 
-    void nrn_constructor_tbl(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_constructor_tbl_point_process(NrnThread* nt, Memb_list* ml, int type) {
         #ifndef CORENEURON_BUILD
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
@@ -217,13 +222,13 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<tbl_Instance*>(ml->instance);
+        auto* const inst = static_cast<tbl_point_process_Instance*>(ml->instance);
 
         #endif
     }
 
 
-    void nrn_destructor_tbl(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_destructor_tbl_point_process(NrnThread* nt, Memb_list* ml, int type) {
         #ifndef CORENEURON_BUILD
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
@@ -232,25 +237,25 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<tbl_Instance*>(ml->instance);
+        auto* const inst = static_cast<tbl_point_process_Instance*>(ml->instance);
 
         #endif
     }
 
 
-    inline double quadratic_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double x);
-    inline int sigmoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v);
-    inline int sinusoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double x);
+    inline double quadratic_tbl_point_process(int id, int pnodecount, tbl_point_process_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double x);
+    inline int sigmoidal_tbl_point_process(int id, int pnodecount, tbl_point_process_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v);
+    inline int sinusoidal_tbl_point_process(int id, int pnodecount, tbl_point_process_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double x);
 
 
-    inline int f_sigmoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v) {
+    inline int f_sigmoidal_tbl_point_process(int id, int pnodecount, tbl_point_process_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v) {
         int ret_f_sigmoidal = 0;
         inst->sig[id] = 1.0 / (1.0 + exp(inst->global->k * (arg_v - inst->global->d)));
         return ret_f_sigmoidal;
     }
 
 
-    void update_table_sigmoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
+    void update_table_sigmoidal_tbl_point_process(int id, int pnodecount, tbl_point_process_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
         if (inst->global->usetable == 0) {
             return;
         }
@@ -271,7 +276,7 @@ namespace coreneuron {
             inst->global->mfac_sigmoidal = 1./dx;
             double x = inst->global->tmin_sigmoidal;
             for (std::size_t i = 0; i < 156; x += dx, i++) {
-                f_sigmoidal_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, x);
+                f_sigmoidal_tbl_point_process(id, pnodecount, inst, data, indexes, thread, nt, v, x);
                 inst->global->t_sig[i] = inst->sig[id];
             }
             save_k = inst->global->k;
@@ -280,9 +285,9 @@ namespace coreneuron {
     }
 
 
-    inline int sigmoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v){
+    inline int sigmoidal_tbl_point_process(int id, int pnodecount, tbl_point_process_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v){
         if (inst->global->usetable == 0) {
-            f_sigmoidal_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, arg_v);
+            f_sigmoidal_tbl_point_process(id, pnodecount, inst, data, indexes, thread, nt, v, arg_v);
             return 0;
         }
         double xi = inst->global->mfac_sigmoidal * (arg_v - inst->global->tmin_sigmoidal);
@@ -302,7 +307,7 @@ namespace coreneuron {
     }
 
 
-    inline int f_sinusoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double x) {
+    inline int f_sinusoidal_tbl_point_process(int id, int pnodecount, tbl_point_process_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double x) {
         int ret_f_sinusoidal = 0;
         inst->v1[id] = sin(inst->global->c1 * x) + 2.0;
         inst->v2[id] = cos(inst->global->c2 * x) + 2.0;
@@ -310,7 +315,7 @@ namespace coreneuron {
     }
 
 
-    void update_table_sinusoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
+    void update_table_sinusoidal_tbl_point_process(int id, int pnodecount, tbl_point_process_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
         if (inst->global->usetable == 0) {
             return;
         }
@@ -331,7 +336,7 @@ namespace coreneuron {
             inst->global->mfac_sinusoidal = 1./dx;
             double x = inst->global->tmin_sinusoidal;
             for (std::size_t i = 0; i < 801; x += dx, i++) {
-                f_sinusoidal_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, x);
+                f_sinusoidal_tbl_point_process(id, pnodecount, inst, data, indexes, thread, nt, v, x);
                 inst->global->t_v1[i] = inst->v1[id];
                 inst->global->t_v2[i] = inst->v2[id];
             }
@@ -341,9 +346,9 @@ namespace coreneuron {
     }
 
 
-    inline int sinusoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double x){
+    inline int sinusoidal_tbl_point_process(int id, int pnodecount, tbl_point_process_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double x){
         if (inst->global->usetable == 0) {
-            f_sinusoidal_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, x);
+            f_sinusoidal_tbl_point_process(id, pnodecount, inst, data, indexes, thread, nt, v, x);
             return 0;
         }
         double xi = inst->global->mfac_sinusoidal * (x - inst->global->tmin_sinusoidal);
@@ -366,14 +371,14 @@ namespace coreneuron {
     }
 
 
-    inline double f_quadratic_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double x) {
+    inline double f_quadratic_tbl_point_process(int id, int pnodecount, tbl_point_process_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double x) {
         double ret_f_quadratic = 0.0;
         ret_f_quadratic = inst->global->c1 * x * x + inst->global->c2;
         return ret_f_quadratic;
     }
 
 
-    void update_table_quadratic_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
+    void update_table_quadratic_tbl_point_process(int id, int pnodecount, tbl_point_process_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
         if (inst->global->usetable == 0) {
             return;
         }
@@ -394,7 +399,7 @@ namespace coreneuron {
             inst->global->mfac_quadratic = 1./dx;
             double x = inst->global->tmin_quadratic;
             for (std::size_t i = 0; i < 501; x += dx, i++) {
-                inst->global->t_quadratic[i] = f_quadratic_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, x);
+                inst->global->t_quadratic[i] = f_quadratic_tbl_point_process(id, pnodecount, inst, data, indexes, thread, nt, v, x);
             }
             save_c1 = inst->global->c1;
             save_c2 = inst->global->c2;
@@ -402,9 +407,9 @@ namespace coreneuron {
     }
 
 
-    inline double quadratic_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double x){
+    inline double quadratic_tbl_point_process(int id, int pnodecount, tbl_point_process_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double x){
         if (inst->global->usetable == 0) {
-            return f_quadratic_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, x);
+            return f_quadratic_tbl_point_process(id, pnodecount, inst, data, indexes, thread, nt, v, x);
         }
         double xi = inst->global->mfac_quadratic * (x - inst->global->tmin_quadratic);
         if (isnan(xi)) {
@@ -421,7 +426,7 @@ namespace coreneuron {
 
 
     /** initialize channel */
-    void nrn_init_tbl(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_init_tbl_point_process(NrnThread* nt, Memb_list* ml, int type) {
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
         const int* node_index = ml->nodeindices;
@@ -431,7 +436,7 @@ namespace coreneuron {
         ThreadDatum* thread = ml->_thread;
 
         setup_instance(nt, ml);
-        auto* const inst = static_cast<tbl_Instance*>(ml->instance);
+        auto* const inst = static_cast<tbl_point_process_Instance*>(ml->instance);
 
         if (_nrn_skip_initmodel == 0) {
             #pragma omp simd
@@ -447,9 +452,9 @@ namespace coreneuron {
     }
 
 
-    inline double nrn_current_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
+    inline double nrn_current_tbl_point_process(int id, int pnodecount, tbl_point_process_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
         double current = 0.0;
-        sigmoidal_tbl(id, pnodecount, inst, data, indexes, thread, nt, v, v);
+        sigmoidal_tbl_point_process(id, pnodecount, inst, data, indexes, thread, nt, v, v);
         inst->g[id] = 0.001 * inst->sig[id];
         inst->i[id] = inst->g[id] * (v - 30.0);
         current += inst->i[id];
@@ -458,7 +463,7 @@ namespace coreneuron {
 
 
     /** update current */
-    void nrn_cur_tbl(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_cur_tbl_point_process(NrnThread* nt, Memb_list* ml, int type) {
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
         const int* node_index = ml->nodeindices;
@@ -466,9 +471,11 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         double* vec_rhs = nt->_actual_rhs;
         double* vec_d = nt->_actual_d;
+        double* shadow_rhs = nt->_shadow_rhs;
+        double* shadow_d = nt->_shadow_d;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<tbl_Instance*>(ml->instance);
+        auto* const inst = static_cast<tbl_point_process_Instance*>(ml->instance);
 
         #pragma omp simd
         #pragma ivdep
@@ -478,20 +485,28 @@ namespace coreneuron {
             #if NRN_PRCELLSTATE
             inst->v_unused[id] = v;
             #endif
-            double g = nrn_current_tbl(id, pnodecount, inst, data, indexes, thread, nt, v+0.001);
-            double rhs = nrn_current_tbl(id, pnodecount, inst, data, indexes, thread, nt, v);
+            double g = nrn_current_tbl_point_process(id, pnodecount, inst, data, indexes, thread, nt, v+0.001);
+            double rhs = nrn_current_tbl_point_process(id, pnodecount, inst, data, indexes, thread, nt, v);
             g = (g-rhs)/0.001;
+            double mfactor = 1.e2/inst->node_area[indexes[0*pnodecount + id]];
+            g = g*mfactor;
+            rhs = rhs*mfactor;
             #if NRN_PRCELLSTATE
             inst->g_unused[id] = g;
             #endif
-            vec_rhs[node_id] -= rhs;
-            vec_d[node_id] += g;
+            shadow_rhs[id] = rhs;
+            shadow_d[id] = g;
+        }
+        for (int id = 0; id < nodecount; id++) {
+            int node_id = node_index[id];
+            vec_rhs[node_id] -= shadow_rhs[id];
+            vec_d[node_id] += shadow_d[id];
         }
     }
 
 
     /** update state */
-    void nrn_state_tbl(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_state_tbl_point_process(NrnThread* nt, Memb_list* ml, int type) {
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
         const int* node_index = ml->nodeindices;
@@ -499,7 +514,7 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<tbl_Instance*>(ml->instance);
+        auto* const inst = static_cast<tbl_point_process_Instance*>(ml->instance);
 
         #pragma omp simd
         #pragma ivdep
@@ -513,30 +528,32 @@ namespace coreneuron {
     }
 
 
-    static void check_table_thread_tbl (int id, int pnodecount, double* data, Datum* indexes, ThreadDatum* thread, NrnThread* nt, Memb_list* ml, int tml_id) {
+    static void check_table_thread_tbl_point_process (int id, int pnodecount, double* data, Datum* indexes, ThreadDatum* thread, NrnThread* nt, Memb_list* ml, int tml_id) {
         setup_instance(nt, ml);
-        auto* const inst = static_cast<tbl_Instance*>(ml->instance);
+        auto* const inst = static_cast<tbl_point_process_Instance*>(ml->instance);
         double v = 0;
-        update_table_sigmoidal_tbl(id, pnodecount, inst, data, indexes, thread, nt, v);
-        update_table_quadratic_tbl(id, pnodecount, inst, data, indexes, thread, nt, v);
-        update_table_sinusoidal_tbl(id, pnodecount, inst, data, indexes, thread, nt, v);
+        update_table_sigmoidal_tbl_point_process(id, pnodecount, inst, data, indexes, thread, nt, v);
+        update_table_quadratic_tbl_point_process(id, pnodecount, inst, data, indexes, thread, nt, v);
+        update_table_sinusoidal_tbl_point_process(id, pnodecount, inst, data, indexes, thread, nt, v);
     }
 
 
     /** register channel with the simulator */
-    void _table_reg() {
+    void _table_point_process_reg() {
 
-        int mech_type = nrn_get_mechtype("tbl");
-        tbl_global.mech_type = mech_type;
+        int mech_type = nrn_get_mechtype("tbl_point_process");
+        tbl_point_process_global.mech_type = mech_type;
         if (mech_type == -1) {
             return;
         }
 
         _nrn_layout_reg(mech_type, 0);
-        register_mech(mechanism_info, nrn_alloc_tbl, nrn_cur_tbl, nullptr, nrn_state_tbl, nrn_init_tbl, nrn_private_constructor_tbl, nrn_private_destructor_tbl, first_pointer_var_index(), 1);
+        point_register_mech(mechanism_info, nrn_alloc_tbl_point_process, nrn_cur_tbl_point_process, nullptr, nrn_state_tbl_point_process, nrn_init_tbl_point_process, nrn_private_constructor_tbl_point_process, nrn_private_destructor_tbl_point_process, first_pointer_var_index(), nullptr, nullptr, 1);
 
-        _nrn_thread_table_reg(mech_type, check_table_thread_tbl);
+        _nrn_thread_table_reg(mech_type, check_table_thread_tbl_point_process);
         hoc_register_prop_size(mech_type, float_variables_size(), int_variables_size());
+        hoc_register_dparam_semantics(mech_type, 0, "area");
+        hoc_register_dparam_semantics(mech_type, 1, "pntproc");
         hoc_register_var(hoc_scalar_double, hoc_vector_double, NULL);
     }
 }

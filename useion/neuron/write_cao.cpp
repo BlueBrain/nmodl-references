@@ -655,7 +655,7 @@ namespace neuron {
     extern "C" void _write_cao_reg() {
         _initlists();
 
-        ion_reg("ca", -10000.);
+        ion_reg("ca", -10000);
 
         _ca_sym = hoc_lookup("ca_ion");
 

@@ -674,8 +674,8 @@ namespace neuron {
     extern "C" void _style_ion_reg() {
         _initlists();
 
-        ion_reg("ca", -10000.);
-        ion_reg("na", -10000.);
+        ion_reg("ca", -10000);
+        ion_reg("na", -10000);
 
         _ca_sym = hoc_lookup("ca_ion");
         _na_sym = hoc_lookup("na_ion");

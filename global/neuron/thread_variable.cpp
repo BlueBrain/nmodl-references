@@ -620,13 +620,13 @@ namespace neuron {
     inline double sum_arr_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* nt);
     inline int set_g_w_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* nt, double zz);
     inline int compute_g_v1_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* nt, double zz);
-    void lazy_update_compute_g_v1_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* nt);
+    void update_table_compute_g_v1_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* nt);
     static void _check_table_thread(Memb_list* _ml, size_t id, Datum* _ppvar, Datum* _thread, double* _globals, NrnThread* nt, int _type, const _nrn_model_sorted_token& _sorted_token)
 {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml, _type};
         auto inst = make_instance_shared_global(_lmc);
         auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
-        lazy_update_compute_g_v1_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, nt);
+        update_table_compute_g_v1_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, nt);
     }
 
 
@@ -733,7 +733,7 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_shared_global(_lmc);
         auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
-        lazy_update_compute_g_v1_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, nt);
+        update_table_compute_g_v1_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, nt);
         _r = 1.;
         compute_g_v1_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
         hoc_retpushx(_r);
@@ -750,7 +750,7 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_shared_global(_lmc);
         auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
-        lazy_update_compute_g_v1_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, nt);
+        update_table_compute_g_v1_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, nt);
         _r = 1.;
         compute_g_v1_shared_global(_lmc, inst, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
         return(_r);
@@ -804,7 +804,7 @@ namespace neuron {
     }
 
 
-    void lazy_update_compute_g_v1_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* nt) {
+    void update_table_compute_g_v1_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* nt) {
         if (inst.global->usetable == 0) {
             return;
         }
