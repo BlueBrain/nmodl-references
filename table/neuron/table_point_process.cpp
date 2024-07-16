@@ -101,6 +101,8 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<tbl_point_process_Store>);
     static_assert(std::is_trivially_destructible_v<tbl_point_process_Store>);
     tbl_point_process_Store tbl_point_process_global;
+    static std::vector<double> _parameter_defaults = {
+    };
 
 
     /** all mechanism instance variables and global variables */
@@ -575,6 +577,7 @@ namespace neuron {
         _pointtype = point_register_mech(mechanism_info, nrn_alloc_tbl_point_process, nrn_cur_tbl_point_process, nrn_jacob_tbl_point_process, nrn_state_tbl_point_process, nrn_init_tbl_point_process, hoc_nrnpointerindex, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
+        hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_thread_table_reg(mech_type, _check_table_thread);
         _nrn_mechanism_register_data_fields(mech_type,
             _nrn_mechanism_field<double>{"g"} /* 0 */,
