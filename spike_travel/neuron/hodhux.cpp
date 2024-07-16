@@ -103,6 +103,12 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<hodhux_Store>);
     static_assert(std::is_trivially_destructible_v<hodhux_Store>);
     hodhux_Store hodhux_global;
+    static std::vector<double> _parameter_defaults = {
+        0.12 /* gnabar */,
+        0.036 /* gkbar */,
+        0.0003 /* gl */,
+        -54.3 /* el */
+    };
 
 
     /** all mechanism instance variables and global variables */
@@ -205,10 +211,10 @@ namespace neuron {
         size_t const _iml = 0;
         assert(_nrn_mechanism_get_num_vars(_prop) == 23);
         /*initialize range parameters*/
-        _lmc.template fpfield<0>(_iml) = 0.12; /* gnabar */
-        _lmc.template fpfield<1>(_iml) = 0.036; /* gkbar */
-        _lmc.template fpfield<2>(_iml) = 0.0003; /* gl */
-        _lmc.template fpfield<3>(_iml) = -54.3; /* el */
+        _lmc.template fpfield<0>(_iml) = _parameter_defaults[0]; /* gnabar */
+        _lmc.template fpfield<1>(_iml) = _parameter_defaults[1]; /* gkbar */
+        _lmc.template fpfield<2>(_iml) = _parameter_defaults[2]; /* gl */
+        _lmc.template fpfield<3>(_iml) = _parameter_defaults[3]; /* el */
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
         Symbol * na_sym = hoc_lookup("na_ion");
         Prop * na_prop = need_memb(na_sym);
@@ -534,6 +540,7 @@ namespace neuron {
         register_mech(mechanism_info, nrn_alloc_hodhux, nrn_cur_hodhux, nrn_jacob_hodhux, nrn_state_hodhux, nrn_init_hodhux, hoc_nrnpointerindex, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
+        hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
             _nrn_mechanism_field<double>{"gnabar"} /* 0 */,
             _nrn_mechanism_field<double>{"gkbar"} /* 1 */,
