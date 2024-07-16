@@ -83,6 +83,10 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<range_parameter_Store>);
     static_assert(std::is_trivially_destructible_v<range_parameter_Store>);
     range_parameter_Store range_parameter_global;
+    static std::vector<double> _parameter_defaults = {
+        42 /* x */,
+        0 /* y */
+    };
 
 
     /** all mechanism instance variables and global variables */
@@ -137,8 +141,8 @@ namespace neuron {
             size_t const _iml = 0;
             assert(_nrn_mechanism_get_num_vars(_prop) == 3);
             /*initialize range parameters*/
-            _lmc.template fpfield<0>(_iml) = 42; /* x */
-            _lmc.template fpfield<1>(_iml) = 0; /* y */
+            _lmc.template fpfield<0>(_iml) = _parameter_defaults[0]; /* x */
+            _lmc.template fpfield<1>(_iml) = _parameter_defaults[1]; /* y */
         }
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
     }
@@ -236,6 +240,7 @@ namespace neuron {
         _pointtype = point_register_mech(mechanism_info, nrn_alloc_range_parameter, nullptr, nullptr, nullptr, nrn_init_range_parameter, hoc_nrnpointerindex, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
+        hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
             _nrn_mechanism_field<double>{"x"} /* 0 */,
             _nrn_mechanism_field<double>{"y"} /* 1 */,

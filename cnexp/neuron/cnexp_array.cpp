@@ -89,6 +89,8 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<cnexp_array_Store>);
     static_assert(std::is_trivially_destructible_v<cnexp_array_Store>);
     cnexp_array_Store cnexp_array_global;
+    static std::vector<double> _parameter_defaults = {
+    };
 
 
     /** all mechanism instance variables and global variables */
@@ -248,6 +250,7 @@ namespace neuron {
         register_mech(mechanism_info, nrn_alloc_cnexp_array, nullptr, nrn_jacob_cnexp_array, nrn_state_cnexp_array, nrn_init_cnexp_array, hoc_nrnpointerindex, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
+        hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
             _nrn_mechanism_field<double>{"z", 3} /* 0 */,
             _nrn_mechanism_field<double>{"x"} /* 1 */,
