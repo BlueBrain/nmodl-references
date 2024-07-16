@@ -85,6 +85,9 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<leonhard_Store>);
     static_assert(std::is_trivially_destructible_v<leonhard_Store>);
     leonhard_Store leonhard_global;
+    static std::vector<double> _parameter_defaults = {
+        0.005 /* c */
+    };
 
 
     /** all mechanism instance variables and global variables */
@@ -133,7 +136,7 @@ namespace neuron {
         size_t const _iml = 0;
         assert(_nrn_mechanism_get_num_vars(_prop) == 4);
         /*initialize range parameters*/
-        _lmc.template fpfield<0>(_iml) = 0.005; /* c */
+        _lmc.template fpfield<0>(_iml) = _parameter_defaults[0]; /* c */
     }
 
 
@@ -257,6 +260,7 @@ namespace neuron {
         register_mech(mechanism_info, nrn_alloc_leonhard, nrn_cur_leonhard, nrn_jacob_leonhard, nrn_state_leonhard, nrn_init_leonhard, hoc_nrnpointerindex, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
+        hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
             _nrn_mechanism_field<double>{"c"} /* 0 */,
             _nrn_mechanism_field<double>{"il"} /* 1 */,

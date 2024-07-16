@@ -85,6 +85,8 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<two_radii_Store>);
     static_assert(std::is_trivially_destructible_v<two_radii_Store>);
     two_radii_Store two_radii_global;
+    static std::vector<double> _parameter_defaults = {
+    };
 
 
     /** all mechanism instance variables and global variables */
@@ -352,6 +354,7 @@ namespace neuron {
         register_mech(mechanism_info, nrn_alloc_two_radii, nrn_cur_two_radii, nrn_jacob_two_radii, nrn_state_two_radii, nrn_init_two_radii, hoc_nrnpointerindex, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
+        hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
             _nrn_mechanism_field<double>{"il"} /* 0 */,
             _nrn_mechanism_field<double>{"inv"} /* 1 */,
