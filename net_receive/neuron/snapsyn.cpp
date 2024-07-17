@@ -83,6 +83,9 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<SnapSyn_Store>);
     static_assert(std::is_trivially_destructible_v<SnapSyn_Store>);
     SnapSyn_Store SnapSyn_global;
+    static std::vector<double> _parameter_defaults = {
+        10 /* e */
+    };
 
 
     /** all mechanism instance variables and global variables */
@@ -143,7 +146,7 @@ namespace neuron {
             size_t const _iml = 0;
             assert(_nrn_mechanism_get_num_vars(_prop) == 6);
             /*initialize range parameters*/
-            _lmc.template fpfield<0>(_iml) = 10; /* e */
+            _lmc.template fpfield<0>(_iml) = _parameter_defaults[0]; /* e */
         }
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
     }
@@ -303,6 +306,7 @@ namespace neuron {
         _pointtype = point_register_mech(mechanism_info, nrn_alloc_SnapSyn, nrn_cur_SnapSyn, nrn_jacob_SnapSyn, nrn_state_SnapSyn, nrn_init_SnapSyn, hoc_nrnpointerindex, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
+        hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
             _nrn_mechanism_field<double>{"e"} /* 0 */,
             _nrn_mechanism_field<double>{"i"} /* 1 */,

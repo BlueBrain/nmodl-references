@@ -87,6 +87,10 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<ExpSyn2_Store>);
     static_assert(std::is_trivially_destructible_v<ExpSyn2_Store>);
     ExpSyn2_Store ExpSyn2_global;
+    static std::vector<double> _parameter_defaults = {
+        0.1 /* tau */,
+        0 /* e */
+    };
 
 
     /** all mechanism instance variables and global variables */
@@ -151,8 +155,8 @@ namespace neuron {
             size_t const _iml = 0;
             assert(_nrn_mechanism_get_num_vars(_prop) == 8);
             /*initialize range parameters*/
-            _lmc.template fpfield<0>(_iml) = 0.1; /* tau */
-            _lmc.template fpfield<1>(_iml) = 0; /* e */
+            _lmc.template fpfield<0>(_iml) = _parameter_defaults[0]; /* tau */
+            _lmc.template fpfield<1>(_iml) = _parameter_defaults[1]; /* e */
         }
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
     }
@@ -317,6 +321,7 @@ namespace neuron {
         _pointtype = point_register_mech(mechanism_info, nrn_alloc_ExpSyn2, nrn_cur_ExpSyn2, nrn_jacob_ExpSyn2, nrn_state_ExpSyn2, nrn_init_ExpSyn2, hoc_nrnpointerindex, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
+        hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
             _nrn_mechanism_field<double>{"tau"} /* 0 */,
             _nrn_mechanism_field<double>{"e"} /* 1 */,
