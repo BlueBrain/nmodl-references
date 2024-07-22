@@ -207,7 +207,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             inst.y[id] = 0.0;
-            net_send(/* tqitem */ &_ppvar[2], nullptr, _ppvar[1].get<Point_process*>(), nt->_t + 2.501, 1.0);
+            artcell_net_send(/* tqitem */ &_ppvar[2], nullptr, _ppvar[1].get<Point_process*>(), nt->_t + 2.501, 1.0);
         }
     }
 
@@ -233,7 +233,7 @@ namespace neuron {
         double t = nt->_t;
         inst.y[id] = inst.y[id] + 1.0;
         if (nt->_t < 3.7) {
-            net_send(/* tqitem */ &_ppvar[2], nullptr, _pnt, nt->_t + 4.501 - nt->_t, 1.0);
+            artcell_net_send(/* tqitem */ &_ppvar[2], nullptr, _pnt, nt->_t + 4.501 - nt->_t, 1.0);
         }
 
     }
