@@ -211,7 +211,7 @@ namespace neuron {
             auto* _ppvar = _ml_arg->pdata[id];
             inst.y[id] = 0.0;
             inst.z[id] = 0.0;
-            net_send(/* tqitem */ &_ppvar[2], nullptr, _ppvar[1].get<Point_process*>(), nt->_t + 1.8, 1.0);
+            artcell_net_send(/* tqitem */ &_ppvar[2], nullptr, _ppvar[1].get<Point_process*>(), nt->_t + 1.8, 1.0);
         }
     }
 
@@ -237,10 +237,10 @@ namespace neuron {
         double t = nt->_t;
         if (flag == 0.0) {
             inst.y[id] = inst.y[id] + 1.0;
-            net_move(/* tqitem */ &_ppvar[2], _pnt, nt->_t + 0.1);
+            artcell_net_move(/* tqitem */ &_ppvar[2], _pnt, nt->_t + 0.1);
         } else {
             inst.z[id] = inst.z[id] + 1.0;
-            net_send(/* tqitem */ &_ppvar[2], nullptr, _pnt, nt->_t + 2.0, 1.0);
+            artcell_net_send(/* tqitem */ &_ppvar[2], nullptr, _pnt, nt->_t + 2.0, 1.0);
         }
 
     }
