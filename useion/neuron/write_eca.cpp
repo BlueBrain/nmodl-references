@@ -124,6 +124,9 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    void nrn_destructor_write_eca(Prop* _prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+    }
 
 
     static void nrn_alloc_write_eca(Prop* _prop) {

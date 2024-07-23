@@ -151,6 +151,9 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    void nrn_destructor_tbl_point_process(Prop* _prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+    }
 
 
     static void nrn_alloc_tbl_point_process(Prop* _prop) {

@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : cnexp_scalar
-Filename        : cnexp_scalar.mod
+Model Name      : random_variable
+Filename        : random_variable.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -26,8 +26,8 @@ NMODL Compiler  : VERSION
 /* VECTORIZED */
 #define NRN_VECTORIZED 1
 
-static constexpr auto number_of_datum_variables = 0;
-static constexpr auto number_of_floating_point_variables = 4;
+static constexpr auto number_of_datum_variables = 1;
+static constexpr auto number_of_floating_point_variables = 1;
 
 namespace {
 template <typename T>
@@ -57,17 +57,15 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "cnexp_scalar",
+        "random_variable",
         0,
         0,
-        "x_cnexp_scalar",
         0,
         0
     };
 
 
     /* NEURON global variables */
-    static neuron::container::field_index _slist1[1], _dlist1[1];
     static int mech_type;
     static Prop* _extcall_prop;
     /* _prop_id kind of shadows _extcall_prop to allow validity checking. */
@@ -77,30 +75,27 @@ namespace neuron {
 
 
     /** all global variables */
-    struct cnexp_scalar_Store {
-        double x0{};
+    struct random_variable_Store {
     };
-    static_assert(std::is_trivially_copy_constructible_v<cnexp_scalar_Store>);
-    static_assert(std::is_trivially_move_constructible_v<cnexp_scalar_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<cnexp_scalar_Store>);
-    static_assert(std::is_trivially_move_assignable_v<cnexp_scalar_Store>);
-    static_assert(std::is_trivially_destructible_v<cnexp_scalar_Store>);
-    cnexp_scalar_Store cnexp_scalar_global;
+    static_assert(std::is_trivially_copy_constructible_v<random_variable_Store>);
+    static_assert(std::is_trivially_move_constructible_v<random_variable_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<random_variable_Store>);
+    static_assert(std::is_trivially_move_assignable_v<random_variable_Store>);
+    static_assert(std::is_trivially_destructible_v<random_variable_Store>);
+    random_variable_Store random_variable_global;
     static std::vector<double> _parameter_defaults = {
     };
 
 
     /** all mechanism instance variables and global variables */
-    struct cnexp_scalar_Instance  {
-        double* x{};
-        double* Dx{};
+    struct random_variable_Instance  {
         double* v_unused{};
-        double* g_unused{};
-        cnexp_scalar_Store* global{&cnexp_scalar_global};
+        void** const* rng{};
+        random_variable_Store* global{&random_variable_global};
     };
 
 
-    struct cnexp_scalar_NodeData  {
+    struct random_variable_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -109,18 +104,15 @@ namespace neuron {
     };
 
 
-    static cnexp_scalar_Instance make_instance_cnexp_scalar(_nrn_mechanism_cache_range& _lmc) {
-        return cnexp_scalar_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>()
+    static random_variable_Instance make_instance_random_variable(_nrn_mechanism_cache_range& _lmc) {
+        return random_variable_Instance {
+            _lmc.template fpfield_ptr<0>()
         };
     }
 
 
-    static cnexp_scalar_NodeData make_node_data_cnexp_scalar(NrnThread& nt, Memb_list& _ml_arg) {
-        return cnexp_scalar_NodeData {
+    static random_variable_NodeData make_node_data_random_variable(NrnThread& nt, Memb_list& _ml_arg) {
+        return random_variable_NodeData {
             _ml_arg.nodeindices,
             nt.node_voltage_storage(),
             nt.node_d_storage(),
@@ -128,17 +120,23 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
-    void nrn_destructor_cnexp_scalar(Prop* _prop) {
+    void nrn_destructor_random_variable(Prop* _prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+        nrnran123_deletestream(_ppvar[0].literal_value<nrnran123_State*>());
     }
 
 
-    static void nrn_alloc_cnexp_scalar(Prop* _prop) {
+    static void nrn_alloc_random_variable(Prop* _prop) {
         Datum *_ppvar = nullptr;
+        _ppvar = nrn_prop_datum_alloc(mech_type, 1, _prop);
+        _nrn_mechanism_access_dparam(_prop) = _ppvar;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const _iml = 0;
-        assert(_nrn_mechanism_get_num_vars(_prop) == 4);
+        assert(_nrn_mechanism_get_num_vars(_prop) == 1);
         /*initialize range parameters*/
+        _nrn_mechanism_access_dparam(_prop) = _ppvar;
+        _ppvar[0].literal_value<nrnran123_State*>() = nrnran123_newstream();
+        nrn_mech_inst_destruct[mech_type] = nrn_destructor_random_variable;
     }
 
 
@@ -154,6 +152,7 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
+    inline double negexp_random_variable(_nrn_mechanism_cache_range& _lmc, random_variable_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -169,22 +168,63 @@ namespace neuron {
 
 
     /* declaration of user functions */
+    static void _hoc_negexp(void);
+    static double _npy_negexp(Prop*);
 
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
-        {"setdata_cnexp_scalar", _hoc_setdata},
+        {"setdata_random_variable", _hoc_setdata},
+        {"negexp_random_variable", _hoc_negexp},
         {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
+        {"negexp", _npy_negexp},
         {nullptr, nullptr}
     };
+    static void _hoc_negexp(void) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
+        _nrn_mechanism_cache_instance _lmc{_local_prop};
+        size_t const id{};
+        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
+        _thread = _extcall_thread.data();
+        nt = nrn_threads;
+        auto inst = make_instance_random_variable(_lmc);
+        _r = negexp_random_variable(_lmc, inst, id, _ppvar, _thread, nt);
+        hoc_retpushx(_r);
+    }
+    static double _npy_negexp(Prop* _prop) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        _nrn_mechanism_cache_instance _lmc{_prop};
+        size_t const id{};
+        _ppvar = _nrn_mechanism_access_dparam(_prop);
+        _thread = _extcall_thread.data();
+        nt = nrn_threads;
+        auto inst = make_instance_random_variable(_lmc);
+        _r = negexp_random_variable(_lmc, inst, id, _ppvar, _thread, nt);
+        return(_r);
+    }
 
 
-    void nrn_init_cnexp_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    inline double negexp_random_variable(_nrn_mechanism_cache_range& _lmc, random_variable_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+        double ret_negexp = 0.0;
+        auto v = inst.v_unused[id];
+        ret_negexp = nrnran123_negexp((nrnran123_State*)_ppvar[0].literal_value<nrnran123_State*>());
+        return ret_negexp;
+    }
+
+
+    void nrn_init_random_variable(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_cnexp_scalar(_lmc);
-        auto node_data = make_node_data_cnexp_scalar(*nt, *_ml_arg);
+        auto inst = make_instance_random_variable(_lmc);
+        auto node_data = make_node_data_random_variable(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
@@ -192,62 +232,39 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
             inst.v_unused[id] = v;
-            inst.x[id] = 42.0;
         }
     }
 
 
-    void nrn_state_cnexp_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_random_variable(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_cnexp_scalar(_lmc);
-        auto node_data = make_node_data_cnexp_scalar(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
-        auto* _thread = _ml_arg->_thread;
-        for (int id = 0; id < nodecount; id++) {
-            int node_id = node_data.nodeindices[id];
-            auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
-            inst.x[id] = inst.x[id] + (1.0 - exp(nt->_dt * ( -1.0))) * ( -(0.0) / ( -1.0) - inst.x[id]);
-        }
-    }
-
-
-    static void nrn_jacob_cnexp_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_cnexp_scalar(_lmc);
-        auto node_data = make_node_data_cnexp_scalar(*nt, *_ml_arg);
+        auto inst = make_instance_random_variable(_lmc);
+        auto node_data = make_node_data_random_variable(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
-            int node_id = node_data.nodeindices[id];
-            node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
 
 
     static void _initlists() {
-        /* x */
-        _slist1[0] = {0, 0};
-        /* Dx */
-        _dlist1[0] = {1, 0};
     }
 
 
     /** register channel with the simulator */
-    extern "C" void _cnexp_scalar_reg() {
+    extern "C" void _random_variable_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_cnexp_scalar, nullptr, nrn_jacob_cnexp_scalar, nrn_state_cnexp_scalar, nrn_init_cnexp_scalar, hoc_nrnpointerindex, 1);
+        register_mech(mechanism_info, nrn_alloc_random_variable, nullptr, nullptr, nullptr, nrn_init_random_variable, hoc_nrnpointerindex, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
-            _nrn_mechanism_field<double>{"x"} /* 0 */,
-            _nrn_mechanism_field<double>{"Dx"} /* 1 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 2 */,
-            _nrn_mechanism_field<double>{"g_unused"} /* 3 */
+            _nrn_mechanism_field<double>{"v_unused"} /* 0 */,
+            _nrn_mechanism_field<double*>{"rng", "random"} /* 0 */
         );
 
-        hoc_register_prop_size(mech_type, 4, 0);
+        hoc_register_prop_size(mech_type, 1, 1);
+        hoc_register_dparam_semantics(mech_type, 0, "random");
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
     }
