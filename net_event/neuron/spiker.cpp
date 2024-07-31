@@ -269,6 +269,7 @@ namespace neuron {
         hoc_register_prop_size(mech_type, 3, 2);
         hoc_register_dparam_semantics(mech_type, 0, "area");
         hoc_register_dparam_semantics(mech_type, 1, "pntproc");
+        add_nrn_has_net_event(mech_type);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         pnt_receive[mech_type] = nrn_net_receive_spiker;
         pnt_receive_size[mech_type] = 1;

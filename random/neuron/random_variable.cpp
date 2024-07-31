@@ -122,7 +122,7 @@ namespace neuron {
     }
     void nrn_destructor_random_variable(Prop* _prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
-        nrnran123_deletestream(_ppvar[0].literal_value<nrnran123_State*>());
+        nrnran123_deletestream((nrnran123_State*) _ppvar[0].literal_value<void*>());
     }
 
 
@@ -135,7 +135,7 @@ namespace neuron {
         assert(_nrn_mechanism_get_num_vars(_prop) == 1);
         /*initialize range parameters*/
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
-        _ppvar[0].literal_value<nrnran123_State*>() = nrnran123_newstream();
+        _ppvar[0].literal_value<void*>() = nrnran123_newstream();
         nrn_mech_inst_destruct[mech_type] = nrn_destructor_random_variable;
     }
 
@@ -216,7 +216,7 @@ namespace neuron {
     inline double negexp_random_variable(_nrn_mechanism_cache_range& _lmc, random_variable_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         double ret_negexp = 0.0;
         auto v = inst.v_unused[id];
-        ret_negexp = nrnran123_negexp((nrnran123_State*)_ppvar[0].literal_value<nrnran123_State*>());
+        ret_negexp = nrnran123_negexp((nrnran123_State*)_ppvar[0].literal_value<void*>());
         return ret_negexp;
     }
 
