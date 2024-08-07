@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : read_only
-Filename        : read_only.mod
+Model Name      : default_values
+Filename        : default_values.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -27,7 +27,7 @@ NMODL Compiler  : VERSION
 #define NRN_VECTORIZED 1
 
 static constexpr auto number_of_datum_variables = 0;
-static constexpr auto number_of_floating_point_variables = 4;
+static constexpr auto number_of_floating_point_variables = 7;
 
 namespace {
 template <typename T>
@@ -57,10 +57,12 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "read_only",
+        "default_values",
         0,
         0,
-        "x_read_only",
+        "X_default_values",
+        "Y_default_values",
+        "Z_default_values",
         0,
         0
     };
@@ -76,31 +78,35 @@ namespace neuron {
 
 
     /** all global variables */
-    struct read_only_Store {
-        double x0{};
-        double c{2};
+    struct default_values_Store {
+        double Y0{};
+        double X0{2};
+        double Z0{3};
     };
-    static_assert(std::is_trivially_copy_constructible_v<read_only_Store>);
-    static_assert(std::is_trivially_move_constructible_v<read_only_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<read_only_Store>);
-    static_assert(std::is_trivially_move_assignable_v<read_only_Store>);
-    static_assert(std::is_trivially_destructible_v<read_only_Store>);
-    read_only_Store read_only_global;
+    static_assert(std::is_trivially_copy_constructible_v<default_values_Store>);
+    static_assert(std::is_trivially_move_constructible_v<default_values_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<default_values_Store>);
+    static_assert(std::is_trivially_move_assignable_v<default_values_Store>);
+    static_assert(std::is_trivially_destructible_v<default_values_Store>);
+    default_values_Store default_values_global;
     static std::vector<double> _parameter_defaults = {
     };
 
 
     /** all mechanism instance variables and global variables */
-    struct read_only_Instance  {
-        double* x{};
-        double* Dx{};
+    struct default_values_Instance  {
+        double* X{};
+        double* Y{};
+        double* Z{};
+        double* DX{};
+        double* DY{};
+        double* DZ{};
         double* v_unused{};
-        double* g_unused{};
-        read_only_Store* global{&read_only_global};
+        default_values_Store* global{&default_values_global};
     };
 
 
-    struct read_only_NodeData  {
+    struct default_values_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -109,18 +115,21 @@ namespace neuron {
     };
 
 
-    static read_only_Instance make_instance_read_only(_nrn_mechanism_cache_range& _lmc) {
-        return read_only_Instance {
+    static default_values_Instance make_instance_default_values(_nrn_mechanism_cache_range& _lmc) {
+        return default_values_Instance {
             _lmc.template fpfield_ptr<0>(),
             _lmc.template fpfield_ptr<1>(),
             _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>()
+            _lmc.template fpfield_ptr<3>(),
+            _lmc.template fpfield_ptr<4>(),
+            _lmc.template fpfield_ptr<5>(),
+            _lmc.template fpfield_ptr<6>()
         };
     }
 
 
-    static read_only_NodeData make_node_data_read_only(NrnThread& nt, Memb_list& _ml_arg) {
-        return read_only_NodeData {
+    static default_values_NodeData make_node_data_default_values(NrnThread& nt, Memb_list& _ml_arg) {
+        return default_values_NodeData {
             _ml_arg.nodeindices,
             nt.node_voltage_storage(),
             nt.node_d_storage(),
@@ -130,11 +139,11 @@ namespace neuron {
     }
 
 
-    static void nrn_alloc_read_only(Prop* _prop) {
+    static void nrn_alloc_default_values(Prop* _prop) {
         Datum *_ppvar = nullptr;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const _iml = 0;
-        assert(_nrn_mechanism_get_num_vars(_prop) == 4);
+        assert(_nrn_mechanism_get_num_vars(_prop) == 7);
         /*initialize range parameters*/
     }
 
@@ -155,7 +164,8 @@ namespace neuron {
 
     /** connect global (scalar) variables to hoc -- */
     static DoubScal hoc_scalar_double[] = {
-        {"c_read_only", &read_only_global.c},
+        {"X0_default_values", &default_values_global.X0},
+        {"Z0_default_values", &default_values_global.Z0},
         {nullptr, nullptr}
     };
 
@@ -171,7 +181,7 @@ namespace neuron {
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
-        {"setdata_read_only", _hoc_setdata},
+        {"setdata_default_values", _hoc_setdata},
         {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
@@ -179,10 +189,10 @@ namespace neuron {
     };
 
 
-    void nrn_init_read_only(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    void nrn_init_default_values(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_read_only(_lmc);
-        auto node_data = make_node_data_read_only(*nt, *_ml_arg);
+        auto inst = make_instance_default_values(_lmc);
+        auto node_data = make_node_data_default_values(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
@@ -190,35 +200,19 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
             inst.v_unused[id] = v;
-            inst.x[id] = inst.global->x0;
-            inst.x[id] = 42.0;
+            inst.X[id] = inst.global->X0;
+            inst.Y[id] = inst.global->Y0;
+            inst.Z[id] = inst.global->Z0;
         }
     }
 
 
-    void nrn_state_read_only(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_default_values(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_read_only(_lmc);
-        auto node_data = make_node_data_read_only(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
-        auto* _thread = _ml_arg->_thread;
-        for (int id = 0; id < nodecount; id++) {
-            int node_id = node_data.nodeindices[id];
-            auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
-            inst.x[id] = inst.global->c;
-        }
-    }
-
-
-    static void nrn_jacob_read_only(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_read_only(_lmc);
-        auto node_data = make_node_data_read_only(*nt, *_ml_arg);
+        auto inst = make_instance_default_values(_lmc);
+        auto node_data = make_node_data_default_values(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
-            int node_id = node_data.nodeindices[id];
-            node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
 
@@ -228,21 +222,24 @@ namespace neuron {
 
 
     /** register channel with the simulator */
-    extern "C" void _read_only_reg() {
+    extern "C" void _default_values_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_read_only, nullptr, nrn_jacob_read_only, nrn_state_read_only, nrn_init_read_only, hoc_nrnpointerindex, 1);
+        register_mech(mechanism_info, nrn_alloc_default_values, nullptr, nullptr, nullptr, nrn_init_default_values, hoc_nrnpointerindex, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
-            _nrn_mechanism_field<double>{"x"} /* 0 */,
-            _nrn_mechanism_field<double>{"Dx"} /* 1 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 2 */,
-            _nrn_mechanism_field<double>{"g_unused"} /* 3 */
+            _nrn_mechanism_field<double>{"X"} /* 0 */,
+            _nrn_mechanism_field<double>{"Y"} /* 1 */,
+            _nrn_mechanism_field<double>{"Z"} /* 2 */,
+            _nrn_mechanism_field<double>{"DX"} /* 3 */,
+            _nrn_mechanism_field<double>{"DY"} /* 4 */,
+            _nrn_mechanism_field<double>{"DZ"} /* 5 */,
+            _nrn_mechanism_field<double>{"v_unused"} /* 6 */
         );
 
-        hoc_register_prop_size(mech_type, 4, 0);
+        hoc_register_prop_size(mech_type, 7, 0);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
     }
