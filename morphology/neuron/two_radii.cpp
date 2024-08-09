@@ -78,6 +78,7 @@ namespace neuron {
 
     /** all global variables */
     struct two_radii_Store {
+        Symbol* morphology_sym;
     };
     static_assert(std::is_trivially_copy_constructible_v<two_radii_Store>);
     static_assert(std::is_trivially_move_constructible_v<two_radii_Store>);
@@ -142,8 +143,7 @@ namespace neuron {
         assert(_nrn_mechanism_get_num_vars(_prop) == 4);
         /*initialize range parameters*/
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
-        Symbol * morphology_sym = hoc_lookup("morphology");
-        Prop * morphology_prop = need_memb(morphology_sym);
+        Prop * morphology_prop = need_memb(two_radii_global.morphology_sym);
         _ppvar[0] = _nrn_mechanism_get_param_handle(morphology_prop, 0);
         _ppvar[1] = _nrn_mechanism_get_area_handle(nrn_alloc_node_);
     }
@@ -369,5 +369,6 @@ namespace neuron {
         hoc_register_dparam_semantics(mech_type, 1, "area");
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
+        two_radii_global.morphology_sym = hoc_lookup("morphology");
     }
 }
