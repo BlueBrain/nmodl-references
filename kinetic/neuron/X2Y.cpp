@@ -724,6 +724,8 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
             inst.v_unused[id] = v;
+            inst.X[id] = inst.global->X0;
+            inst.Y[id] = inst.global->Y0;
             inst.X[id] = 0.0;
             inst.Y[id] = 1.0;
             inst.c1[id] = 0.0;
