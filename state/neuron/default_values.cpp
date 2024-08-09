@@ -27,7 +27,7 @@ NMODL Compiler  : VERSION
 #define NRN_VECTORIZED 1
 
 static constexpr auto number_of_datum_variables = 0;
-static constexpr auto number_of_floating_point_variables = 7;
+static constexpr auto number_of_floating_point_variables = 11;
 
 namespace {
 template <typename T>
@@ -63,6 +63,8 @@ namespace neuron {
         "X_default_values",
         "Y_default_values",
         "Z_default_values",
+        "A_default_values[3]",
+        "B_default_values[2]",
         0,
         0
     };
@@ -82,6 +84,8 @@ namespace neuron {
         double Y0{};
         double X0{2};
         double Z0{3};
+        double A0{4};
+        double B0{5};
     };
     static_assert(std::is_trivially_copy_constructible_v<default_values_Store>);
     static_assert(std::is_trivially_move_constructible_v<default_values_Store>);
@@ -98,9 +102,13 @@ namespace neuron {
         double* X{};
         double* Y{};
         double* Z{};
+        double* A{};
+        double* B{};
         double* DX{};
         double* DY{};
         double* DZ{};
+        double* DA{};
+        double* DB{};
         double* v_unused{};
         default_values_Store* global{&default_values_global};
     };
@@ -120,10 +128,14 @@ namespace neuron {
             _lmc.template fpfield_ptr<0>(),
             _lmc.template fpfield_ptr<1>(),
             _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>(),
-            _lmc.template fpfield_ptr<4>(),
+            _lmc.template data_array_ptr<3, 3>(),
+            _lmc.template data_array_ptr<4, 2>(),
             _lmc.template fpfield_ptr<5>(),
-            _lmc.template fpfield_ptr<6>()
+            _lmc.template fpfield_ptr<6>(),
+            _lmc.template fpfield_ptr<7>(),
+            _lmc.template data_array_ptr<8, 3>(),
+            _lmc.template data_array_ptr<9, 2>(),
+            _lmc.template fpfield_ptr<10>()
         };
     }
 
@@ -143,7 +155,7 @@ namespace neuron {
         Datum *_ppvar = nullptr;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const _iml = 0;
-        assert(_nrn_mechanism_get_num_vars(_prop) == 7);
+        assert(_nrn_mechanism_get_num_vars(_prop) == 11);
         /*initialize range parameters*/
     }
 
@@ -166,6 +178,8 @@ namespace neuron {
     static DoubScal hoc_scalar_double[] = {
         {"X0_default_values", &default_values_global.X0},
         {"Z0_default_values", &default_values_global.Z0},
+        {"A0_default_values", &default_values_global.A0},
+        {"B0_default_values", &default_values_global.B0},
         {nullptr, nullptr}
     };
 
@@ -203,6 +217,14 @@ namespace neuron {
             inst.X[id] = inst.global->X0;
             inst.Y[id] = inst.global->Y0;
             inst.Z[id] = inst.global->Z0;
+            for(size_t _i = 0; _i < 3; ++_i) {
+                (inst.A+id*3)[_i] = inst.global->A0;
+            }
+            for(size_t _i = 0; _i < 2; ++_i) {
+                (inst.B+id*2)[_i] = inst.global->B0;
+            }
+            inst.Z[id] = 7.0;
+            (inst.B+id*2)[static_cast<int>(1)] = 8.0;
         }
     }
 
@@ -233,13 +255,17 @@ namespace neuron {
             _nrn_mechanism_field<double>{"X"} /* 0 */,
             _nrn_mechanism_field<double>{"Y"} /* 1 */,
             _nrn_mechanism_field<double>{"Z"} /* 2 */,
-            _nrn_mechanism_field<double>{"DX"} /* 3 */,
-            _nrn_mechanism_field<double>{"DY"} /* 4 */,
-            _nrn_mechanism_field<double>{"DZ"} /* 5 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 6 */
+            _nrn_mechanism_field<double>{"A", 3} /* 3 */,
+            _nrn_mechanism_field<double>{"B", 2} /* 4 */,
+            _nrn_mechanism_field<double>{"DX"} /* 5 */,
+            _nrn_mechanism_field<double>{"DY"} /* 6 */,
+            _nrn_mechanism_field<double>{"DZ"} /* 7 */,
+            _nrn_mechanism_field<double>{"DA", 3} /* 8 */,
+            _nrn_mechanism_field<double>{"DB", 2} /* 9 */,
+            _nrn_mechanism_field<double>{"v_unused"} /* 10 */
         );
 
-        hoc_register_prop_size(mech_type, 7, 0);
+        hoc_register_prop_size(mech_type, 17, 0);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
     }

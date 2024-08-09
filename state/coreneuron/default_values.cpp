@@ -42,6 +42,8 @@ namespace coreneuron {
         "X_default_values",
         "Y_default_values",
         "Z_default_values",
+        "A_default_values[3]",
+        "B_default_values[2]",
         0,
         0
     };
@@ -54,6 +56,8 @@ namespace coreneuron {
         int mech_type{};
         double X0{2};
         double Z0{3};
+        double A0{4};
+        double B0{5};
     };
     static_assert(std::is_trivially_copy_constructible_v<default_values_Store>);
     static_assert(std::is_trivially_move_constructible_v<default_values_Store>);
@@ -68,9 +72,13 @@ namespace coreneuron {
         double* X{};
         double* Y{};
         double* Z{};
+        double* A{};
+        double* B{};
         double* DX{};
         double* DY{};
         double* DZ{};
+        double* DA{};
+        double* DB{};
         double* v_unused{};
         default_values_Store* global{&default_values_global};
     };
@@ -80,6 +88,8 @@ namespace coreneuron {
     static DoubScal hoc_scalar_double[] = {
         {"X0_default_values", &default_values_global.X0},
         {"Z0_default_values", &default_values_global.Z0},
+        {"A0_default_values", &default_values_global.A0},
+        {"B0_default_values", &default_values_global.B0},
         {nullptr, nullptr}
     };
 
@@ -101,7 +111,7 @@ namespace coreneuron {
 
 
     static inline int float_variables_size() {
-        return 7;
+        return 17;
     }
 
 
@@ -179,10 +189,14 @@ namespace coreneuron {
         inst->X = ml->data+0*pnodecount;
         inst->Y = ml->data+1*pnodecount;
         inst->Z = ml->data+2*pnodecount;
-        inst->DX = ml->data+3*pnodecount;
-        inst->DY = ml->data+4*pnodecount;
-        inst->DZ = ml->data+5*pnodecount;
-        inst->v_unused = ml->data+6*pnodecount;
+        inst->A = ml->data+3*pnodecount;
+        inst->B = ml->data+6*pnodecount;
+        inst->DX = ml->data+8*pnodecount;
+        inst->DY = ml->data+9*pnodecount;
+        inst->DZ = ml->data+10*pnodecount;
+        inst->DA = ml->data+11*pnodecount;
+        inst->DB = ml->data+14*pnodecount;
+        inst->v_unused = ml->data+16*pnodecount;
     }
 
 
@@ -247,6 +261,13 @@ namespace coreneuron {
                 inst->X[id] = inst->global->X0;
                 inst->Y[id] = inst->global->Y0;
                 inst->Z[id] = inst->global->Z0;
+                (inst->A+id*3)[0] = inst->global->A0;
+                (inst->A+id*3)[1] = inst->global->A0;
+                (inst->A+id*3)[2] = inst->global->A0;
+                (inst->B+id*2)[0] = inst->global->B0;
+                (inst->B+id*2)[1] = inst->global->B0;
+                inst->Z[id] = 7.0;
+                (inst->B+id*2)[static_cast<int>(1)] = 8.0;
             }
         }
     }
