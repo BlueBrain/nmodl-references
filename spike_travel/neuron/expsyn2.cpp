@@ -141,6 +141,9 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    void nrn_destructor_ExpSyn2(Prop* _prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+    }
 
 
     static void nrn_alloc_ExpSyn2(Prop* _prop) {

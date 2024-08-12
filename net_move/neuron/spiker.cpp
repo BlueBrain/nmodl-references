@@ -127,6 +127,9 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    void nrn_destructor_spiker(Prop* _prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+    }
 
 
     static void nrn_alloc_spiker(Prop* _prop) {
