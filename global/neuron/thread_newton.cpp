@@ -697,6 +697,7 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
             inst.v_unused[id] = v;
+            inst.X[id] = inst.global->X0;
             double total;
             inst.X[id] = 0.0;
             _thread_vars.c(id) = 42.0;
@@ -725,6 +726,7 @@ namespace neuron {
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
             inst.X[id] = nmodl_eigen_x[static_cast<int>(0)];
+            newton_functor.initialize(); // TODO mimic calling F again.
             newton_functor.finalize();
 
             inst.x[id] = inst.X[id];
