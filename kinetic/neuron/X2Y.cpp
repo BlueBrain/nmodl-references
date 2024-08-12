@@ -785,6 +785,7 @@ namespace neuron {
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
             inst.X[id] = nmodl_eigen_x[static_cast<int>(0)];
             inst.Y[id] = nmodl_eigen_x[static_cast<int>(1)];
+            newton_functor.initialize(); // TODO mimic calling F again.
             newton_functor.finalize();
 
         }
