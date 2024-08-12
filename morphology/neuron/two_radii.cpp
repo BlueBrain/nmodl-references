@@ -132,6 +132,9 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    void nrn_destructor_two_radii(Prop* _prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+    }
 
 
     static void nrn_alloc_two_radii(Prop* _prop) {

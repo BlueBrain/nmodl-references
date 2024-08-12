@@ -128,6 +128,9 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    void nrn_destructor_leonhard(Prop* _prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+    }
 
 
     static void nrn_alloc_leonhard(Prop* _prop) {

@@ -122,6 +122,9 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    void nrn_destructor_point_suffix(Prop* _prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+    }
 
 
     static void nrn_alloc_point_suffix(Prop* _prop) {

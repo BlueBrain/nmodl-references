@@ -577,6 +577,9 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    void nrn_destructor_side_effects(Prop* _prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+    }
 
 
     static void nrn_alloc_side_effects(Prop* _prop) {

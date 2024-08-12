@@ -146,6 +146,9 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    void nrn_destructor_top_local(Prop* _prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+    }
 
 
     static void nrn_alloc_top_local(Prop* _prop) {

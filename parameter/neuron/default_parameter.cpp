@@ -133,6 +133,9 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    void nrn_destructor_default_parameter(Prop* _prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+    }
 
 
     static void nrn_alloc_default_parameter(Prop* _prop) {
