@@ -440,6 +440,9 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
             inst.v_unused[id] = v;
+            inst.m[id] = inst.global->m0;
+            inst.h[id] = inst.global->h0;
+            inst.n[id] = inst.global->n0;
             inst.ena[id] = (*inst.ion_ena[id]);
             inst.ek[id] = (*inst.ion_ek[id]);
             rates_hodhux(_lmc, inst, id, _ppvar, _thread, nt, v);

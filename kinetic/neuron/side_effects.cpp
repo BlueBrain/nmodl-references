@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : thread_newton
-Filename        : thread_newton.mod
+Model Name      : side_effects
+Filename        : side_effects.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -452,14 +452,13 @@ EIGEN_DEVICE_FUNC int newton_solver(Eigen::Matrix<double, 4, 1>& X,
 #include "neuron/cache/mechanism_range.hpp"
 #include "nrniv_mf.h"
 #include "section_fwd.hpp"
-extern void _nrn_thread_reg(int, int, void(*)(Datum*));
 
 /* NEURON global macro definitions */
 /* VECTORIZED */
 #define NRN_VECTORIZED 1
 
 static constexpr auto number_of_datum_variables = 0;
-static constexpr auto number_of_floating_point_variables = 5;
+static constexpr auto number_of_floating_point_variables = 10;
 
 namespace {
 template <typename T>
@@ -489,18 +488,22 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "thread_newton",
+        "side_effects",
         0,
-        "x_thread_newton",
+        "il_side_effects",
+        "x_side_effects",
+        "forward_flux_side_effects",
+        "backward_flux_side_effects",
         0,
-        "X_thread_newton",
+        "X_side_effects",
+        "Y_side_effects",
         0,
         0
     };
 
 
     /* NEURON global variables */
-    static neuron::container::field_index _slist1[1], _dlist1[1];
+    static neuron::container::field_index _slist1[2], _dlist1[2];
     static int mech_type;
     static Prop* _extcall_prop;
     /* _prop_id kind of shadows _extcall_prop to allow validity checking. */
@@ -510,33 +513,37 @@ namespace neuron {
 
 
     /** all global variables */
-    struct thread_newton_Store {
-        int thread_data_in_use{};
-        double thread_data[1];
+    struct side_effects_Store {
         double X0{};
+        double Y0{};
     };
-    static_assert(std::is_trivially_copy_constructible_v<thread_newton_Store>);
-    static_assert(std::is_trivially_move_constructible_v<thread_newton_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<thread_newton_Store>);
-    static_assert(std::is_trivially_move_assignable_v<thread_newton_Store>);
-    static_assert(std::is_trivially_destructible_v<thread_newton_Store>);
-    thread_newton_Store thread_newton_global;
+    static_assert(std::is_trivially_copy_constructible_v<side_effects_Store>);
+    static_assert(std::is_trivially_move_constructible_v<side_effects_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<side_effects_Store>);
+    static_assert(std::is_trivially_move_assignable_v<side_effects_Store>);
+    static_assert(std::is_trivially_destructible_v<side_effects_Store>);
+    side_effects_Store side_effects_global;
     static std::vector<double> _parameter_defaults = {
     };
 
 
     /** all mechanism instance variables and global variables */
-    struct thread_newton_Instance  {
+    struct side_effects_Instance  {
+        double* il{};
         double* x{};
+        double* forward_flux{};
+        double* backward_flux{};
         double* X{};
+        double* Y{};
         double* DX{};
+        double* DY{};
         double* v_unused{};
         double* g_unused{};
-        thread_newton_Store* global{&thread_newton_global};
+        side_effects_Store* global{&side_effects_global};
     };
 
 
-    struct thread_newton_NodeData  {
+    struct side_effects_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -545,35 +552,24 @@ namespace neuron {
     };
 
 
-    struct thread_newton_ThreadVariables  {
-        double * thread_data;
-
-        double * c_ptr(size_t id) {
-            return thread_data + 0 + (id % 1);
-        }
-        double & c(size_t id) {
-            return thread_data[0 + (id % 1)];
-        }
-
-        thread_newton_ThreadVariables(double * const thread_data) {
-            this->thread_data = thread_data;
-        }
-    };
-
-
-    static thread_newton_Instance make_instance_thread_newton(_nrn_mechanism_cache_range& _lmc) {
-        return thread_newton_Instance {
+    static side_effects_Instance make_instance_side_effects(_nrn_mechanism_cache_range& _lmc) {
+        return side_effects_Instance {
             _lmc.template fpfield_ptr<0>(),
             _lmc.template fpfield_ptr<1>(),
             _lmc.template fpfield_ptr<2>(),
             _lmc.template fpfield_ptr<3>(),
-            _lmc.template fpfield_ptr<4>()
+            _lmc.template fpfield_ptr<4>(),
+            _lmc.template fpfield_ptr<5>(),
+            _lmc.template fpfield_ptr<6>(),
+            _lmc.template fpfield_ptr<7>(),
+            _lmc.template fpfield_ptr<8>(),
+            _lmc.template fpfield_ptr<9>()
         };
     }
 
 
-    static thread_newton_NodeData make_node_data_thread_newton(NrnThread& nt, Memb_list& _ml_arg) {
-        return thread_newton_NodeData {
+    static side_effects_NodeData make_node_data_side_effects(NrnThread& nt, Memb_list& _ml_arg) {
+        return side_effects_NodeData {
             _ml_arg.nodeindices,
             nt.node_voltage_storage(),
             nt.node_d_storage(),
@@ -583,11 +579,11 @@ namespace neuron {
     }
 
 
-    static void nrn_alloc_thread_newton(Prop* _prop) {
+    static void nrn_alloc_side_effects(Prop* _prop) {
         Datum *_ppvar = nullptr;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const _iml = 0;
-        assert(_nrn_mechanism_get_num_vars(_prop) == 5);
+        assert(_nrn_mechanism_get_num_vars(_prop) == 10);
         /*initialize range parameters*/
     }
 
@@ -606,31 +602,39 @@ namespace neuron {
     /* Mechanism procedures and functions */
 
 
-    struct functor_thread_newton_0 {
+    struct functor_side_effects_0 {
         _nrn_mechanism_cache_range& _lmc;
-        thread_newton_Instance& inst;
+        side_effects_Instance& inst;
         size_t id;
         Datum* _ppvar;
         Datum* _thread;
-        thread_newton_ThreadVariables& _thread_vars;
         NrnThread* nt;
         double v;
-        double source0_, old_X;
+        double kf0_, kb0_, old_X, old_Y;
 
         void initialize() {
-            source0_ = _thread_vars.c(id);
+            kf0_ = 0.4;
+            kb0_ = 0.5;
+            inst.forward_flux[id] = kf0_ * inst.X[id];
+            inst.backward_flux[id] = kb0_ * inst.Y[id];
+            inst.x[id] = inst.X[id];
             old_X = inst.X[id];
+            old_Y = inst.Y[id];
         }
 
-        functor_thread_newton_0(_nrn_mechanism_cache_range& _lmc, thread_newton_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, thread_newton_ThreadVariables& _thread_vars, NrnThread* nt, double v)
-            : _lmc(_lmc), inst(inst), id(id), _ppvar(_ppvar), _thread(_thread), _thread_vars(_thread_vars), nt(nt), v(v)
+        functor_side_effects_0(_nrn_mechanism_cache_range& _lmc, side_effects_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v)
+            : _lmc(_lmc), inst(inst), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt), v(v)
         {}
-        void operator()(const Eigen::Matrix<double, 1, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_jm) const {
+        void operator()(const Eigen::Matrix<double, 2, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 2, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 2, 2>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
             double* nmodl_eigen_j = nmodl_eigen_jm.data();
             double* nmodl_eigen_f = nmodl_eigen_fm.data();
-            nmodl_eigen_f[static_cast<int>(0)] =  -nmodl_eigen_x[static_cast<int>(0)] + nt->_dt * source0_ + old_X;
-            nmodl_eigen_j[static_cast<int>(0)] =  -1.0;
+            nmodl_eigen_f[static_cast<int>(0)] =  -nmodl_eigen_x[static_cast<int>(0)] * nt->_dt * kf0_ - nmodl_eigen_x[static_cast<int>(0)] + nmodl_eigen_x[static_cast<int>(1)] * nt->_dt * kb0_ + old_X;
+            nmodl_eigen_j[static_cast<int>(0)] =  -nt->_dt * kf0_ - 1.0;
+            nmodl_eigen_j[static_cast<int>(2)] = nt->_dt * kb0_;
+            nmodl_eigen_f[static_cast<int>(1)] = nmodl_eigen_x[static_cast<int>(0)] * nt->_dt * kf0_ - nmodl_eigen_x[static_cast<int>(1)] * nt->_dt * kb0_ - nmodl_eigen_x[static_cast<int>(1)] + old_Y;
+            nmodl_eigen_j[static_cast<int>(1)] = nt->_dt * kf0_;
+            nmodl_eigen_j[static_cast<int>(3)] =  -nt->_dt * kb0_ - 1.0;
         }
 
         void finalize() {
@@ -640,7 +644,6 @@ namespace neuron {
 
     /** connect global (scalar) variables to hoc -- */
     static DoubScal hoc_scalar_double[] = {
-        {"c_thread_newton", &thread_newton_global.thread_data[0]},
         {nullptr, nullptr}
     };
 
@@ -656,85 +659,95 @@ namespace neuron {
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
-        {"setdata_thread_newton", _hoc_setdata},
+        {"setdata_side_effects", _hoc_setdata},
         {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
         {nullptr, nullptr}
     };
-    static void thread_mem_init(Datum* _thread)  {
-        if(thread_newton_global.thread_data_in_use) {
-            _thread[0] = {neuron::container::do_not_search, new double[1]{}};
-        }
-        else {
-            _thread[0] = {neuron::container::do_not_search, thread_newton_global.thread_data};
-            thread_newton_global.thread_data_in_use = 1;
-        }
-    }
-    static void thread_mem_cleanup(Datum* _thread)  {
-        double * _thread_data_ptr = _thread[0].get<double*>();
-        if(_thread_data_ptr == thread_newton_global.thread_data) {
-            thread_newton_global.thread_data_in_use = 0;
-        }
-        else {
-            delete[] _thread_data_ptr;
-        }
-    }
 
 
-    void nrn_init_thread_newton(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    void nrn_init_side_effects(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_thread_newton(_lmc);
-        auto node_data = make_node_data_thread_newton(*nt, *_ml_arg);
+        auto inst = make_instance_side_effects(_lmc);
+        auto node_data = make_node_data_side_effects(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
-        auto _thread_vars = thread_newton_ThreadVariables(_thread[0].get<double*>());
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
             inst.v_unused[id] = v;
             inst.X[id] = inst.global->X0;
-            double total;
-            inst.X[id] = 0.0;
-            _thread_vars.c(id) = 42.0;
+            inst.Y[id] = inst.global->Y0;
+            inst.X[id] = 1.0;
+            inst.Y[id] = 2.0;
         }
     }
 
 
-    void nrn_state_thread_newton(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    inline double nrn_current_side_effects(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, side_effects_Instance& inst, side_effects_NodeData& node_data, double v) {
+        double current = 0.0;
+        inst.il[id] = inst.forward_flux[id] - inst.backward_flux[id];
+        current += inst.il[id];
+        return current;
+    }
+
+
+    /** update current */
+    void nrn_cur_side_effects(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_thread_newton(_lmc);
-        auto node_data = make_node_data_thread_newton(*nt, *_ml_arg);
+        auto inst = make_instance_side_effects(_lmc);
+        auto node_data = make_node_data_side_effects(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
-        auto _thread_vars = thread_newton_ThreadVariables(_thread[0].get<double*>());
+        for (int id = 0; id < nodecount; id++) {
+            int node_id = node_data.nodeindices[id];
+            double v = node_data.node_voltages[node_id];
+            auto* _ppvar = _ml_arg->pdata[id];
+            double I1 = nrn_current_side_effects(_lmc, nt, _ppvar, _thread, id, inst, node_data, v+0.001);
+            double I0 = nrn_current_side_effects(_lmc, nt, _ppvar, _thread, id, inst, node_data, v);
+            double rhs = I0;
+            double g = (I1-I0)/0.001;
+            node_data.node_rhs[node_id] -= rhs;
+            inst.g_unused[id] = g;
+        }
+    }
+
+
+    void nrn_state_side_effects(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        auto inst = make_instance_side_effects(_lmc);
+        auto node_data = make_node_data_side_effects(*nt, *_ml_arg);
+        auto nodecount = _ml_arg->nodecount;
+        auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
             
-            Eigen::Matrix<double, 1, 1> nmodl_eigen_xm;
+            Eigen::Matrix<double, 2, 1> nmodl_eigen_xm;
             double* nmodl_eigen_x = nmodl_eigen_xm.data();
             nmodl_eigen_x[static_cast<int>(0)] = inst.X[id];
+            nmodl_eigen_x[static_cast<int>(1)] = inst.Y[id];
             // call newton solver
-            functor_thread_newton_0 newton_functor(_lmc, inst, id, _ppvar, _thread, _thread_vars, nt, v);
+            functor_side_effects_0 newton_functor(_lmc, inst, id, _ppvar, _thread, nt, v);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
             inst.X[id] = nmodl_eigen_x[static_cast<int>(0)];
+            inst.Y[id] = nmodl_eigen_x[static_cast<int>(1)];
             newton_functor.initialize(); // TODO mimic calling F again.
             newton_functor.finalize();
 
-            inst.x[id] = inst.X[id];
         }
     }
 
 
-    static void nrn_jacob_thread_newton(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_side_effects(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_thread_newton(_lmc);
-        auto node_data = make_node_data_thread_newton(*nt, *_ml_arg);
+        auto inst = make_instance_side_effects(_lmc);
+        auto node_data = make_node_data_side_effects(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
@@ -745,32 +758,39 @@ namespace neuron {
 
     static void _initlists() {
         /* X */
-        _slist1[0] = {1, 0};
+        _slist1[0] = {4, 0};
         /* DX */
-        _dlist1[0] = {2, 0};
+        _dlist1[0] = {6, 0};
+        /* Y */
+        _slist1[1] = {5, 0};
+        /* DY */
+        _dlist1[1] = {7, 0};
     }
 
 
     /** register channel with the simulator */
-    extern "C" void _thread_newton_reg() {
+    extern "C" void _side_effects_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_thread_newton, nullptr, nrn_jacob_thread_newton, nrn_state_thread_newton, nrn_init_thread_newton, hoc_nrnpointerindex, 2);
+        register_mech(mechanism_info, nrn_alloc_side_effects, nrn_cur_side_effects, nrn_jacob_side_effects, nrn_state_side_effects, nrn_init_side_effects, hoc_nrnpointerindex, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
-            _nrn_mechanism_field<double>{"x"} /* 0 */,
-            _nrn_mechanism_field<double>{"X"} /* 1 */,
-            _nrn_mechanism_field<double>{"DX"} /* 2 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 3 */,
-            _nrn_mechanism_field<double>{"g_unused"} /* 4 */
+            _nrn_mechanism_field<double>{"il"} /* 0 */,
+            _nrn_mechanism_field<double>{"x"} /* 1 */,
+            _nrn_mechanism_field<double>{"forward_flux"} /* 2 */,
+            _nrn_mechanism_field<double>{"backward_flux"} /* 3 */,
+            _nrn_mechanism_field<double>{"X"} /* 4 */,
+            _nrn_mechanism_field<double>{"Y"} /* 5 */,
+            _nrn_mechanism_field<double>{"DX"} /* 6 */,
+            _nrn_mechanism_field<double>{"DY"} /* 7 */,
+            _nrn_mechanism_field<double>{"v_unused"} /* 8 */,
+            _nrn_mechanism_field<double>{"g_unused"} /* 9 */
         );
 
-        hoc_register_prop_size(mech_type, 5, 0);
+        hoc_register_prop_size(mech_type, 10, 0);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
-        _nrn_thread_reg(mech_type, 1, thread_mem_init);
-        _nrn_thread_reg(mech_type, 0, thread_mem_cleanup);
     }
 }
