@@ -576,6 +576,9 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    void nrn_destructor_X2Y(Prop* _prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+    }
 
 
     static void nrn_alloc_X2Y(Prop* _prop) {
@@ -724,6 +727,8 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
             inst.v_unused[id] = v;
+            inst.X[id] = inst.global->X0;
+            inst.Y[id] = inst.global->Y0;
             inst.X[id] = 0.0;
             inst.Y[id] = 1.0;
             inst.c1[id] = 0.0;
@@ -783,6 +788,7 @@ namespace neuron {
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
             inst.X[id] = nmodl_eigen_x[static_cast<int>(0)];
             inst.Y[id] = nmodl_eigen_x[static_cast<int>(1)];
+            newton_functor.initialize(); // TODO mimic calling F again.
             newton_functor.finalize();
 
         }
