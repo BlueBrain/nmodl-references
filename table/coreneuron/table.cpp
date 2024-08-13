@@ -250,7 +250,7 @@ namespace coreneuron {
     }
 
 
-    void lazy_update_sigmoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
+    void update_table_sigmoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
         if (inst->global->usetable == 0) {
             return;
         }
@@ -310,7 +310,7 @@ namespace coreneuron {
     }
 
 
-    void lazy_update_sinusoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
+    void update_table_sinusoidal_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
         if (inst->global->usetable == 0) {
             return;
         }
@@ -373,7 +373,7 @@ namespace coreneuron {
     }
 
 
-    void lazy_update_quadratic_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
+    void update_table_quadratic_tbl(int id, int pnodecount, tbl_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
         if (inst->global->usetable == 0) {
             return;
         }
@@ -517,9 +517,9 @@ namespace coreneuron {
         setup_instance(nt, ml);
         auto* const inst = static_cast<tbl_Instance*>(ml->instance);
         double v = 0;
-        lazy_update_sigmoidal_tbl(id, pnodecount, inst, data, indexes, thread, nt, v);
-        lazy_update_quadratic_tbl(id, pnodecount, inst, data, indexes, thread, nt, v);
-        lazy_update_sinusoidal_tbl(id, pnodecount, inst, data, indexes, thread, nt, v);
+        update_table_sigmoidal_tbl(id, pnodecount, inst, data, indexes, thread, nt, v);
+        update_table_quadratic_tbl(id, pnodecount, inst, data, indexes, thread, nt, v);
+        update_table_sinusoidal_tbl(id, pnodecount, inst, data, indexes, thread, nt, v);
     }
 
 

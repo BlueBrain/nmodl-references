@@ -15,6 +15,7 @@ NMODL Compiler  : VERSION
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <vector>
 
 /**
  * \dir
@@ -457,7 +458,7 @@ EIGEN_DEVICE_FUNC int newton_solver(Eigen::Matrix<double, 4, 1>& X,
 #define NRN_VECTORIZED 1
 
 static constexpr auto number_of_datum_variables = 0;
-static constexpr auto number_of_floating_point_variables = 8;
+static constexpr auto number_of_floating_point_variables = 10;
 
 namespace {
 template <typename T>
@@ -490,6 +491,8 @@ namespace neuron {
         "X2Y",
         0,
         "il_X2Y",
+        "c1_X2Y",
+        "c2_X2Y",
         0,
         "X_X2Y",
         "Y_X2Y",
@@ -519,11 +522,15 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<X2Y_Store>);
     static_assert(std::is_trivially_destructible_v<X2Y_Store>);
     X2Y_Store X2Y_global;
+    static std::vector<double> _parameter_defaults = {
+    };
 
 
     /** all mechanism instance variables and global variables */
     struct X2Y_Instance  {
         double* il{};
+        double* c1{};
+        double* c2{};
         double* X{};
         double* Y{};
         double* DX{};
@@ -553,7 +560,9 @@ namespace neuron {
             _lmc.template fpfield_ptr<4>(),
             _lmc.template fpfield_ptr<5>(),
             _lmc.template fpfield_ptr<6>(),
-            _lmc.template fpfield_ptr<7>()
+            _lmc.template fpfield_ptr<7>(),
+            _lmc.template fpfield_ptr<8>(),
+            _lmc.template fpfield_ptr<9>()
         };
     }
 
@@ -567,13 +576,16 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    void nrn_destructor_X2Y(Prop* _prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+    }
 
 
     static void nrn_alloc_X2Y(Prop* _prop) {
         Datum *_ppvar = nullptr;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const _iml = 0;
-        assert(_nrn_mechanism_get_num_vars(_prop) == 8);
+        assert(_nrn_mechanism_get_num_vars(_prop) == 10);
         /*initialize range parameters*/
     }
 
@@ -590,26 +602,30 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
+    inline int rates_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
 
 
     struct functor_X2Y_0 {
-        NrnThread* nt;
+        _nrn_mechanism_cache_range& _lmc;
         X2Y_Instance& inst;
-        int id;
-        double v;
+        size_t id;
+        Datum* _ppvar;
         Datum* _thread;
+        NrnThread* nt;
+        double v;
         double kf0_, kb0_, old_X, old_Y;
 
         void initialize() {
-            kf0_ = 0.4;
-            kb0_ = 0.5;
+            rates_X2Y(_lmc, inst, id, _ppvar, _thread, nt);
+            kf0_ = inst.c1[id];
+            kb0_ = inst.c2[id];
             inst.i[id] = (kf0_ * inst.X[id] - kb0_ * inst.Y[id]);
             old_X = inst.X[id];
             old_Y = inst.Y[id];
         }
 
-        functor_X2Y_0(NrnThread* nt, X2Y_Instance& inst, int id, double v, Datum* _thread)
-            : nt(nt), inst(inst), id(id), v(v), _thread(_thread)
+        functor_X2Y_0(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v)
+            : _lmc(_lmc), inst(inst), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt), v(v)
         {}
         void operator()(const Eigen::Matrix<double, 2, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 2, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 2, 2>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
@@ -641,16 +657,63 @@ namespace neuron {
 
 
     /* declaration of user functions */
+    static void _hoc_rates(void);
+    static double _npy_rates(Prop*);
 
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
         {"setdata_X2Y", _hoc_setdata},
+        {"rates_X2Y", _hoc_rates},
         {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
+        {"rates", _npy_rates},
         {nullptr, nullptr}
     };
+    static void _hoc_rates(void) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        if (!_prop_id) {
+            hoc_execerror("No data for rates_X2Y. Requires prior call to setdata_X2Y and that the specified mechanism instance still be in existence.", NULL);
+        }
+        Prop* _local_prop = _extcall_prop;
+        _nrn_mechanism_cache_instance _lmc{_local_prop};
+        size_t const id{};
+        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
+        _thread = _extcall_thread.data();
+        nt = nrn_threads;
+        auto inst = make_instance_X2Y(_lmc);
+        _r = 1.;
+        rates_X2Y(_lmc, inst, id, _ppvar, _thread, nt);
+        hoc_retpushx(_r);
+    }
+    static double _npy_rates(Prop* _prop) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        _nrn_mechanism_cache_instance _lmc{_prop};
+        size_t const id{};
+        _ppvar = _nrn_mechanism_access_dparam(_prop);
+        _thread = _extcall_thread.data();
+        nt = nrn_threads;
+        auto inst = make_instance_X2Y(_lmc);
+        _r = 1.;
+        rates_X2Y(_lmc, inst, id, _ppvar, _thread, nt);
+        return(_r);
+    }
+
+
+    inline int rates_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+        int ret_rates = 0;
+        auto v = inst.v_unused[id];
+        inst.c1[id] = 0.4;
+        inst.c2[id] = 0.5;
+        return ret_rates;
+    }
 
 
     void nrn_init_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
@@ -664,8 +727,12 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
             inst.v_unused[id] = v;
+            inst.X[id] = inst.global->X0;
+            inst.Y[id] = inst.global->Y0;
             inst.X[id] = 0.0;
             inst.Y[id] = 1.0;
+            inst.c1[id] = 0.0;
+            inst.c2[id] = 0.0;
         }
     }
 
@@ -715,12 +782,13 @@ namespace neuron {
             nmodl_eigen_x[static_cast<int>(0)] = inst.X[id];
             nmodl_eigen_x[static_cast<int>(1)] = inst.Y[id];
             // call newton solver
-            functor_X2Y_0 newton_functor(nt, inst, id, v, _thread);
+            functor_X2Y_0 newton_functor(_lmc, inst, id, _ppvar, _thread, nt, v);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
             inst.X[id] = nmodl_eigen_x[static_cast<int>(0)];
             inst.Y[id] = nmodl_eigen_x[static_cast<int>(1)];
+            newton_functor.initialize(); // TODO mimic calling F again.
             newton_functor.finalize();
 
         }
@@ -741,13 +809,13 @@ namespace neuron {
 
     static void _initlists() {
         /* X */
-        _slist1[0] = {1, 0};
+        _slist1[0] = {3, 0};
         /* DX */
-        _dlist1[0] = {3, 0};
+        _dlist1[0] = {5, 0};
         /* Y */
-        _slist1[1] = {2, 0};
+        _slist1[1] = {4, 0};
         /* DY */
-        _dlist1[1] = {4, 0};
+        _dlist1[1] = {6, 0};
     }
 
 
@@ -758,18 +826,21 @@ namespace neuron {
         register_mech(mechanism_info, nrn_alloc_X2Y, nrn_cur_X2Y, nrn_jacob_X2Y, nrn_state_X2Y, nrn_init_X2Y, hoc_nrnpointerindex, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
+        hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
             _nrn_mechanism_field<double>{"il"} /* 0 */,
-            _nrn_mechanism_field<double>{"X"} /* 1 */,
-            _nrn_mechanism_field<double>{"Y"} /* 2 */,
-            _nrn_mechanism_field<double>{"DX"} /* 3 */,
-            _nrn_mechanism_field<double>{"DY"} /* 4 */,
-            _nrn_mechanism_field<double>{"i"} /* 5 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 6 */,
-            _nrn_mechanism_field<double>{"g_unused"} /* 7 */
+            _nrn_mechanism_field<double>{"c1"} /* 1 */,
+            _nrn_mechanism_field<double>{"c2"} /* 2 */,
+            _nrn_mechanism_field<double>{"X"} /* 3 */,
+            _nrn_mechanism_field<double>{"Y"} /* 4 */,
+            _nrn_mechanism_field<double>{"DX"} /* 5 */,
+            _nrn_mechanism_field<double>{"DY"} /* 6 */,
+            _nrn_mechanism_field<double>{"i"} /* 7 */,
+            _nrn_mechanism_field<double>{"v_unused"} /* 8 */,
+            _nrn_mechanism_field<double>{"g_unused"} /* 9 */
         );
 
-        hoc_register_prop_size(mech_type, 8, 0);
+        hoc_register_prop_size(mech_type, 10, 0);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
     }

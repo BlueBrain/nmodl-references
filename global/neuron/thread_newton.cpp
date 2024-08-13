@@ -15,6 +15,7 @@ NMODL Compiler  : VERSION
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <vector>
 
 /**
  * \dir
@@ -520,6 +521,8 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<thread_newton_Store>);
     static_assert(std::is_trivially_destructible_v<thread_newton_Store>);
     thread_newton_Store thread_newton_global;
+    static std::vector<double> _parameter_defaults = {
+    };
 
 
     /** all mechanism instance variables and global variables */
@@ -578,6 +581,9 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    void nrn_destructor_thread_newton(Prop* _prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+    }
 
 
     static void nrn_alloc_thread_newton(Prop* _prop) {
@@ -604,12 +610,14 @@ namespace neuron {
 
 
     struct functor_thread_newton_0 {
-        NrnThread* nt;
+        _nrn_mechanism_cache_range& _lmc;
         thread_newton_Instance& inst;
-        int id;
-        double v;
+        size_t id;
+        Datum* _ppvar;
         Datum* _thread;
         thread_newton_ThreadVariables& _thread_vars;
+        NrnThread* nt;
+        double v;
         double source0_, old_X;
 
         void initialize() {
@@ -617,8 +625,8 @@ namespace neuron {
             old_X = inst.X[id];
         }
 
-        functor_thread_newton_0(NrnThread* nt, thread_newton_Instance& inst, int id, double v, Datum* _thread, thread_newton_ThreadVariables& _thread_vars)
-            : nt(nt), inst(inst), id(id), v(v), _thread(_thread), _thread_vars(_thread_vars)
+        functor_thread_newton_0(_nrn_mechanism_cache_range& _lmc, thread_newton_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, thread_newton_ThreadVariables& _thread_vars, NrnThread* nt, double v)
+            : _lmc(_lmc), inst(inst), id(id), _ppvar(_ppvar), _thread(_thread), _thread_vars(_thread_vars), nt(nt), v(v)
         {}
         void operator()(const Eigen::Matrix<double, 1, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
@@ -689,6 +697,7 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
             inst.v_unused[id] = v;
+            inst.X[id] = inst.global->X0;
             double total;
             inst.X[id] = 0.0;
             _thread_vars.c(id) = 42.0;
@@ -712,11 +721,12 @@ namespace neuron {
             double* nmodl_eigen_x = nmodl_eigen_xm.data();
             nmodl_eigen_x[static_cast<int>(0)] = inst.X[id];
             // call newton solver
-            functor_thread_newton_0 newton_functor(nt, inst, id, v, _thread, _thread_vars);
+            functor_thread_newton_0 newton_functor(_lmc, inst, id, _ppvar, _thread, _thread_vars, nt, v);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
             inst.X[id] = nmodl_eigen_x[static_cast<int>(0)];
+            newton_functor.initialize(); // TODO mimic calling F again.
             newton_functor.finalize();
 
             inst.x[id] = inst.X[id];
@@ -751,6 +761,7 @@ namespace neuron {
         register_mech(mechanism_info, nrn_alloc_thread_newton, nullptr, nrn_jacob_thread_newton, nrn_state_thread_newton, nrn_init_thread_newton, hoc_nrnpointerindex, 2);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
+        hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
             _nrn_mechanism_field<double>{"x"} /* 0 */,
             _nrn_mechanism_field<double>{"X"} /* 1 */,
