@@ -470,6 +470,8 @@ namespace coreneuron {
         "X2Y",
         0,
         "il_X2Y",
+        "c1_X2Y",
+        "c2_X2Y",
         0,
         "X_X2Y",
         "Y_X2Y",
@@ -484,8 +486,8 @@ namespace coreneuron {
         double Y0{};
         int reset{};
         int mech_type{};
-        int slist1[2]{1, 2};
-        int dlist1[2]{3, 4};
+        int slist1[2]{3, 4};
+        int dlist1[2]{5, 6};
     };
     static_assert(std::is_trivially_copy_constructible_v<X2Y_Store>);
     static_assert(std::is_trivially_move_constructible_v<X2Y_Store>);
@@ -498,6 +500,8 @@ namespace coreneuron {
     /** all mechanism instance variables and global variables */
     struct X2Y_Instance  {
         double* il{};
+        double* c1{};
+        double* c2{};
         double* X{};
         double* Y{};
         double* DX{};
@@ -532,7 +536,7 @@ namespace coreneuron {
 
 
     static inline int float_variables_size() {
-        return 8;
+        return 10;
     }
 
 
@@ -608,13 +612,15 @@ namespace coreneuron {
         int pnodecount = ml->_nodecount_padded;
         Datum* indexes = ml->pdata;
         inst->il = ml->data+0*pnodecount;
-        inst->X = ml->data+1*pnodecount;
-        inst->Y = ml->data+2*pnodecount;
-        inst->DX = ml->data+3*pnodecount;
-        inst->DY = ml->data+4*pnodecount;
-        inst->i = ml->data+5*pnodecount;
-        inst->v_unused = ml->data+6*pnodecount;
-        inst->g_unused = ml->data+7*pnodecount;
+        inst->c1 = ml->data+1*pnodecount;
+        inst->c2 = ml->data+2*pnodecount;
+        inst->X = ml->data+3*pnodecount;
+        inst->Y = ml->data+4*pnodecount;
+        inst->DX = ml->data+5*pnodecount;
+        inst->DY = ml->data+6*pnodecount;
+        inst->i = ml->data+7*pnodecount;
+        inst->v_unused = ml->data+8*pnodecount;
+        inst->g_unused = ml->data+9*pnodecount;
     }
 
 
@@ -654,6 +660,9 @@ namespace coreneuron {
     }
 
 
+    inline int rates_X2Y(int id, int pnodecount, X2Y_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+
+
     struct functor_X2Y_0 {
         NrnThread* nt;
         X2Y_Instance* inst;
@@ -666,8 +675,9 @@ namespace coreneuron {
         double kf0_, kb0_, old_X, old_Y;
 
         void initialize() {
-            kf0_ = 0.4;
-            kb0_ = 0.5;
+            rates_X2Y(id, pnodecount, inst, data, indexes, thread, nt, v);
+            kf0_ = inst->c1[id];
+            kb0_ = inst->c2[id];
             inst->i[id] = (kf0_ * inst->X[id] - kb0_ * inst->Y[id]);
             old_X = inst->X[id];
             old_Y = inst->Y[id];
@@ -691,6 +701,14 @@ namespace coreneuron {
         void finalize() {
         }
     };
+
+
+    inline int rates_X2Y(int id, int pnodecount, X2Y_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
+        int ret_rates = 0;
+        inst->c1[id] = 0.4;
+        inst->c2[id] = 0.5;
+        return ret_rates;
+    }
 
 
     /** initialize channel */
@@ -719,6 +737,8 @@ namespace coreneuron {
                 inst->Y[id] = inst->global->Y0;
                 inst->X[id] = 0.0;
                 inst->Y[id] = 1.0;
+                inst->c1[id] = 0.0;
+                inst->c2[id] = 0.0;
             }
         }
     }
@@ -796,6 +816,7 @@ namespace coreneuron {
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
             inst->X[id] = nmodl_eigen_x[static_cast<int>(0)];
             inst->Y[id] = nmodl_eigen_x[static_cast<int>(1)];
+            newton_functor.initialize(); // TODO mimic calling F again.
             newton_functor.finalize();
 
         }
