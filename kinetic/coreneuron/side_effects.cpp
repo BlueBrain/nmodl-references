@@ -69,9 +69,11 @@ EIGEN_DEVICE_FUNC inline int Crout(int n, T* const a, int* const perm, double* c
     for (i = 0; i < n; i++) {
         perm[i] = i;
         k = 0;
-        for (j = 1; j < n; j++)
-            if (std::fabs(a[i * n + j]) > std::fabs(a[i * n + k]))
+        for (j = 1; j < n; j++) {
+            if (std::fabs(a[i * n + j]) > std::fabs(a[i * n + k])) {
                 k = j;
+            }
+        }
         rowmax[i] = a[i * n + k];
     }
 
@@ -118,8 +120,9 @@ EIGEN_DEVICE_FUNC inline int Crout(int n, T* const a, int* const perm, double* c
 
         /* Check that pivot element is not too small */
 
-        if (std::fabs(a[pivot * n + r]) < roundoff)
+        if (std::fabs(a[pivot * n + r]) < roundoff) {
             return -1;
+        }
 
         /*
          * Operate on row in rth position.  This produces the upper
@@ -170,8 +173,9 @@ EIGEN_DEVICE_FUNC inline int solveCrout(int n,
         for (i = 0; i < n; i++) {
             pivot = perm[i];
             sum = 0.0;
-            for (j = 0; j < i; j++)
+            for (j = 0; j < i; j++) {
                 sum += a[pivot * n + j] * (y_(j));
+            }
             y_(i) = (b_(pivot) - sum) / a[pivot * n + i];
         }
 
@@ -185,16 +189,18 @@ EIGEN_DEVICE_FUNC inline int solveCrout(int n,
         for (i = n - 1; i >= 0; i--) {
             pivot = perm[i];
             sum = 0.0;
-            for (j = i + 1; j < n; j++)
+            for (j = i + 1; j < n; j++) {
                 sum += a[pivot * n + j] * (y_(j));
+            }
             y_(i) -= sum;
         }
     } else {
         for (i = 0; i < n; i++) {
             pivot = perm[i];
             sum = 0.0;
-            for (j = 0; j < i; j++)
+            for (j = 0; j < i; j++) {
                 sum += a[pivot * n + j] * (p[j]);
+            }
             p[i] = (b_(pivot) - sum) / a[pivot * n + i];
         }
 
@@ -208,8 +214,9 @@ EIGEN_DEVICE_FUNC inline int solveCrout(int n,
         for (i = n - 1; i >= 0; i--) {
             pivot = perm[i];
             sum = 0.0;
-            for (j = i + 1; j < n; j++)
+            for (j = i + 1; j < n; j++) {
                 sum += a[pivot * n + j] * (p[j]);
+            }
             p[i] -= sum;
         }
     }
@@ -292,13 +299,15 @@ EIGEN_DEVICE_FUNC int newton_solver(Eigen::Matrix<double, N, 1>& X,
         // Crout's implementation requires matrices stored in RowMajor order (C-style arrays).
         // Therefore, the transposeInPlace is critical such that the data() method to give the rows
         // instead of the columns.
-        if (!J.IsRowMajor)
+        if (!J.IsRowMajor) {
             J.transposeInPlace();
+        }
         Eigen::Matrix<int, N, 1> pivot;
         Eigen::Matrix<double, N, 1> rowmax;
         // Check if J is singular
-        if (nmodl::crout::Crout<double>(N, J.data(), pivot.data(), rowmax.data()) < 0)
+        if (nmodl::crout::Crout<double>(N, J.data(), pivot.data(), rowmax.data()) < 0) {
             return -1;
+        }
         Eigen::Matrix<double, N, 1> X_solve;
         nmodl::crout::solveCrout<double>(N, J.data(), F.data(), X_solve.data(), pivot.data());
         X -= X_solve;
@@ -372,13 +381,15 @@ EIGEN_DEVICE_FUNC int newton_numerical_diff_solver(Eigen::Matrix<double, N, 1>& 
             // restore X
             X[i] += dX;
         }
-        if (!J.IsRowMajor)
+        if (!J.IsRowMajor) {
             J.transposeInPlace();
+        }
         Eigen::Matrix<int, N, 1> pivot;
         Eigen::Matrix<double, N, 1> rowmax;
         // Check if J is singular
-        if (nmodl::crout::Crout<double>(N, J.data(), pivot.data(), rowmax.data()) < 0)
+        if (nmodl::crout::Crout<double>(N, J.data(), pivot.data(), rowmax.data()) < 0) {
             return -1;
+        }
         Eigen::Matrix<double, N, 1> X_solve;
         nmodl::crout::solveCrout<double>(N, J.data(), F.data(), X_solve.data(), pivot.data());
         X -= X_solve;
@@ -411,10 +422,11 @@ EIGEN_DEVICE_FUNC int newton_solver_small_N(Eigen::Matrix<double, N, 1>& X,
         // The inverse can be called from within OpenACC regions without any issue, as opposed to
         // Eigen::PartialPivLU.
         J.computeInverseWithCheck(J_inv, invertible);
-        if (invertible)
+        if (invertible) {
             X -= J_inv * F;
-        else
+        } else {
             return -1;
+        }
     }
     return -1;
 }
