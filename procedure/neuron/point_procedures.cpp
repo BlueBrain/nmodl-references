@@ -170,13 +170,13 @@ namespace neuron {
         _setdata(_prop);
     }
     /* Mechanism procedures and functions */
-    inline double identity_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v);
+    inline double identity_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_v);
     inline int set_x_42_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline int set_x_a_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double a);
+    inline int set_x_a_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_a);
     inline int set_a_x_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     inline int set_x_v_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     inline int set_x_just_v_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline int set_x_just_vv_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v);
+    inline int set_x_just_vv_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_v);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -367,10 +367,10 @@ namespace neuron {
     }
 
 
-    inline int set_x_a_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double a) {
+    inline int set_x_a_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_a) {
         int ret_set_x_a = 0;
         auto v = inst.v_unused[id];
-        inst.x[id] = a;
+        inst.x[id] = _arg_a;
         return ret_set_x_a;
     }
 
@@ -400,16 +400,18 @@ namespace neuron {
     }
 
 
-    inline int set_x_just_vv_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v) {
+    inline int set_x_just_vv_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_v) {
         int ret_set_x_just_vv = 0;
-        inst.x[id] = identity_point_procedures(_lmc, inst, id, _ppvar, _thread, nt, v);
+        auto v = inst.v_unused[id];
+        inst.x[id] = identity_point_procedures(_lmc, inst, id, _ppvar, _thread, nt, _arg_v);
         return ret_set_x_just_vv;
     }
 
 
-    inline double identity_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v) {
+    inline double identity_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_v) {
         double ret_identity = 0.0;
-        ret_identity = v;
+        auto v = inst.v_unused[id];
+        ret_identity = _arg_v;
         return ret_identity;
     }
 

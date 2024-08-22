@@ -145,7 +145,7 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
-    inline double fibonacci_recursion(_nrn_mechanism_cache_range& _lmc, recursion_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double n);
+    inline double fibonacci_recursion(_nrn_mechanism_cache_range& _lmc, recursion_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_n);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -206,13 +206,13 @@ namespace neuron {
     }
 
 
-    inline double fibonacci_recursion(_nrn_mechanism_cache_range& _lmc, recursion_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double n) {
+    inline double fibonacci_recursion(_nrn_mechanism_cache_range& _lmc, recursion_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_n) {
         double ret_fibonacci = 0.0;
         auto v = inst.v_unused[id];
-        if (n == 0.0 || n == 1.0) {
+        if (_arg_n == 0.0 || _arg_n == 1.0) {
             ret_fibonacci = 1.0;
         } else {
-            ret_fibonacci = fibonacci_recursion(_lmc, inst, id, _ppvar, _thread, nt, n - 1.0) + fibonacci_recursion(_lmc, inst, id, _ppvar, _thread, nt, n - 2.0);
+            ret_fibonacci = fibonacci_recursion(_lmc, inst, id, _ppvar, _thread, nt, _arg_n - 1.0) + fibonacci_recursion(_lmc, inst, id, _ppvar, _thread, nt, _arg_n - 2.0);
         }
         return ret_fibonacci;
     }

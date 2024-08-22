@@ -199,9 +199,9 @@ namespace neuron {
         _setdata(_prop);
     }
     /* Mechanism procedures and functions */
-    inline double quadratic_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x);
-    inline int sigmoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v);
-    inline int sinusoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x);
+    inline double quadratic_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_x);
+    inline int sigmoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_v);
+    inline int sinusoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_x);
     void update_table_sigmoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     void update_table_quadratic_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     void update_table_sinusoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
@@ -315,9 +315,10 @@ namespace neuron {
     }
 
 
-    inline static int f_sigmoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v) {
+    inline static int f_sigmoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_v) {
         int ret_f_sigmoidal = 0;
-        inst.sig[id] = 1.0 / (1.0 + exp(inst.global->k * (v - inst.global->d)));
+        auto v = inst.v_unused[id];
+        inst.sig[id] = 1.0 / (1.0 + exp(inst.global->k * (_arg_v - inst.global->d)));
         return ret_f_sigmoidal;
     }
 
@@ -352,12 +353,12 @@ namespace neuron {
     }
 
 
-    inline int sigmoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v){
+    inline int sigmoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_v){
         if (inst.global->usetable == 0) {
-            f_sigmoidal_tbl_point_process(_lmc, inst, id, _ppvar, _thread, nt, v);
+            f_sigmoidal_tbl_point_process(_lmc, inst, id, _ppvar, _thread, nt, _arg_v);
             return 0;
         }
-        double xi = inst.global->mfac_sigmoidal * (v - inst.global->tmin_sigmoidal);
+        double xi = inst.global->mfac_sigmoidal * (_arg_v - inst.global->tmin_sigmoidal);
         if (isnan(xi)) {
             inst.sig[id] = xi;
             return 0;
@@ -374,11 +375,11 @@ namespace neuron {
     }
 
 
-    inline static int f_sinusoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x) {
+    inline static int f_sinusoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_x) {
         int ret_f_sinusoidal = 0;
         auto v = inst.v_unused[id];
-        inst.v1[id] = sin(inst.global->c1 * x) + 2.0;
-        inst.v2[id] = cos(inst.global->c2 * x) + 2.0;
+        inst.v1[id] = sin(inst.global->c1 * _arg_x) + 2.0;
+        inst.v2[id] = cos(inst.global->c2 * _arg_x) + 2.0;
         return ret_f_sinusoidal;
     }
 
@@ -414,12 +415,12 @@ namespace neuron {
     }
 
 
-    inline int sinusoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x){
+    inline int sinusoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_x){
         if (inst.global->usetable == 0) {
-            f_sinusoidal_tbl_point_process(_lmc, inst, id, _ppvar, _thread, nt, x);
+            f_sinusoidal_tbl_point_process(_lmc, inst, id, _ppvar, _thread, nt, _arg_x);
             return 0;
         }
-        double xi = inst.global->mfac_sinusoidal * (x - inst.global->tmin_sinusoidal);
+        double xi = inst.global->mfac_sinusoidal * (_arg_x - inst.global->tmin_sinusoidal);
         if (isnan(xi)) {
             inst.v1[id] = xi;
             inst.v2[id] = xi;
@@ -439,10 +440,10 @@ namespace neuron {
     }
 
 
-    inline static double f_quadratic_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x) {
+    inline static double f_quadratic_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_x) {
         double ret_f_quadratic = 0.0;
         auto v = inst.v_unused[id];
-        ret_f_quadratic = inst.global->c1 * x * x + inst.global->c2;
+        ret_f_quadratic = inst.global->c1 * _arg_x * _arg_x + inst.global->c2;
         return ret_f_quadratic;
     }
 
@@ -476,11 +477,11 @@ namespace neuron {
     }
 
 
-    inline double quadratic_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x){
+    inline double quadratic_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_x){
         if (inst.global->usetable == 0) {
-            return f_quadratic_tbl_point_process(_lmc, inst, id, _ppvar, _thread, nt, x);
+            return f_quadratic_tbl_point_process(_lmc, inst, id, _ppvar, _thread, nt, _arg_x);
         }
-        double xi = inst.global->mfac_quadratic * (x - inst.global->tmin_quadratic);
+        double xi = inst.global->mfac_quadratic * (_arg_x - inst.global->tmin_quadratic);
         if (isnan(xi)) {
             return xi;
         }

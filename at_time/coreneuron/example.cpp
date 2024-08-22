@@ -202,12 +202,12 @@ namespace coreneuron {
     }
 
 
-    inline double f_example(int id, int pnodecount, example_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double x);
+    inline double f_example(int id, int pnodecount, example_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _arg_x);
 
 
-    inline double f_example(int id, int pnodecount, example_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double x) {
+    inline double f_example(int id, int pnodecount, example_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _arg_x) {
         double ret_f = 0.0;
-        ret_f = at_time(nt, x);
+        ret_f = at_time(nt, _arg_x);
         return ret_f;
     }
 
