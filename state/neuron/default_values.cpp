@@ -220,12 +220,11 @@ namespace neuron {
             inst.X[id] = inst.global->X0;
             inst.Y[id] = inst.global->Y0;
             inst.Z[id] = inst.global->Z0;
-            for(size_t _i = 0; _i < 3; ++_i) {
-                (inst.A+id*3)[_i] = inst.global->A0;
-            }
-            for(size_t _i = 0; _i < 2; ++_i) {
-                (inst.B+id*2)[_i] = inst.global->B0;
-            }
+            (inst.A+id*3)[0] = inst.global->A0;
+            (inst.A+id*3)[1] = inst.global->A0;
+            (inst.A+id*3)[2] = inst.global->A0;
+            (inst.B+id*2)[0] = inst.global->B0;
+            (inst.B+id*2)[1] = inst.global->B0;
             inst.Z[id] = 7.0;
             (inst.B+id*2)[static_cast<int>(1)] = 8.0;
         }
