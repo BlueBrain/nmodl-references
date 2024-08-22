@@ -525,6 +525,9 @@ namespace neuron {
         _initlists();
 
         register_mech(mechanism_info, nrn_alloc_shared_global, nrn_cur_shared_global, nrn_jacob_shared_global, nrn_state_shared_global, nrn_init_shared_global, hoc_nrnpointerindex, 2);
+        _extcall_thread.resize(2);
+        thread_mem_init(_extcall_thread.data());
+        shared_global_global.thread_data_in_use = 0;
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);

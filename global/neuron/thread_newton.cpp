@@ -688,6 +688,9 @@ namespace neuron {
         _initlists();
 
         register_mech(mechanism_info, nrn_alloc_thread_newton, nullptr, nrn_jacob_thread_newton, nrn_state_thread_newton, nrn_init_thread_newton, hoc_nrnpointerindex, 2);
+        _extcall_thread.resize(2);
+        thread_mem_init(_extcall_thread.data());
+        thread_newton_global.thread_data_in_use = 0;
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);
