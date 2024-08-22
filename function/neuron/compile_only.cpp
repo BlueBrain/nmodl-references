@@ -152,8 +152,8 @@ namespace neuron {
     }
     /* Mechanism procedures and functions */
     inline int func_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline int func_with_v_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_v);
-    inline int func_with_other_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_q);
+    inline int func_with_v_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
+    inline int func_with_other_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lq);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -294,14 +294,14 @@ namespace neuron {
     }
 
 
-    inline int func_with_v_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_v) {
+    inline int func_with_v_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv) {
         int ret_func_with_v = 0;
         auto v = inst.v_unused[id];
         return ret_func_with_v;
     }
 
 
-    inline int func_with_other_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_q) {
+    inline int func_with_other_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lq) {
         int ret_func_with_other = 0;
         auto v = inst.v_unused[id];
         return ret_func_with_other;

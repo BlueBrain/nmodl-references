@@ -176,13 +176,13 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
-    inline double id_v_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_v);
-    inline double id_nai_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_nai);
-    inline double id_ina_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_ina);
-    inline double id_x_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_x);
-    inline double id_g_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_g);
-    inline double id_s_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_s);
-    inline double id_p_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_p);
+    inline double id_v_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
+    inline double id_nai_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lnai);
+    inline double id_ina_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lina);
+    inline double id_x_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
+    inline double id_g_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lg);
+    inline double id_s_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _ls);
+    inline double id_p_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lp);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -443,58 +443,58 @@ namespace neuron {
     }
 
 
-    inline double id_v_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_v) {
+    inline double id_v_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv) {
         double ret_id_v = 0.0;
         auto v = inst.v_unused[id];
-        ret_id_v = _arg_v;
+        ret_id_v = _lv;
         return ret_id_v;
     }
 
 
-    inline double id_nai_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_nai) {
+    inline double id_nai_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lnai) {
         double ret_id_nai = 0.0;
         auto v = inst.v_unused[id];
-        ret_id_nai = _arg_nai;
+        ret_id_nai = _lnai;
         return ret_id_nai;
     }
 
 
-    inline double id_ina_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_ina) {
+    inline double id_ina_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lina) {
         double ret_id_ina = 0.0;
         auto v = inst.v_unused[id];
-        ret_id_ina = _arg_ina;
+        ret_id_ina = _lina;
         return ret_id_ina;
     }
 
 
-    inline double id_x_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_x) {
+    inline double id_x_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx) {
         double ret_id_x = 0.0;
         auto v = inst.v_unused[id];
-        ret_id_x = _arg_x;
+        ret_id_x = _lx;
         return ret_id_x;
     }
 
 
-    inline double id_g_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_g) {
+    inline double id_g_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lg) {
         double ret_id_g = 0.0;
         auto v = inst.v_unused[id];
-        ret_id_g = _arg_g;
+        ret_id_g = _lg;
         return ret_id_g;
     }
 
 
-    inline double id_s_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_s) {
+    inline double id_s_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _ls) {
         double ret_id_s = 0.0;
         auto v = inst.v_unused[id];
-        ret_id_s = _arg_s;
+        ret_id_s = _ls;
         return ret_id_s;
     }
 
 
-    inline double id_p_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_p) {
+    inline double id_p_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lp) {
         double ret_id_p = 0.0;
         auto v = inst.v_unused[id];
-        ret_id_p = _arg_p;
+        ret_id_p = _lp;
         return ret_id_p;
     }
 

@@ -170,9 +170,9 @@ namespace neuron {
         _setdata(_prop);
     }
     /* Mechanism procedures and functions */
-    inline double x_plus_a_point_functions(_nrn_mechanism_cache_range& _lmc, point_functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_a);
-    inline double v_plus_a_point_functions(_nrn_mechanism_cache_range& _lmc, point_functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_a);
-    inline double identity_point_functions(_nrn_mechanism_cache_range& _lmc, point_functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_v);
+    inline double x_plus_a_point_functions(_nrn_mechanism_cache_range& _lmc, point_functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
+    inline double v_plus_a_point_functions(_nrn_mechanism_cache_range& _lmc, point_functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
+    inline double identity_point_functions(_nrn_mechanism_cache_range& _lmc, point_functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -265,26 +265,26 @@ namespace neuron {
     }
 
 
-    inline double x_plus_a_point_functions(_nrn_mechanism_cache_range& _lmc, point_functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_a) {
+    inline double x_plus_a_point_functions(_nrn_mechanism_cache_range& _lmc, point_functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la) {
         double ret_x_plus_a = 0.0;
         auto v = inst.v_unused[id];
-        ret_x_plus_a = inst.x[id] + _arg_a;
+        ret_x_plus_a = inst.x[id] + _la;
         return ret_x_plus_a;
     }
 
 
-    inline double v_plus_a_point_functions(_nrn_mechanism_cache_range& _lmc, point_functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_a) {
+    inline double v_plus_a_point_functions(_nrn_mechanism_cache_range& _lmc, point_functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la) {
         double ret_v_plus_a = 0.0;
         auto v = inst.v_unused[id];
-        ret_v_plus_a = v + _arg_a;
+        ret_v_plus_a = v + _la;
         return ret_v_plus_a;
     }
 
 
-    inline double identity_point_functions(_nrn_mechanism_cache_range& _lmc, point_functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_v) {
+    inline double identity_point_functions(_nrn_mechanism_cache_range& _lmc, point_functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv) {
         double ret_identity = 0.0;
         auto v = inst.v_unused[id];
-        ret_identity = _arg_v;
+        ret_identity = _lv;
         return ret_identity;
     }
 

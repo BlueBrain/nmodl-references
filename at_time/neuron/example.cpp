@@ -145,7 +145,7 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
-    inline double f_example(_nrn_mechanism_cache_range& _lmc, example_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_x);
+    inline double f_example(_nrn_mechanism_cache_range& _lmc, example_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -206,10 +206,10 @@ namespace neuron {
     }
 
 
-    inline double f_example(_nrn_mechanism_cache_range& _lmc, example_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _arg_x) {
+    inline double f_example(_nrn_mechanism_cache_range& _lmc, example_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx) {
         double ret_f = 0.0;
         auto v = inst.v_unused[id];
-        ret_f = at_time(nt, _arg_x);
+        ret_f = at_time(nt, _lx);
         return ret_f;
     }
 
