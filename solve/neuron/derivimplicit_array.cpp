@@ -249,7 +249,7 @@ namespace newton {
  */
 
 static constexpr int MAX_ITER = 50;
-static constexpr double EPS = 1e-12;
+static constexpr double EPS = 1e-13;
 
 template <int N>
 bool is_converged(const Eigen::Matrix<double, N, 1>& X,
@@ -557,8 +557,8 @@ namespace neuron {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
             double* nmodl_eigen_j = nmodl_eigen_jm.data();
             double* nmodl_eigen_f = nmodl_eigen_fm.data();
-            nmodl_eigen_f[static_cast<int>(0)] = nmodl_eigen_x[static_cast<int>(0)] * nt->_dt * (inst.s+id*2)[static_cast<int>(0)] * (inst.z+id*3)[static_cast<int>(0)] * (inst.z+id*3)[static_cast<int>(1)] * (inst.z+id*3)[static_cast<int>(2)] + nmodl_eigen_x[static_cast<int>(0)] * nt->_dt * (inst.s+id*2)[static_cast<int>(1)] * (inst.z+id*3)[static_cast<int>(0)] * (inst.z+id*3)[static_cast<int>(1)] * (inst.z+id*3)[static_cast<int>(2)] - nmodl_eigen_x[static_cast<int>(0)] + old_x;
-            nmodl_eigen_j[static_cast<int>(0)] = nt->_dt * (inst.s+id*2)[static_cast<int>(0)] * (inst.z+id*3)[static_cast<int>(0)] * (inst.z+id*3)[static_cast<int>(1)] * (inst.z+id*3)[static_cast<int>(2)] + nt->_dt * (inst.s+id*2)[static_cast<int>(1)] * (inst.z+id*3)[static_cast<int>(0)] * (inst.z+id*3)[static_cast<int>(1)] * (inst.z+id*3)[static_cast<int>(2)] - 1.0;
+            nmodl_eigen_f[static_cast<int>(0)] = (nmodl_eigen_x[static_cast<int>(0)] * nt->_dt * ((inst.s+id*2)[static_cast<int>(0)] + (inst.s+id*2)[static_cast<int>(1)]) * (inst.z+id*3)[static_cast<int>(0)] * (inst.z+id*3)[static_cast<int>(1)] * (inst.z+id*3)[static_cast<int>(2)] - nmodl_eigen_x[static_cast<int>(0)] + old_x) / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(0)] = (nt->_dt * ((inst.s+id*2)[static_cast<int>(0)] + (inst.s+id*2)[static_cast<int>(1)]) * (inst.z+id*3)[static_cast<int>(0)] * (inst.z+id*3)[static_cast<int>(1)] * (inst.z+id*3)[static_cast<int>(2)] - 1.0) / nt->_dt;
         }
 
         void finalize() {

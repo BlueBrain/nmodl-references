@@ -258,7 +258,7 @@ namespace newton {
  */
 
 static constexpr int MAX_ITER = 50;
-static constexpr double EPS = 1e-12;
+static constexpr double EPS = 1e-13;
 
 template <int N>
 bool is_converged(const Eigen::Matrix<double, N, 1>& X,
@@ -632,14 +632,14 @@ namespace coreneuron {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
             double* nmodl_eigen_j = nmodl_eigen_jm.data();
             double* nmodl_eigen_f = nmodl_eigen_fm.data();
-            nmodl_eigen_f[static_cast<int>(0)] = ( -nmodl_eigen_x[static_cast<int>(0)] * nmodl_eigen_x[static_cast<int>(1)] * nt->_dt * kf0_ + nmodl_eigen_x[static_cast<int>(2)] * nt->_dt * kb0_ + inst->global->volA * ( -nmodl_eigen_x[static_cast<int>(0)] + old_X)) / inst->global->volA;
-            nmodl_eigen_j[static_cast<int>(0)] = ( -nmodl_eigen_x[static_cast<int>(1)] * nt->_dt * kf0_ - inst->global->volA) / inst->global->volA;
-            nmodl_eigen_j[static_cast<int>(3)] =  -nmodl_eigen_x[static_cast<int>(0)] * nt->_dt * kf0_ / inst->global->volA;
-            nmodl_eigen_j[static_cast<int>(6)] = nt->_dt * kb0_ / inst->global->volA;
-            nmodl_eigen_f[static_cast<int>(1)] = ( -nmodl_eigen_x[static_cast<int>(0)] * nmodl_eigen_x[static_cast<int>(1)] * nt->_dt * kf0_ + nmodl_eigen_x[static_cast<int>(2)] * nt->_dt * kb0_ + inst->global->volB * ( -nmodl_eigen_x[static_cast<int>(1)] + old_Y)) / inst->global->volB;
-            nmodl_eigen_j[static_cast<int>(1)] =  -nmodl_eigen_x[static_cast<int>(1)] * nt->_dt * kf0_ / inst->global->volB;
-            nmodl_eigen_j[static_cast<int>(4)] = ( -nmodl_eigen_x[static_cast<int>(0)] * nt->_dt * kf0_ - inst->global->volB) / inst->global->volB;
-            nmodl_eigen_j[static_cast<int>(7)] = nt->_dt * kb0_ / inst->global->volB;
+            nmodl_eigen_f[static_cast<int>(0)] = (nt->_dt * ( -nmodl_eigen_x[static_cast<int>(0)] * nmodl_eigen_x[static_cast<int>(1)] * kf0_ + nmodl_eigen_x[static_cast<int>(2)] * kb0_) + inst->global->volA * ( -nmodl_eigen_x[static_cast<int>(0)] + old_X)) / (nt->_dt * inst->global->volA);
+            nmodl_eigen_j[static_cast<int>(0)] =  -nmodl_eigen_x[static_cast<int>(1)] * kf0_ / inst->global->volA - 1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(3)] =  -nmodl_eigen_x[static_cast<int>(0)] * kf0_ / inst->global->volA;
+            nmodl_eigen_j[static_cast<int>(6)] = kb0_ / inst->global->volA;
+            nmodl_eigen_f[static_cast<int>(1)] = (nt->_dt * ( -nmodl_eigen_x[static_cast<int>(0)] * nmodl_eigen_x[static_cast<int>(1)] * kf0_ + nmodl_eigen_x[static_cast<int>(2)] * kb0_) + inst->global->volB * ( -nmodl_eigen_x[static_cast<int>(1)] + old_Y)) / (nt->_dt * inst->global->volB);
+            nmodl_eigen_j[static_cast<int>(1)] =  -nmodl_eigen_x[static_cast<int>(1)] * kf0_ / inst->global->volB;
+            nmodl_eigen_j[static_cast<int>(4)] =  -nmodl_eigen_x[static_cast<int>(0)] * kf0_ / inst->global->volB - 1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(7)] = kb0_ / inst->global->volB;
             nmodl_eigen_f[static_cast<int>(2)] = ( -nmodl_eigen_x[static_cast<int>(1)] * inst->global->volB + 8.0 * inst->global->volB + inst->global->volC * (1.0 - nmodl_eigen_x[static_cast<int>(2)])) / inst->global->volC;
             nmodl_eigen_j[static_cast<int>(2)] = 0.0;
             nmodl_eigen_j[static_cast<int>(5)] =  -inst->global->volB / inst->global->volC;
@@ -677,14 +677,14 @@ namespace coreneuron {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
             double* nmodl_eigen_j = nmodl_eigen_jm.data();
             double* nmodl_eigen_f = nmodl_eigen_fm.data();
-            nmodl_eigen_f[static_cast<int>(0)] = ( -nmodl_eigen_x[static_cast<int>(0)] * nmodl_eigen_x[static_cast<int>(1)] * nt->_dt * kf0_ + nmodl_eigen_x[static_cast<int>(2)] * nt->_dt * kb0_ + inst->global->volA * ( -nmodl_eigen_x[static_cast<int>(0)] + old_X)) / inst->global->volA;
-            nmodl_eigen_j[static_cast<int>(0)] = ( -nmodl_eigen_x[static_cast<int>(1)] * nt->_dt * kf0_ - inst->global->volA) / inst->global->volA;
-            nmodl_eigen_j[static_cast<int>(3)] =  -nmodl_eigen_x[static_cast<int>(0)] * nt->_dt * kf0_ / inst->global->volA;
-            nmodl_eigen_j[static_cast<int>(6)] = nt->_dt * kb0_ / inst->global->volA;
-            nmodl_eigen_f[static_cast<int>(1)] = ( -nmodl_eigen_x[static_cast<int>(0)] * nmodl_eigen_x[static_cast<int>(1)] * nt->_dt * kf0_ + nmodl_eigen_x[static_cast<int>(2)] * nt->_dt * kb0_ + inst->global->volB * ( -nmodl_eigen_x[static_cast<int>(1)] + old_Y)) / inst->global->volB;
-            nmodl_eigen_j[static_cast<int>(1)] =  -nmodl_eigen_x[static_cast<int>(1)] * nt->_dt * kf0_ / inst->global->volB;
-            nmodl_eigen_j[static_cast<int>(4)] = ( -nmodl_eigen_x[static_cast<int>(0)] * nt->_dt * kf0_ - inst->global->volB) / inst->global->volB;
-            nmodl_eigen_j[static_cast<int>(7)] = nt->_dt * kb0_ / inst->global->volB;
+            nmodl_eigen_f[static_cast<int>(0)] = (nt->_dt * ( -nmodl_eigen_x[static_cast<int>(0)] * nmodl_eigen_x[static_cast<int>(1)] * kf0_ + nmodl_eigen_x[static_cast<int>(2)] * kb0_) + inst->global->volA * ( -nmodl_eigen_x[static_cast<int>(0)] + old_X)) / (nt->_dt * inst->global->volA);
+            nmodl_eigen_j[static_cast<int>(0)] =  -nmodl_eigen_x[static_cast<int>(1)] * kf0_ / inst->global->volA - 1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(3)] =  -nmodl_eigen_x[static_cast<int>(0)] * kf0_ / inst->global->volA;
+            nmodl_eigen_j[static_cast<int>(6)] = kb0_ / inst->global->volA;
+            nmodl_eigen_f[static_cast<int>(1)] = (nt->_dt * ( -nmodl_eigen_x[static_cast<int>(0)] * nmodl_eigen_x[static_cast<int>(1)] * kf0_ + nmodl_eigen_x[static_cast<int>(2)] * kb0_) + inst->global->volB * ( -nmodl_eigen_x[static_cast<int>(1)] + old_Y)) / (nt->_dt * inst->global->volB);
+            nmodl_eigen_j[static_cast<int>(1)] =  -nmodl_eigen_x[static_cast<int>(1)] * kf0_ / inst->global->volB;
+            nmodl_eigen_j[static_cast<int>(4)] =  -nmodl_eigen_x[static_cast<int>(0)] * kf0_ / inst->global->volB - 1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(7)] = kb0_ / inst->global->volB;
             nmodl_eigen_f[static_cast<int>(2)] = ( -nmodl_eigen_x[static_cast<int>(1)] * inst->global->volB + 8.0 * inst->global->volB + inst->global->volC * (1.0 - nmodl_eigen_x[static_cast<int>(2)])) / inst->global->volC;
             nmodl_eigen_j[static_cast<int>(2)] = 0.0;
             nmodl_eigen_j[static_cast<int>(5)] =  -inst->global->volB / inst->global->volC;

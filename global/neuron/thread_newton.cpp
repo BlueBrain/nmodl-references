@@ -249,7 +249,7 @@ namespace newton {
  */
 
 static constexpr int MAX_ITER = 50;
-static constexpr double EPS = 1e-12;
+static constexpr double EPS = 1e-13;
 
 template <int N>
 bool is_converged(const Eigen::Matrix<double, N, 1>& X,
@@ -572,8 +572,8 @@ namespace neuron {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
             double* nmodl_eigen_j = nmodl_eigen_jm.data();
             double* nmodl_eigen_f = nmodl_eigen_fm.data();
-            nmodl_eigen_f[static_cast<int>(0)] =  -nmodl_eigen_x[static_cast<int>(0)] + nt->_dt * source0_ + old_X;
-            nmodl_eigen_j[static_cast<int>(0)] =  -1.0;
+            nmodl_eigen_f[static_cast<int>(0)] = ( -nmodl_eigen_x[static_cast<int>(0)] + nt->_dt * source0_ + old_X) / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(0)] =  -1.0 / nt->_dt;
         }
 
         void finalize() {
@@ -699,6 +699,9 @@ namespace neuron {
         _initlists();
 
         register_mech(mechanism_info, nrn_alloc_thread_newton, nullptr, nrn_jacob_thread_newton, nrn_state_thread_newton, nrn_init_thread_newton, hoc_nrnpointerindex, 2);
+        _extcall_thread.resize(2);
+        thread_mem_init(_extcall_thread.data());
+        thread_newton_global.thread_data_in_use = 0;
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);
