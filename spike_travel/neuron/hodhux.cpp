@@ -246,9 +246,9 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
-    inline double vtrap_hodhux(_nrn_mechanism_cache_range& _lmc, hodhux_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x, double y);
+    inline double vtrap_hodhux(_nrn_mechanism_cache_range& _lmc, hodhux_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx, double _ly);
     inline int states_hodhux(_nrn_mechanism_cache_range& _lmc, hodhux_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline int rates_hodhux(_nrn_mechanism_cache_range& _lmc, hodhux_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v);
+    inline int rates_hodhux(_nrn_mechanism_cache_range& _lmc, hodhux_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -396,23 +396,24 @@ namespace neuron {
     }
 
 
-    inline int rates_hodhux(_nrn_mechanism_cache_range& _lmc, hodhux_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v) {
+    inline int rates_hodhux(_nrn_mechanism_cache_range& _lmc, hodhux_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv) {
         int ret_rates = 0;
+        auto v = inst.v_unused[id];
         double q10, tinc, alpha, beta, sum;
         q10 = pow(3.0, ((*(inst.celsius) - 6.3) / 10.0));
         tinc =  -nt->_dt * q10;
-        alpha = .1 * vtrap_hodhux(_lmc, inst, id, _ppvar, _thread, nt,  -(v + 40.0), 10.0);
-        beta = 4.0 * exp( -(v + 65.0) / 18.0);
+        alpha = .1 * vtrap_hodhux(_lmc, inst, id, _ppvar, _thread, nt,  -(_lv + 40.0), 10.0);
+        beta = 4.0 * exp( -(_lv + 65.0) / 18.0);
         sum = alpha + beta;
         inst.minf[id] = alpha / sum;
         inst.mexp[id] = 1.0 - exp(tinc * sum);
-        alpha = .07 * exp( -(v + 65.0) / 20.0);
-        beta = 1.0 / (exp( -(v + 35.0) / 10.0) + 1.0);
+        alpha = .07 * exp( -(_lv + 65.0) / 20.0);
+        beta = 1.0 / (exp( -(_lv + 35.0) / 10.0) + 1.0);
         sum = alpha + beta;
         inst.hinf[id] = alpha / sum;
         inst.hexp[id] = 1.0 - exp(tinc * sum);
-        alpha = .01 * vtrap_hodhux(_lmc, inst, id, _ppvar, _thread, nt,  -(v + 55.0), 10.0);
-        beta = .125 * exp( -(v + 65.0) / 80.0);
+        alpha = .01 * vtrap_hodhux(_lmc, inst, id, _ppvar, _thread, nt,  -(_lv + 55.0), 10.0);
+        beta = .125 * exp( -(_lv + 65.0) / 80.0);
         sum = alpha + beta;
         inst.ninf[id] = alpha / sum;
         inst.nexp[id] = 1.0 - exp(tinc * sum);
@@ -420,13 +421,13 @@ namespace neuron {
     }
 
 
-    inline double vtrap_hodhux(_nrn_mechanism_cache_range& _lmc, hodhux_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x, double y) {
+    inline double vtrap_hodhux(_nrn_mechanism_cache_range& _lmc, hodhux_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx, double _ly) {
         double ret_vtrap = 0.0;
         auto v = inst.v_unused[id];
-        if (fabs(x / y) < 1e-6) {
-            ret_vtrap = y * (1.0 - x / y / 2.0);
+        if (fabs(_lx / _ly) < 1e-6) {
+            ret_vtrap = _ly * (1.0 - _lx / _ly / 2.0);
         } else {
-            ret_vtrap = x / (exp(x / y) - 1.0);
+            ret_vtrap = _lx / (exp(_lx / _ly) - 1.0);
         }
         return ret_vtrap;
     }

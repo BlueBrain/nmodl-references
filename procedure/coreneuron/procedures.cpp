@@ -205,13 +205,13 @@ namespace coreneuron {
     }
 
 
-    inline double identity_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v);
+    inline double identity_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv);
     inline int set_x_42_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
-    inline int set_x_a_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double a);
+    inline int set_x_a_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _la);
     inline int set_a_x_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
     inline int set_x_v_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
     inline int set_x_just_v_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
-    inline int set_x_just_vv_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v);
+    inline int set_x_just_vv_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv);
 
 
     inline int set_x_42_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
@@ -221,9 +221,9 @@ namespace coreneuron {
     }
 
 
-    inline int set_x_a_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double a) {
+    inline int set_x_a_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _la) {
         int ret_set_x_a = 0;
-        inst->x[id] = a;
+        inst->x[id] = _la;
         return ret_set_x_a;
     }
 
@@ -250,16 +250,16 @@ namespace coreneuron {
     }
 
 
-    inline int set_x_just_vv_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v) {
+    inline int set_x_just_vv_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv) {
         int ret_set_x_just_vv = 0;
-        inst->x[id] = identity_procedures(id, pnodecount, inst, data, indexes, thread, nt, v, arg_v);
+        inst->x[id] = identity_procedures(id, pnodecount, inst, data, indexes, thread, nt, v, _lv);
         return ret_set_x_just_vv;
     }
 
 
-    inline double identity_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v) {
+    inline double identity_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv) {
         double ret_identity = 0.0;
-        ret_identity = arg_v;
+        ret_identity = _lv;
         return ret_identity;
     }
 
