@@ -243,8 +243,7 @@ namespace newton {
  * @brief Solver implementation details
  *
  * Implementation of Newton method for solving system of non-linear equations using Eigen
- *   - newton::newton_solver is the preferred option: requires user to provide Jacobian
- *   - newton::newton_numerical_diff_solver is the fallback option: Jacobian not required
+ *   - newton::newton_solver with user, e.g. SymPy, provided Jacobian
  *
  * @{
  */
@@ -290,88 +289,6 @@ EIGEN_DEVICE_FUNC int newton_solver(Eigen::Matrix<double, N, 1>& X,
         // Crout's implementation requires matrices stored in RowMajor order (C-style arrays).
         // Therefore, the transposeInPlace is critical such that the data() method to give the rows
         // instead of the columns.
-        if (!J.IsRowMajor) {
-            J.transposeInPlace();
-        }
-        Eigen::Matrix<int, N, 1> pivot;
-        Eigen::Matrix<double, N, 1> rowmax;
-        // Check if J is singular
-        if (nmodl::crout::Crout<double>(N, J.data(), pivot.data(), rowmax.data()) < 0) {
-            return -1;
-        }
-        Eigen::Matrix<double, N, 1> X_solve;
-        nmodl::crout::solveCrout<double>(N, J.data(), F.data(), X_solve.data(), pivot.data());
-        X -= X_solve;
-    }
-    // If we fail to converge after max_iter iterations, return -1
-    return -1;
-}
-
-static constexpr double SQUARE_ROOT_ULP = 1e-7;
-static constexpr double CUBIC_ROOT_ULP = 1e-5;
-
-/**
- * \brief Newton method without user-provided Jacobian
- *
- * Newton method without user-provided Jacobian: given initial vector X and a
- * functor that calculates `F(X)`, solves for \f$F(X) = 0\f$, starting with
- * initial value of `X` by iterating:
- *
- * \f[
- *     X_{n+1} = X_n - J(X_n)^{-1} F(X_n)
- * \f]
- *
- * where `J(X)` is the Jacobian of `F(X)`, which is approximated numerically
- * using a symmetric finite difference approximation to the derivative
- * when \f$|F|^2 < eps^2\f$, solution has converged/
- *
- * @return number of iterations (-1 if failed to converge)
- */
-template <int N, typename FUNC>
-EIGEN_DEVICE_FUNC int newton_numerical_diff_solver(Eigen::Matrix<double, N, 1>& X,
-                                                   FUNC functor,
-                                                   double eps = EPS,
-                                                   int max_iter = MAX_ITER) {
-    // Vector to store result of function F(X):
-    Eigen::Matrix<double, N, 1> F;
-    // Temporary storage for F(X+dx)
-    Eigen::Matrix<double, N, 1> F_p;
-    // Temporary storage for F(X-dx)
-    Eigen::Matrix<double, N, 1> F_m;
-    // Matrix to store jacobian of F(X):
-    Eigen::Matrix<double, N, N> J;
-    // Solver iteration count:
-    int iter = 0;
-    while (iter < max_iter) {
-        // calculate F from X using user-supplied functor
-        functor(X, F);
-        // get error norm: here we use sqrt(|F|^2)
-        double error = F.norm();
-        if (error < eps) {
-            // we have converged: return iteration count
-            return iter;
-        }
-        ++iter;
-        // calculate approximate Jacobian
-        for (int i = 0; i < N; ++i) {
-            // symmetric finite difference approximation to derivative
-            // df/dx ~= ( f(x+dx) - f(x-dx) ) / (2*dx)
-            // choose dx to be ~(ULP)^{1/3}*X[i]
-            // https://aip.scitation.org/doi/pdf/10.1063/1.4822971
-            // also enforce a lower bound ~sqrt(ULP) to avoid dx being too small
-            double dX = std::max(CUBIC_ROOT_ULP * X[i], SQUARE_ROOT_ULP);
-            // F(X + dX)
-            X[i] += dX;
-            functor(X, F_p);
-            // F(X - dX)
-            X[i] -= 2.0 * dX;
-            functor(X, F_m);
-            F_p -= F_m;
-            // J = (F(X + dX) - F(X - dX)) / (2*dX)
-            J.col(i) = F_p / (2.0 * dX);
-            // restore X
-            X[i] += dX;
-        }
         if (!J.IsRowMajor) {
             J.transposeInPlace();
         }
@@ -489,6 +406,7 @@ void _nrn_mechanism_register_data_fields(Args&&... args) {
 }  // namespace
 
 Prop* hoc_getdata_range(int type);
+extern void _cvode_abstol(Symbol**, double*, int);
 extern Node* nrn_alloc_node_;
 
 
@@ -513,6 +431,10 @@ namespace neuron {
 
     /* NEURON global variables */
     static neuron::container::field_index _slist1[1], _dlist1[1];
+    static Symbol** _atollist;
+    static HocStateTolerance _hoc_state_tol[] = {
+        {0, 0}
+    };
     static int mech_type;
     static Prop* _extcall_prop;
     /* _prop_id kind of shadows _extcall_prop to allow validity checking. */
@@ -600,6 +522,8 @@ namespace neuron {
 
     static void nrn_alloc_thread_newton(Prop* _prop) {
         Datum *_ppvar = nullptr;
+        _ppvar = nrn_prop_datum_alloc(mech_type, 1, _prop);
+        _nrn_mechanism_access_dparam(_prop) = _ppvar;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const _iml = 0;
         assert(_nrn_mechanism_get_num_vars(_prop) == 5);
@@ -619,6 +543,45 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
+
+
+    /* Functions related to CVODE codegen */
+    static int ode_count_thread_newton(int _type) {
+        return 1;
+    }
+    static void ode_spec_thread_newton(_nrn_model_sorted_token const& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        auto inst = make_instance_thread_newton(_lmc);
+        auto nodecount = _ml_arg->nodecount;
+        auto node_data = make_node_data_thread_newton(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
+        for (int id = 0; id < nodecount; id++) {
+            int node_id = node_data.nodeindices[id];
+            auto* _ppvar = _ml_arg->pdata[id];
+            auto v = node_data.node_voltages[node_id];
+        }
+    }
+    static void ode_map_thread_newton(Prop* _prop, int equation_index, neuron::container::data_handle<double>* _pv, neuron::container::data_handle<double>* _pvdot, double* _atol, int _type) {
+        auto* _ppvar = _nrn_mechanism_access_dparam(_prop);
+        _ppvar[0].literal_value<int>() = equation_index;
+        for (int i = 0; i < 1; i++) {
+            _pv[i] = _nrn_mechanism_get_param_handle(_prop, _slist1[i]);
+            _pvdot[i] = _nrn_mechanism_get_param_handle(_prop, _dlist1[i]);
+            _cvode_abstol(_atollist, _atol, i);
+        }
+    }
+    static void ode_matsol_thread_newton(_nrn_model_sorted_token const& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        auto inst = make_instance_thread_newton(_lmc);
+        auto nodecount = _ml_arg->nodecount;
+        auto node_data = make_node_data_thread_newton(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
+        for (int id = 0; id < nodecount; id++) {
+            int node_id = node_data.nodeindices[id];
+            auto* _ppvar = _ml_arg->pdata[id];
+            auto v = node_data.node_voltages[node_id];
+        }
+    }
 
 
     struct functor_thread_newton_0 {
@@ -771,6 +734,9 @@ namespace neuron {
         _initlists();
 
         register_mech(mechanism_info, nrn_alloc_thread_newton, nullptr, nrn_jacob_thread_newton, nrn_state_thread_newton, nrn_init_thread_newton, hoc_nrnpointerindex, 2);
+        _extcall_thread.resize(2);
+        thread_mem_init(_extcall_thread.data());
+        thread_newton_global.thread_data_in_use = 0;
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);
@@ -779,13 +745,17 @@ namespace neuron {
             _nrn_mechanism_field<double>{"X"} /* 1 */,
             _nrn_mechanism_field<double>{"DX"} /* 2 */,
             _nrn_mechanism_field<double>{"v_unused"} /* 3 */,
-            _nrn_mechanism_field<double>{"g_unused"} /* 4 */
+            _nrn_mechanism_field<double>{"g_unused"} /* 4 */,
+            _nrn_mechanism_field<int>{"_cvode_ieq", "cvodeieq"} /* 0 */
         );
 
-        hoc_register_prop_size(mech_type, 5, 0);
+        hoc_register_prop_size(mech_type, 5, 1);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
         _nrn_thread_reg(mech_type, 1, thread_mem_init);
         _nrn_thread_reg(mech_type, 0, thread_mem_cleanup);
+        hoc_register_dparam_semantics(mech_type, 0, "cvodeieq");
+        hoc_register_cvode(mech_type, ode_count_thread_newton, ode_map_thread_newton, ode_spec_thread_newton, ode_matsol_thread_newton);
+        hoc_register_tolerance(mech_type, _hoc_state_tol, &_atollist);
     }
 }

@@ -210,28 +210,28 @@ namespace coreneuron {
     }
 
 
-    inline double x_plus_a_point_functions(int id, int pnodecount, point_functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double a);
-    inline double v_plus_a_point_functions(int id, int pnodecount, point_functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double a);
-    inline double identity_point_functions(int id, int pnodecount, point_functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v);
+    inline double x_plus_a_point_functions(int id, int pnodecount, point_functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _la);
+    inline double v_plus_a_point_functions(int id, int pnodecount, point_functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _la);
+    inline double identity_point_functions(int id, int pnodecount, point_functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv);
 
 
-    inline double x_plus_a_point_functions(int id, int pnodecount, point_functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double a) {
+    inline double x_plus_a_point_functions(int id, int pnodecount, point_functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _la) {
         double ret_x_plus_a = 0.0;
-        ret_x_plus_a = inst->x[id] + a;
+        ret_x_plus_a = inst->x[id] + _la;
         return ret_x_plus_a;
     }
 
 
-    inline double v_plus_a_point_functions(int id, int pnodecount, point_functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double a) {
+    inline double v_plus_a_point_functions(int id, int pnodecount, point_functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _la) {
         double ret_v_plus_a = 0.0;
-        ret_v_plus_a = v + a;
+        ret_v_plus_a = v + _la;
         return ret_v_plus_a;
     }
 
 
-    inline double identity_point_functions(int id, int pnodecount, point_functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v) {
+    inline double identity_point_functions(int id, int pnodecount, point_functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv) {
         double ret_identity = 0.0;
-        ret_identity = arg_v;
+        ret_identity = _lv;
         return ret_identity;
     }
 

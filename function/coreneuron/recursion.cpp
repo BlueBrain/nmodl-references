@@ -202,15 +202,15 @@ namespace coreneuron {
     }
 
 
-    inline double fibonacci_recursion(int id, int pnodecount, recursion_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double n);
+    inline double fibonacci_recursion(int id, int pnodecount, recursion_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _ln);
 
 
-    inline double fibonacci_recursion(int id, int pnodecount, recursion_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double n) {
+    inline double fibonacci_recursion(int id, int pnodecount, recursion_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _ln) {
         double ret_fibonacci = 0.0;
-        if (n == 0.0 || n == 1.0) {
+        if (_ln == 0.0 || _ln == 1.0) {
             ret_fibonacci = 1.0;
         } else {
-            ret_fibonacci = fibonacci_recursion(id, pnodecount, inst, data, indexes, thread, nt, v, n - 1.0) + fibonacci_recursion(id, pnodecount, inst, data, indexes, thread, nt, v, n - 2.0);
+            ret_fibonacci = fibonacci_recursion(id, pnodecount, inst, data, indexes, thread, nt, v, _ln - 1.0) + fibonacci_recursion(id, pnodecount, inst, data, indexes, thread, nt, v, _ln - 2.0);
         }
         return ret_fibonacci;
     }

@@ -46,6 +46,7 @@ void _nrn_mechanism_register_data_fields(Args&&... args) {
 
 Prop* hoc_getdata_range(int type);
 void _nrn_thread_table_reg(int, nrn_thread_table_check_t);
+extern void _cvode_abstol(Symbol**, double*, int);
 extern Node* nrn_alloc_node_;
 
 
@@ -177,9 +178,9 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
-    inline double quadratic_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x);
-    inline int sigmoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v);
-    inline int sinusoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x);
+    inline double quadratic_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
+    inline int sigmoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
+    inline int sinusoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
     void update_table_sigmoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     void update_table_quadratic_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     void update_table_sinusoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
@@ -335,9 +336,10 @@ namespace neuron {
     }
 
 
-    inline static int f_sigmoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v) {
+    inline static int f_sigmoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv) {
         int ret_f_sigmoidal = 0;
-        inst.sig[id] = 1.0 / (1.0 + exp(inst.global->k * (v - inst.global->d)));
+        auto v = inst.v_unused[id];
+        inst.sig[id] = 1.0 / (1.0 + exp(inst.global->k * (_lv - inst.global->d)));
         return ret_f_sigmoidal;
     }
 
@@ -372,12 +374,12 @@ namespace neuron {
     }
 
 
-    inline int sigmoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v){
+    inline int sigmoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv){
         if (inst.global->usetable == 0) {
-            f_sigmoidal_tbl(_lmc, inst, id, _ppvar, _thread, nt, v);
+            f_sigmoidal_tbl(_lmc, inst, id, _ppvar, _thread, nt, _lv);
             return 0;
         }
-        double xi = inst.global->mfac_sigmoidal * (v - inst.global->tmin_sigmoidal);
+        double xi = inst.global->mfac_sigmoidal * (_lv - inst.global->tmin_sigmoidal);
         if (isnan(xi)) {
             inst.sig[id] = xi;
             return 0;
@@ -394,11 +396,11 @@ namespace neuron {
     }
 
 
-    inline static int f_sinusoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x) {
+    inline static int f_sinusoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx) {
         int ret_f_sinusoidal = 0;
         auto v = inst.v_unused[id];
-        inst.v1[id] = sin(inst.global->c1 * x) + 2.0;
-        inst.v2[id] = cos(inst.global->c2 * x) + 2.0;
+        inst.v1[id] = sin(inst.global->c1 * _lx) + 2.0;
+        inst.v2[id] = cos(inst.global->c2 * _lx) + 2.0;
         return ret_f_sinusoidal;
     }
 
@@ -434,12 +436,12 @@ namespace neuron {
     }
 
 
-    inline int sinusoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x){
+    inline int sinusoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx){
         if (inst.global->usetable == 0) {
-            f_sinusoidal_tbl(_lmc, inst, id, _ppvar, _thread, nt, x);
+            f_sinusoidal_tbl(_lmc, inst, id, _ppvar, _thread, nt, _lx);
             return 0;
         }
-        double xi = inst.global->mfac_sinusoidal * (x - inst.global->tmin_sinusoidal);
+        double xi = inst.global->mfac_sinusoidal * (_lx - inst.global->tmin_sinusoidal);
         if (isnan(xi)) {
             inst.v1[id] = xi;
             inst.v2[id] = xi;
@@ -459,10 +461,10 @@ namespace neuron {
     }
 
 
-    inline static double f_quadratic_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x) {
+    inline static double f_quadratic_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx) {
         double ret_f_quadratic = 0.0;
         auto v = inst.v_unused[id];
-        ret_f_quadratic = inst.global->c1 * x * x + inst.global->c2;
+        ret_f_quadratic = inst.global->c1 * _lx * _lx + inst.global->c2;
         return ret_f_quadratic;
     }
 
@@ -496,11 +498,11 @@ namespace neuron {
     }
 
 
-    inline double quadratic_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x){
+    inline double quadratic_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx){
         if (inst.global->usetable == 0) {
-            return f_quadratic_tbl(_lmc, inst, id, _ppvar, _thread, nt, x);
+            return f_quadratic_tbl(_lmc, inst, id, _ppvar, _thread, nt, _lx);
         }
-        double xi = inst.global->mfac_quadratic * (x - inst.global->tmin_quadratic);
+        double xi = inst.global->mfac_quadratic * (_lx - inst.global->tmin_quadratic);
         if (isnan(xi)) {
             return xi;
         }
