@@ -80,8 +80,8 @@ namespace neuron {
 
     /** all global variables */
     struct cnexp_array_Store {
-        double x0{};
-        double s0{};
+        double x0{0};
+        double s0{0};
     };
     static_assert(std::is_trivially_copy_constructible_v<cnexp_array_Store>);
     static_assert(std::is_trivially_move_constructible_v<cnexp_array_Store>);

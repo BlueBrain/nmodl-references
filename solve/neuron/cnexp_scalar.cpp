@@ -78,7 +78,7 @@ namespace neuron {
 
     /** all global variables */
     struct cnexp_scalar_Store {
-        double x0{};
+        double x0{0};
     };
     static_assert(std::is_trivially_copy_constructible_v<cnexp_scalar_Store>);
     static_assert(std::is_trivially_move_constructible_v<cnexp_scalar_Store>);

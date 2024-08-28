@@ -77,8 +77,8 @@ namespace neuron {
 
     /** all global variables */
     struct read_only_Store {
-        double x0{};
         double c{2};
+        double x0{0};
     };
     static_assert(std::is_trivially_copy_constructible_v<read_only_Store>);
     static_assert(std::is_trivially_move_constructible_v<read_only_Store>);
