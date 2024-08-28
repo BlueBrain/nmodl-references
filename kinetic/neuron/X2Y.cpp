@@ -442,8 +442,8 @@ namespace neuron {
 
     /** all global variables */
     struct X2Y_Store {
-        double X0{};
-        double Y0{};
+        double X0{0};
+        double Y0{0};
     };
     static_assert(std::is_trivially_copy_constructible_v<X2Y_Store>);
     static_assert(std::is_trivially_move_constructible_v<X2Y_Store>);

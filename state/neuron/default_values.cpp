@@ -81,11 +81,11 @@ namespace neuron {
 
     /** all global variables */
     struct default_values_Store {
-        double Y0{};
         double X0{2};
         double Z0{3};
         double A0{4};
         double B0{5};
+        double Y0{0};
     };
     static_assert(std::is_trivially_copy_constructible_v<default_values_Store>);
     static_assert(std::is_trivially_move_constructible_v<default_values_Store>);

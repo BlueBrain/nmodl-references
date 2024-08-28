@@ -93,9 +93,9 @@ namespace neuron {
 
     /** all global variables */
     struct hodhux_Store {
-        double m0{};
-        double h0{};
-        double n0{};
+        double m0{0};
+        double h0{0};
+        double n0{0};
     };
     static_assert(std::is_trivially_copy_constructible_v<hodhux_Store>);
     static_assert(std::is_trivially_move_constructible_v<hodhux_Store>);

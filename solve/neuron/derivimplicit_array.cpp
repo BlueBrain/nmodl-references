@@ -440,8 +440,8 @@ namespace neuron {
 
     /** all global variables */
     struct derivimplicit_array_Store {
-        double x0{};
-        double s0{};
+        double x0{0};
+        double s0{0};
     };
     static_assert(std::is_trivially_copy_constructible_v<derivimplicit_array_Store>);
     static_assert(std::is_trivially_move_constructible_v<derivimplicit_array_Store>);
