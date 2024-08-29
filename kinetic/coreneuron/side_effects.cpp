@@ -498,8 +498,8 @@ namespace coreneuron {
     }
 
 
-    static inline void* mem_alloc(size_t num, size_t size, size_t alignment = 32) {
-        size_t aligned_size = (num*size + alignment - 1) / alignment) * alignment;
+    static inline void* mem_alloc(size_t num, size_t size, size_t alignment = 64) {
+        size_t aligned_size = ((num*size + alignment - 1) / alignment) * alignment;
         void* ptr = aligned_alloc(alignment, aligned_size);
         memset(ptr, 0, aligned_size);
         return ptr;
