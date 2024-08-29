@@ -10,9 +10,12 @@ Backend         : C++ (api-compatibility)
 NMODL Compiler  : VERSION
 *********************************************************/
 
+#include <Eigen/Dense>
+#include <Eigen/LU>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <vector>
 
 #include "mech_api.h"
 #include "neuron/cache/mechanism_range.hpp"
@@ -42,6 +45,7 @@ void _nrn_mechanism_register_data_fields(Args&&... args) {
 }  // namespace
 
 extern Prop* nrn_point_prop_;
+extern Node* nrn_alloc_node_;
 
 
 namespace neuron {
@@ -78,6 +82,8 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<toggle_Store>);
     static_assert(std::is_trivially_destructible_v<toggle_Store>);
     toggle_Store toggle_global;
+    static std::vector<double> _parameter_defaults = {
+    };
 
 
     /** all mechanism instance variables and global variables */
@@ -86,7 +92,6 @@ namespace neuron {
         double* v_unused{};
         double* tsave{};
         const double* const* node_area{};
-        const int* const* tqitem{};
         toggle_Store* global{&toggle_global};
     };
 
@@ -100,39 +105,40 @@ namespace neuron {
     };
 
 
-    static toggle_Instance make_instance_toggle(_nrn_mechanism_cache_range& _ml) {
+    static toggle_Instance make_instance_toggle(_nrn_mechanism_cache_range& _lmc) {
         return toggle_Instance {
-            _ml.template fpfield_ptr<0>(),
-            _ml.template fpfield_ptr<1>(),
-            _ml.template fpfield_ptr<2>(),
-            _ml.template dptr_field_ptr<0>()
+            _lmc.template fpfield_ptr<0>(),
+            _lmc.template fpfield_ptr<1>(),
+            _lmc.template fpfield_ptr<2>(),
+            _lmc.template dptr_field_ptr<0>()
         };
     }
 
 
-    static toggle_NodeData make_node_data_toggle(NrnThread& _nt, Memb_list& _ml_arg) {
+    static toggle_NodeData make_node_data_toggle(NrnThread& nt, Memb_list& _ml_arg) {
         return toggle_NodeData {
             _ml_arg.nodeindices,
-            _nt.node_voltage_storage(),
-            _nt.node_d_storage(),
-            _nt.node_rhs_storage(),
+            nt.node_voltage_storage(),
+            nt.node_d_storage(),
+            nt.node_rhs_storage(),
             _ml_arg.nodecount
         };
+    }
+    void nrn_destructor_toggle(Prop* _prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
     }
 
 
     static void nrn_alloc_toggle(Prop* _prop) {
-        Prop *prop_ion{};
-        Datum *_ppvar{};
+        Datum *_ppvar = nullptr;
         if (nrn_point_prop_) {
             _nrn_mechanism_access_alloc_seq(_prop) = _nrn_mechanism_access_alloc_seq(nrn_point_prop_);
             _ppvar = _nrn_mechanism_access_dparam(nrn_point_prop_);
         } else {
             _ppvar = nrn_prop_datum_alloc(mech_type, 3, _prop);
             _nrn_mechanism_access_dparam(_prop) = _ppvar;
-            _nrn_mechanism_cache_instance _ml_real{_prop};
-            auto* const _ml = &_ml_real;
-            size_t const _iml{};
+            _nrn_mechanism_cache_instance _lmc{_prop};
+            size_t const _iml = 0;
             assert(_nrn_mechanism_get_num_vars(_prop) == 3);
             /*initialize range parameters*/
         }
@@ -191,46 +197,50 @@ namespace neuron {
         {"loc", _hoc_loc_pnt},
         {"has_loc", _hoc_has_loc},
         {"get_loc", _hoc_get_loc_pnt},
-        {0, 0}
+        {nullptr, nullptr}
     };
 
 
-    void nrn_init_toggle(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_toggle(_lmr);
-        auto node_data = make_node_data_toggle(*_nt, *_ml_arg);
+    void nrn_init_toggle(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        auto inst = make_instance_toggle(_lmc);
+        auto node_data = make_node_data_toggle(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
-        auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
-            
-            int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
+            int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
             inst.v_unused[id] = v;
             inst.y[id] = 0.0;
-            net_send(/* tqitem */ &_ppvar[2], nullptr, _ppvar[1].get<Point_process*>(), _nt->_t + 2.0, 1.0);
+            net_send(/* tqitem */ &_ppvar[2], nullptr, _ppvar[1].get<Point_process*>(), nt->_t + 2.001, 1.0);
         }
     }
 
 
-    /** nrn_jacob function */
-    static void nrn_jacob_toggle(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_toggle(_lmr);
-        auto node_data = make_node_data_toggle(*_nt, *_ml_arg);
+    static void nrn_jacob_toggle(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        auto inst = make_instance_toggle(_lmc);
+        auto node_data = make_node_data_toggle(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
     }
-    static void nrn_net_receive_toggle(Point_process* _pnt, double* _args, double _lflag) {
-        _nrn_mechanism_cache_instance _ml_obj{_pnt->prop};
-        auto * _nt = static_cast<NrnThread*>(_pnt->_vnt);
-        auto * _ml = &_ml_obj;
-        auto inst = make_instance_toggle(_ml_obj);
+    static void nrn_net_receive_toggle(Point_process* _pnt, double* _args, double flag) {
+        _nrn_mechanism_cache_instance _lmc{_pnt->prop};
+        auto * nt = static_cast<NrnThread*>(_pnt->_vnt);
+        auto * _ppvar = _nrn_mechanism_access_dparam(_pnt->prop);
+        auto inst = make_instance_toggle(_lmc);
+        // nocmodl has a nullptr dereference for thread variables.
+        // NMODL will fail to compile at a later point, because of
+        // missing '_thread_vars'.
+        Datum * _thread = nullptr;
         size_t id = 0;
-        double t = _nt->_t;
-        inst.y[id] = 1.0;
+        double t = nt->_t;
+        inst.y[id] = inst.y[id] + 1.0;
+        if (nt->_t < 3.7) {
+            net_send(/* tqitem */ &_ppvar[2], nullptr, _pnt, nt->_t + 4.001 - nt->_t, 1.0);
+        }
 
     }
 
@@ -243,11 +253,10 @@ namespace neuron {
     extern "C" void _toggle_reg() {
         _initlists();
 
-
-
         _pointtype = point_register_mech(mechanism_info, nrn_alloc_toggle, nullptr, nullptr, nullptr, nrn_init_toggle, hoc_nrnpointerindex, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
+        hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
             _nrn_mechanism_field<double>{"y"} /* 0 */,
             _nrn_mechanism_field<double>{"v_unused"} /* 1 */,

@@ -122,7 +122,7 @@ namespace coreneuron {
 
 
     static inline void* mem_alloc(size_t num, size_t size, size_t alignment = 32) {
-        size_t aligned_size = std::ceil(static_cast<float>(num*size) / alignment) * alignment;
+        size_t aligned_size = (num*size + alignment - 1) / alignment) * alignment;
         void* ptr = aligned_alloc(alignment, aligned_size);
         memset(ptr, 0, aligned_size);
         return ptr;
@@ -249,7 +249,10 @@ namespace coreneuron {
 
         inst->tsave[id] = t;
         {
-            inst->y[id] = 1.0;
+            inst->y[id] = inst->y[id] + 1.0;
+            if (t < 3.7) {
+                net_send_buffering(nt, ml->_net_send_buffer, 0, inst->tqitem[2*pnodecount+id], weight_index, inst->point_process[1*pnodecount+id], t+4.001 - t, 1.0);
+            }
         }
     }
 
@@ -336,7 +339,7 @@ namespace coreneuron {
                 inst->v_unused[id] = v;
                 #endif
                 inst->y[id] = 0.0;
-                net_send_buffering(nt, ml->_net_send_buffer, 0, inst->tqitem[2*pnodecount+id], 0, inst->point_process[1*pnodecount+id], nt->_t+2.0, 1.0);
+                net_send_buffering(nt, ml->_net_send_buffer, 0, inst->tqitem[2*pnodecount+id], 0, inst->point_process[1*pnodecount+id], nt->_t+2.001, 1.0);
             }
         }
 

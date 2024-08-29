@@ -10,9 +10,12 @@ Backend         : C++ (api-compatibility)
 NMODL Compiler  : VERSION
 *********************************************************/
 
+#include <Eigen/Dense>
+#include <Eigen/LU>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <vector>
 
 #include "mech_api.h"
 #include "neuron/cache/mechanism_range.hpp"
@@ -42,6 +45,7 @@ void _nrn_mechanism_register_data_fields(Args&&... args) {
 }  // namespace
 
 Prop* hoc_getdata_range(int type);
+extern Node* nrn_alloc_node_;
 
 
 namespace neuron {
@@ -81,6 +85,9 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<leonhard_Store>);
     static_assert(std::is_trivially_destructible_v<leonhard_Store>);
     leonhard_Store leonhard_global;
+    static std::vector<double> _parameter_defaults = {
+        0.005 /* c */
+    };
 
 
     /** all mechanism instance variables and global variables */
@@ -102,36 +109,37 @@ namespace neuron {
     };
 
 
-    static leonhard_Instance make_instance_leonhard(_nrn_mechanism_cache_range& _ml) {
+    static leonhard_Instance make_instance_leonhard(_nrn_mechanism_cache_range& _lmc) {
         return leonhard_Instance {
-            _ml.template fpfield_ptr<0>(),
-            _ml.template fpfield_ptr<1>(),
-            _ml.template fpfield_ptr<2>(),
-            _ml.template fpfield_ptr<3>()
+            _lmc.template fpfield_ptr<0>(),
+            _lmc.template fpfield_ptr<1>(),
+            _lmc.template fpfield_ptr<2>(),
+            _lmc.template fpfield_ptr<3>()
         };
     }
 
 
-    static leonhard_NodeData make_node_data_leonhard(NrnThread& _nt, Memb_list& _ml_arg) {
+    static leonhard_NodeData make_node_data_leonhard(NrnThread& nt, Memb_list& _ml_arg) {
         return leonhard_NodeData {
             _ml_arg.nodeindices,
-            _nt.node_voltage_storage(),
-            _nt.node_d_storage(),
-            _nt.node_rhs_storage(),
+            nt.node_voltage_storage(),
+            nt.node_d_storage(),
+            nt.node_rhs_storage(),
             _ml_arg.nodecount
         };
+    }
+    void nrn_destructor_leonhard(Prop* _prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
     }
 
 
     static void nrn_alloc_leonhard(Prop* _prop) {
-        Prop *prop_ion{};
-        Datum *_ppvar{};
-        _nrn_mechanism_cache_instance _ml_real{_prop};
-        auto* const _ml = &_ml_real;
-        size_t const _iml{};
+        Datum *_ppvar = nullptr;
+        _nrn_mechanism_cache_instance _lmc{_prop};
+        size_t const _iml = 0;
         assert(_nrn_mechanism_get_num_vars(_prop) == 4);
         /*initialize range parameters*/
-        _ml->template fpfield<0>(_iml) = 0.005; /* c */
+        _lmc.template fpfield<0>(_iml) = _parameter_defaults[0]; /* c */
     }
 
 
@@ -167,30 +175,29 @@ namespace neuron {
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
         {"setdata_leonhard", _hoc_setdata},
-        {0, 0}
+        {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
+        {nullptr, nullptr}
     };
 
 
-    void nrn_init_leonhard(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_leonhard(_lmr);
-        auto node_data = make_node_data_leonhard(*_nt, *_ml_arg);
+    void nrn_init_leonhard(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        auto inst = make_instance_leonhard(_lmc);
+        auto node_data = make_node_data_leonhard(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
-        auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
-            
-            int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
+            int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
             inst.v_unused[id] = v;
         }
     }
 
 
-    inline double nrn_current_leonhard(_nrn_mechanism_cache_range* _ml, NrnThread* _nt, Datum* _ppvar, Datum* _thread, size_t id, leonhard_Instance& inst, leonhard_NodeData& node_data, double v) {
+    inline double nrn_current_leonhard(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, leonhard_Instance& inst, leonhard_NodeData& node_data, double v) {
         double current = 0.0;
         inst.il[id] = inst.c[id] * (v - 1.5);
         current += inst.il[id];
@@ -199,37 +206,33 @@ namespace neuron {
 
 
     /** update current */
-    void nrn_cur_leonhard(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_leonhard(_lmr);
-        auto node_data = make_node_data_leonhard(*_nt, *_ml_arg);
+    void nrn_cur_leonhard(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        auto inst = make_instance_leonhard(_lmc);
+        auto node_data = make_node_data_leonhard(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
-        auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             double v = node_data.node_voltages[node_id];
             auto* _ppvar = _ml_arg->pdata[id];
-            double I1 = nrn_current_leonhard(_ml, _nt, _ppvar, _thread, id, inst, node_data, v+0.001);
-            double I0 = nrn_current_leonhard(_ml, _nt, _ppvar, _thread, id, inst, node_data, v);
+            double I1 = nrn_current_leonhard(_lmc, nt, _ppvar, _thread, id, inst, node_data, v+0.001);
+            double I0 = nrn_current_leonhard(_lmc, nt, _ppvar, _thread, id, inst, node_data, v);
             double rhs = I0;
             double g = (I1-I0)/0.001;
             node_data.node_rhs[node_id] -= rhs;
-            // remember the conductances so we can set them later
             inst.g_unused[id] = g;
         }
     }
 
 
-    void nrn_state_leonhard(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_leonhard(_lmr);
-        auto node_data = make_node_data_leonhard(*_nt, *_ml_arg);
+    void nrn_state_leonhard(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        auto inst = make_instance_leonhard(_lmc);
+        auto node_data = make_node_data_leonhard(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
-        auto* const _ml = &_lmr;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
-            
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
@@ -237,14 +240,12 @@ namespace neuron {
     }
 
 
-    /** nrn_jacob function */
-    static void nrn_jacob_leonhard(_nrn_model_sorted_token const& _sorted_token, NrnThread* _nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmr{_sorted_token, *_nt, *_ml_arg, _type};
-        auto inst = make_instance_leonhard(_lmr);
-        auto node_data = make_node_data_leonhard(*_nt, *_ml_arg);
+    static void nrn_jacob_leonhard(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        auto inst = make_instance_leonhard(_lmc);
+        auto node_data = make_node_data_leonhard(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
-            // set conductances properly
             int node_id = node_data.nodeindices[id];
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
@@ -259,11 +260,10 @@ namespace neuron {
     extern "C" void _leonhard_reg() {
         _initlists();
 
-
-
         register_mech(mechanism_info, nrn_alloc_leonhard, nrn_cur_leonhard, nrn_jacob_leonhard, nrn_state_leonhard, nrn_init_leonhard, hoc_nrnpointerindex, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
+        hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
             _nrn_mechanism_field<double>{"c"} /* 0 */,
             _nrn_mechanism_field<double>{"il"} /* 1 */,
