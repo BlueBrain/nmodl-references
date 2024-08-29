@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : derivimplicit_scalar
-Filename        : derivimplicit_scalar.mod
+Model Name      : minipump
+Filename        : minipump.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -397,7 +397,7 @@ EIGEN_DEVICE_FUNC int newton_solver(Eigen::Matrix<double, 4, 1>& X,
 #define NRN_VECTORIZED 1
 
 static constexpr auto number_of_datum_variables = 0;
-static constexpr auto number_of_floating_point_variables = 4;
+static constexpr auto number_of_floating_point_variables = 8;
 
 namespace {
 template <typename T>
@@ -427,17 +427,19 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "derivimplicit_scalar",
+        "minipump",
         0,
         0,
-        "x_derivimplicit_scalar",
+        "X_minipump",
+        "Y_minipump",
+        "Z_minipump",
         0,
         0
     };
 
 
     /* NEURON global variables */
-    static neuron::container::field_index _slist1[1], _dlist1[1];
+    static neuron::container::field_index _slist1[3], _dlist1[3];
     static int mech_type;
     static Prop* _extcall_prop;
     /* _prop_id kind of shadows _extcall_prop to allow validity checking. */
@@ -447,30 +449,42 @@ namespace neuron {
 
 
     /** all global variables */
-    struct derivimplicit_scalar_Store {
-        double x0{0};
+    struct minipump_Store {
+        double volA{1e+09};
+        double volB{1e+09};
+        double volC{13};
+        double kf{3};
+        double kb{4};
+        double run_steady_state{0};
+        double X0{0};
+        double Y0{0};
+        double Z0{0};
     };
-    static_assert(std::is_trivially_copy_constructible_v<derivimplicit_scalar_Store>);
-    static_assert(std::is_trivially_move_constructible_v<derivimplicit_scalar_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<derivimplicit_scalar_Store>);
-    static_assert(std::is_trivially_move_assignable_v<derivimplicit_scalar_Store>);
-    static_assert(std::is_trivially_destructible_v<derivimplicit_scalar_Store>);
-    derivimplicit_scalar_Store derivimplicit_scalar_global;
+    static_assert(std::is_trivially_copy_constructible_v<minipump_Store>);
+    static_assert(std::is_trivially_move_constructible_v<minipump_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<minipump_Store>);
+    static_assert(std::is_trivially_move_assignable_v<minipump_Store>);
+    static_assert(std::is_trivially_destructible_v<minipump_Store>);
+    minipump_Store minipump_global;
     static std::vector<double> _parameter_defaults = {
     };
 
 
     /** all mechanism instance variables and global variables */
-    struct derivimplicit_scalar_Instance  {
-        double* x{};
-        double* Dx{};
+    struct minipump_Instance  {
+        double* X{};
+        double* Y{};
+        double* Z{};
+        double* DX{};
+        double* DY{};
+        double* DZ{};
         double* v_unused{};
         double* g_unused{};
-        derivimplicit_scalar_Store* global{&derivimplicit_scalar_global};
+        minipump_Store* global{&minipump_global};
     };
 
 
-    struct derivimplicit_scalar_NodeData  {
+    struct minipump_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -479,18 +493,22 @@ namespace neuron {
     };
 
 
-    static derivimplicit_scalar_Instance make_instance_derivimplicit_scalar(_nrn_mechanism_cache_range& _lmc) {
-        return derivimplicit_scalar_Instance {
+    static minipump_Instance make_instance_minipump(_nrn_mechanism_cache_range& _lmc) {
+        return minipump_Instance {
             _lmc.template fpfield_ptr<0>(),
             _lmc.template fpfield_ptr<1>(),
             _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>()
+            _lmc.template fpfield_ptr<3>(),
+            _lmc.template fpfield_ptr<4>(),
+            _lmc.template fpfield_ptr<5>(),
+            _lmc.template fpfield_ptr<6>(),
+            _lmc.template fpfield_ptr<7>()
         };
     }
 
 
-    static derivimplicit_scalar_NodeData make_node_data_derivimplicit_scalar(NrnThread& nt, Memb_list& _ml_arg) {
-        return derivimplicit_scalar_NodeData {
+    static minipump_NodeData make_node_data_minipump(NrnThread& nt, Memb_list& _ml_arg) {
+        return minipump_NodeData {
             _ml_arg.nodeindices,
             nt.node_voltage_storage(),
             nt.node_d_storage(),
@@ -498,16 +516,16 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
-    void nrn_destructor_derivimplicit_scalar(Prop* _prop) {
+    void nrn_destructor_minipump(Prop* _prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
     }
 
 
-    static void nrn_alloc_derivimplicit_scalar(Prop* _prop) {
+    static void nrn_alloc_minipump(Prop* _prop) {
         Datum *_ppvar = nullptr;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const _iml = 0;
-        assert(_nrn_mechanism_get_num_vars(_prop) == 4);
+        assert(_nrn_mechanism_get_num_vars(_prop) == 8);
         /*initialize range parameters*/
     }
 
@@ -526,29 +544,86 @@ namespace neuron {
     /* Mechanism procedures and functions */
 
 
-    struct functor_derivimplicit_scalar_0 {
+    struct functor_minipump_1 {
         _nrn_mechanism_cache_range& _lmc;
-        derivimplicit_scalar_Instance& inst;
+        minipump_Instance& inst;
         size_t id;
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
         double v;
-        double old_x;
+        double kf0_, kb0_, old_X, old_Y;
 
         void initialize() {
-            old_x = inst.x[id];
+            kf0_ = inst.global->kf;
+            kb0_ = inst.global->kb;
+            old_X = inst.X[id];
+            old_Y = inst.Y[id];
         }
 
-        functor_derivimplicit_scalar_0(_nrn_mechanism_cache_range& _lmc, derivimplicit_scalar_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v)
+        functor_minipump_1(_nrn_mechanism_cache_range& _lmc, minipump_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v)
             : _lmc(_lmc), inst(inst), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt), v(v)
         {}
-        void operator()(const Eigen::Matrix<double, 1, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_jm) const {
+        void operator()(const Eigen::Matrix<double, 3, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 3, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 3, 3>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
             double* nmodl_eigen_j = nmodl_eigen_jm.data();
             double* nmodl_eigen_f = nmodl_eigen_fm.data();
-            nmodl_eigen_f[static_cast<int>(0)] = ( -nmodl_eigen_x[static_cast<int>(0)] * nt->_dt - nmodl_eigen_x[static_cast<int>(0)] + old_x) / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(0)] = ( -nt->_dt - 1.0) / nt->_dt;
+            nmodl_eigen_f[static_cast<int>(0)] = (nt->_dt * ( -nmodl_eigen_x[static_cast<int>(0)] * nmodl_eigen_x[static_cast<int>(1)] * kf0_ + nmodl_eigen_x[static_cast<int>(2)] * kb0_) + inst.global->volA * ( -nmodl_eigen_x[static_cast<int>(0)] + old_X)) / (nt->_dt * inst.global->volA);
+            nmodl_eigen_j[static_cast<int>(0)] =  -nmodl_eigen_x[static_cast<int>(1)] * kf0_ / inst.global->volA - 1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(3)] =  -nmodl_eigen_x[static_cast<int>(0)] * kf0_ / inst.global->volA;
+            nmodl_eigen_j[static_cast<int>(6)] = kb0_ / inst.global->volA;
+            nmodl_eigen_f[static_cast<int>(1)] = (nt->_dt * ( -nmodl_eigen_x[static_cast<int>(0)] * nmodl_eigen_x[static_cast<int>(1)] * kf0_ + nmodl_eigen_x[static_cast<int>(2)] * kb0_) + inst.global->volB * ( -nmodl_eigen_x[static_cast<int>(1)] + old_Y)) / (nt->_dt * inst.global->volB);
+            nmodl_eigen_j[static_cast<int>(1)] =  -nmodl_eigen_x[static_cast<int>(1)] * kf0_ / inst.global->volB;
+            nmodl_eigen_j[static_cast<int>(4)] =  -nmodl_eigen_x[static_cast<int>(0)] * kf0_ / inst.global->volB - 1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(7)] = kb0_ / inst.global->volB;
+            nmodl_eigen_f[static_cast<int>(2)] = ( -nmodl_eigen_x[static_cast<int>(1)] * inst.global->volB + 8.0 * inst.global->volB + inst.global->volC * (1.0 - nmodl_eigen_x[static_cast<int>(2)])) / inst.global->volC;
+            nmodl_eigen_j[static_cast<int>(2)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(5)] =  -inst.global->volB / inst.global->volC;
+            nmodl_eigen_j[static_cast<int>(8)] =  -1.0;
+        }
+
+        void finalize() {
+        }
+    };
+
+
+    struct functor_minipump_0 {
+        _nrn_mechanism_cache_range& _lmc;
+        minipump_Instance& inst;
+        size_t id;
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        double v;
+        double kf0_, kb0_, old_X, old_Y;
+
+        void initialize() {
+            ;
+            kf0_ = inst.global->kf;
+            kb0_ = inst.global->kb;
+            old_X = inst.X[id];
+            old_Y = inst.Y[id];
+        }
+
+        functor_minipump_0(_nrn_mechanism_cache_range& _lmc, minipump_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v)
+            : _lmc(_lmc), inst(inst), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt), v(v)
+        {}
+        void operator()(const Eigen::Matrix<double, 3, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 3, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 3, 3>& nmodl_eigen_jm) const {
+            const double* nmodl_eigen_x = nmodl_eigen_xm.data();
+            double* nmodl_eigen_j = nmodl_eigen_jm.data();
+            double* nmodl_eigen_f = nmodl_eigen_fm.data();
+            nmodl_eigen_f[static_cast<int>(0)] = (nt->_dt * ( -nmodl_eigen_x[static_cast<int>(0)] * nmodl_eigen_x[static_cast<int>(1)] * kf0_ + nmodl_eigen_x[static_cast<int>(2)] * kb0_) + inst.global->volA * ( -nmodl_eigen_x[static_cast<int>(0)] + old_X)) / (nt->_dt * inst.global->volA);
+            nmodl_eigen_j[static_cast<int>(0)] =  -nmodl_eigen_x[static_cast<int>(1)] * kf0_ / inst.global->volA - 1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(3)] =  -nmodl_eigen_x[static_cast<int>(0)] * kf0_ / inst.global->volA;
+            nmodl_eigen_j[static_cast<int>(6)] = kb0_ / inst.global->volA;
+            nmodl_eigen_f[static_cast<int>(1)] = (nt->_dt * ( -nmodl_eigen_x[static_cast<int>(0)] * nmodl_eigen_x[static_cast<int>(1)] * kf0_ + nmodl_eigen_x[static_cast<int>(2)] * kb0_) + inst.global->volB * ( -nmodl_eigen_x[static_cast<int>(1)] + old_Y)) / (nt->_dt * inst.global->volB);
+            nmodl_eigen_j[static_cast<int>(1)] =  -nmodl_eigen_x[static_cast<int>(1)] * kf0_ / inst.global->volB;
+            nmodl_eigen_j[static_cast<int>(4)] =  -nmodl_eigen_x[static_cast<int>(0)] * kf0_ / inst.global->volB - 1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(7)] = kb0_ / inst.global->volB;
+            nmodl_eigen_f[static_cast<int>(2)] = ( -nmodl_eigen_x[static_cast<int>(1)] * inst.global->volB + 8.0 * inst.global->volB + inst.global->volC * (1.0 - nmodl_eigen_x[static_cast<int>(2)])) / inst.global->volC;
+            nmodl_eigen_j[static_cast<int>(2)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(5)] =  -inst.global->volB / inst.global->volC;
+            nmodl_eigen_j[static_cast<int>(8)] =  -1.0;
         }
 
         void finalize() {
@@ -558,6 +633,12 @@ namespace neuron {
 
     /** connect global (scalar) variables to hoc -- */
     static DoubScal hoc_scalar_double[] = {
+        {"volA_minipump", &minipump_global.volA},
+        {"volB_minipump", &minipump_global.volB},
+        {"volC_minipump", &minipump_global.volC},
+        {"kf_minipump", &minipump_global.kf},
+        {"kb_minipump", &minipump_global.kb},
+        {"run_steady_state_minipump", &minipump_global.run_steady_state},
         {nullptr, nullptr}
     };
 
@@ -573,7 +654,7 @@ namespace neuron {
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
-        {"setdata_derivimplicit_scalar", _hoc_setdata},
+        {"setdata_minipump", _hoc_setdata},
         {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
@@ -581,10 +662,10 @@ namespace neuron {
     };
 
 
-    void nrn_init_derivimplicit_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    void nrn_init_minipump(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_derivimplicit_scalar(_lmc);
-        auto node_data = make_node_data_derivimplicit_scalar(*nt, *_ml_arg);
+        auto inst = make_instance_minipump(_lmc);
+        auto node_data = make_node_data_minipump(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
@@ -592,16 +673,43 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
             inst.v_unused[id] = v;
-            inst.x[id] = inst.global->x0;
-            inst.x[id] = 42.0;
+            inst.X[id] = inst.global->X0;
+            inst.Y[id] = inst.global->Y0;
+            inst.Z[id] = inst.global->Z0;
+            double _save_prev_dt = nt->_dt;
+            nt->_dt = 1000000000;
+            inst.X[id] = 40.0;
+            inst.Y[id] = 8.0;
+            inst.Z[id] = 1.0;
+            if (inst.global->run_steady_state > 0.0) {
+                                
+                Eigen::Matrix<double, 3, 1> nmodl_eigen_xm;
+                double* nmodl_eigen_x = nmodl_eigen_xm.data();
+                nmodl_eigen_x[static_cast<int>(0)] = inst.X[id];
+                nmodl_eigen_x[static_cast<int>(1)] = inst.Y[id];
+                nmodl_eigen_x[static_cast<int>(2)] = inst.Z[id];
+                // call newton solver
+                functor_minipump_0 newton_functor(_lmc, inst, id, _ppvar, _thread, nt, v);
+                newton_functor.initialize();
+                int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
+                if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
+                inst.X[id] = nmodl_eigen_x[static_cast<int>(0)];
+                inst.Y[id] = nmodl_eigen_x[static_cast<int>(1)];
+                inst.Z[id] = nmodl_eigen_x[static_cast<int>(2)];
+                newton_functor.initialize(); // TODO mimic calling F again.
+                newton_functor.finalize();
+
+
+            }
+            nt->_dt = _save_prev_dt;
         }
     }
 
 
-    void nrn_state_derivimplicit_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    void nrn_state_minipump(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_derivimplicit_scalar(_lmc);
-        auto node_data = make_node_data_derivimplicit_scalar(*nt, *_ml_arg);
+        auto inst = make_instance_minipump(_lmc);
+        auto node_data = make_node_data_minipump(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
@@ -609,15 +717,19 @@ namespace neuron {
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
             
-            Eigen::Matrix<double, 1, 1> nmodl_eigen_xm;
+            Eigen::Matrix<double, 3, 1> nmodl_eigen_xm;
             double* nmodl_eigen_x = nmodl_eigen_xm.data();
-            nmodl_eigen_x[static_cast<int>(0)] = inst.x[id];
+            nmodl_eigen_x[static_cast<int>(0)] = inst.X[id];
+            nmodl_eigen_x[static_cast<int>(1)] = inst.Y[id];
+            nmodl_eigen_x[static_cast<int>(2)] = inst.Z[id];
             // call newton solver
-            functor_derivimplicit_scalar_0 newton_functor(_lmc, inst, id, _ppvar, _thread, nt, v);
+            functor_minipump_1 newton_functor(_lmc, inst, id, _ppvar, _thread, nt, v);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
-            inst.x[id] = nmodl_eigen_x[static_cast<int>(0)];
+            inst.X[id] = nmodl_eigen_x[static_cast<int>(0)];
+            inst.Y[id] = nmodl_eigen_x[static_cast<int>(1)];
+            inst.Z[id] = nmodl_eigen_x[static_cast<int>(2)];
             newton_functor.initialize(); // TODO mimic calling F again.
             newton_functor.finalize();
 
@@ -625,10 +737,10 @@ namespace neuron {
     }
 
 
-    static void nrn_jacob_derivimplicit_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_minipump(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_derivimplicit_scalar(_lmc);
-        auto node_data = make_node_data_derivimplicit_scalar(*nt, *_ml_arg);
+        auto inst = make_instance_minipump(_lmc);
+        auto node_data = make_node_data_minipump(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
@@ -638,29 +750,41 @@ namespace neuron {
 
 
     static void _initlists() {
-        /* x */
+        /* X */
         _slist1[0] = {0, 0};
-        /* Dx */
-        _dlist1[0] = {1, 0};
+        /* DX */
+        _dlist1[0] = {3, 0};
+        /* Y */
+        _slist1[1] = {1, 0};
+        /* DY */
+        _dlist1[1] = {4, 0};
+        /* Z */
+        _slist1[2] = {2, 0};
+        /* DZ */
+        _dlist1[2] = {5, 0};
     }
 
 
     /** register channel with the simulator */
-    extern "C" void _derivimplicit_scalar_reg() {
+    extern "C" void _minipump_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_derivimplicit_scalar, nullptr, nrn_jacob_derivimplicit_scalar, nrn_state_derivimplicit_scalar, nrn_init_derivimplicit_scalar, hoc_nrnpointerindex, 1);
+        register_mech(mechanism_info, nrn_alloc_minipump, nullptr, nrn_jacob_minipump, nrn_state_minipump, nrn_init_minipump, hoc_nrnpointerindex, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
-            _nrn_mechanism_field<double>{"x"} /* 0 */,
-            _nrn_mechanism_field<double>{"Dx"} /* 1 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 2 */,
-            _nrn_mechanism_field<double>{"g_unused"} /* 3 */
+            _nrn_mechanism_field<double>{"X"} /* 0 */,
+            _nrn_mechanism_field<double>{"Y"} /* 1 */,
+            _nrn_mechanism_field<double>{"Z"} /* 2 */,
+            _nrn_mechanism_field<double>{"DX"} /* 3 */,
+            _nrn_mechanism_field<double>{"DY"} /* 4 */,
+            _nrn_mechanism_field<double>{"DZ"} /* 5 */,
+            _nrn_mechanism_field<double>{"v_unused"} /* 6 */,
+            _nrn_mechanism_field<double>{"g_unused"} /* 7 */
         );
 
-        hoc_register_prop_size(mech_type, 4, 0);
+        hoc_register_prop_size(mech_type, 8, 0);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
     }
