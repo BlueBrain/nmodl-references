@@ -79,6 +79,10 @@ namespace neuron {
 
     /** all global variables */
     struct tbl_point_process_Store {
+        double k{0.1};
+        double d{-50};
+        double c1{1};
+        double c2{2};
         double usetable{1};
         double tmin_sigmoidal{};
         double mfac_sigmoidal{};
@@ -90,10 +94,6 @@ namespace neuron {
         double t_v2[801]{};
         double t_sig[156]{};
         double t_quadratic[501]{};
-        double k{0.1};
-        double d{-50};
-        double c1{1};
-        double c2{2};
     };
     static_assert(std::is_trivially_copy_constructible_v<tbl_point_process_Store>);
     static_assert(std::is_trivially_move_constructible_v<tbl_point_process_Store>);

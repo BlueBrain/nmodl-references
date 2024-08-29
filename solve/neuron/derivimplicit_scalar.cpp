@@ -438,7 +438,7 @@ namespace neuron {
 
     /** all global variables */
     struct derivimplicit_scalar_Store {
-        double x0{};
+        double x0{0};
     };
     static_assert(std::is_trivially_copy_constructible_v<derivimplicit_scalar_Store>);
     static_assert(std::is_trivially_move_constructible_v<derivimplicit_scalar_Store>);

@@ -79,7 +79,7 @@ namespace neuron {
 
     /** all global variables */
     struct ExpSyn2_Store {
-        double g0{};
+        double g0{0};
     };
     static_assert(std::is_trivially_copy_constructible_v<ExpSyn2_Store>);
     static_assert(std::is_trivially_move_constructible_v<ExpSyn2_Store>);

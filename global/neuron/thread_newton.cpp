@@ -440,9 +440,9 @@ namespace neuron {
 
     /** all global variables */
     struct thread_newton_Store {
-        int thread_data_in_use{};
-        double thread_data[1];
-        double X0{};
+        double thread_data_in_use{0};
+        double thread_data[1] /* TODO init const-array */;
+        double X0{0};
     };
     static_assert(std::is_trivially_copy_constructible_v<thread_newton_Store>);
     static_assert(std::is_trivially_move_constructible_v<thread_newton_Store>);

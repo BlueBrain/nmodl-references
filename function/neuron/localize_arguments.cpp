@@ -79,9 +79,9 @@ namespace neuron {
 
     /** all global variables */
     struct localize_arguments_Store {
-        double s0{};
         double g{0};
         double p{42};
+        double s0{0};
     };
     static_assert(std::is_trivially_copy_constructible_v<localize_arguments_Store>);
     static_assert(std::is_trivially_move_constructible_v<localize_arguments_Store>);
