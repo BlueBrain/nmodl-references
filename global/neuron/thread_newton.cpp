@@ -445,9 +445,9 @@ namespace neuron {
 
     /** all global variables */
     struct thread_newton_Store {
-        int thread_data_in_use{};
-        double thread_data[1];
-        double X0{};
+        double thread_data_in_use{0};
+        double thread_data[1] /* TODO init const-array */;
+        double X0{0};
     };
     static_assert(std::is_trivially_copy_constructible_v<thread_newton_Store>);
     static_assert(std::is_trivially_move_constructible_v<thread_newton_Store>);
@@ -546,7 +546,7 @@ namespace neuron {
 
 
     /* Functions related to CVODE codegen */
-    static int ode_count_thread_newton(int _type) {
+    static constexpr int ode_count_thread_newton(int _type) {
         return 1;
     }
     static void ode_spec_thread_newton(_nrn_model_sorted_token const& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
@@ -564,7 +564,7 @@ namespace neuron {
     static void ode_map_thread_newton(Prop* _prop, int equation_index, neuron::container::data_handle<double>* _pv, neuron::container::data_handle<double>* _pvdot, double* _atol, int _type) {
         auto* _ppvar = _nrn_mechanism_access_dparam(_prop);
         _ppvar[0].literal_value<int>() = equation_index;
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < ode_count_thread_newton(0); i++) {
             _pv[i] = _nrn_mechanism_get_param_handle(_prop, _slist1[i]);
             _pvdot[i] = _nrn_mechanism_get_param_handle(_prop, _dlist1[i]);
             _cvode_abstol(_atollist, _atol, i);

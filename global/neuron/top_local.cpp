@@ -80,8 +80,8 @@ namespace neuron {
 
     /** all global variables */
     struct top_local_Store {
-        int thread_data_in_use{};
-        double thread_data[1];
+        double thread_data_in_use{0};
+        double thread_data[1] /* TODO init const-array */;
     };
     static_assert(std::is_trivially_copy_constructible_v<top_local_Store>);
     static_assert(std::is_trivially_move_constructible_v<top_local_Store>);

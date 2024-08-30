@@ -82,8 +82,8 @@ namespace neuron {
 
     /** all global variables */
     struct shared_global_Store {
-        int thread_data_in_use{};
-        double thread_data[5];
+        double thread_data_in_use{0};
+        double thread_data[5] /* TODO init const-array */;
         double usetable{1};
         double tmin_compute_g_v1{};
         double mfac_compute_g_v1{};
