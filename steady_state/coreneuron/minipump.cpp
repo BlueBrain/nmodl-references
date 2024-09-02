@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : side_effects
-Filename        : side_effects.mod
+Model Name      : minipump
+Filename        : minipump.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -406,55 +406,63 @@ namespace coreneuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "side_effects",
+        "minipump",
         0,
-        "il_side_effects",
-        "x_side_effects",
-        "forward_flux_side_effects",
-        "backward_flux_side_effects",
         0,
-        "X_side_effects",
-        "Y_side_effects",
+        "X_minipump",
+        "Y_minipump",
+        "Z_minipump",
         0,
         0
     };
 
 
     /** all global variables */
-    struct side_effects_Store {
+    struct minipump_Store {
         double X0{};
         double Y0{};
+        double Z0{};
         int reset{};
         int mech_type{};
-        int slist1[2]{4, 5};
-        int dlist1[2]{6, 7};
+        double volA{1e+09};
+        double volB{1e+09};
+        double volC{13};
+        double kf{3};
+        double kb{4};
+        double run_steady_state{0};
+        int slist1[3]{0, 1, 2};
+        int dlist1[3]{3, 4, 5};
     };
-    static_assert(std::is_trivially_copy_constructible_v<side_effects_Store>);
-    static_assert(std::is_trivially_move_constructible_v<side_effects_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<side_effects_Store>);
-    static_assert(std::is_trivially_move_assignable_v<side_effects_Store>);
-    static_assert(std::is_trivially_destructible_v<side_effects_Store>);
-    side_effects_Store side_effects_global;
+    static_assert(std::is_trivially_copy_constructible_v<minipump_Store>);
+    static_assert(std::is_trivially_move_constructible_v<minipump_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<minipump_Store>);
+    static_assert(std::is_trivially_move_assignable_v<minipump_Store>);
+    static_assert(std::is_trivially_destructible_v<minipump_Store>);
+    minipump_Store minipump_global;
 
 
     /** all mechanism instance variables and global variables */
-    struct side_effects_Instance  {
-        double* il{};
-        double* x{};
-        double* forward_flux{};
-        double* backward_flux{};
+    struct minipump_Instance  {
         double* X{};
         double* Y{};
+        double* Z{};
         double* DX{};
         double* DY{};
+        double* DZ{};
         double* v_unused{};
         double* g_unused{};
-        side_effects_Store* global{&side_effects_global};
+        minipump_Store* global{&minipump_global};
     };
 
 
     /** connect global (scalar) variables to hoc -- */
     static DoubScal hoc_scalar_double[] = {
+        {"volA_minipump", &minipump_global.volA},
+        {"volB_minipump", &minipump_global.volB},
+        {"volC_minipump", &minipump_global.volC},
+        {"kf_minipump", &minipump_global.kf},
+        {"kb_minipump", &minipump_global.kb},
+        {"run_steady_state_minipump", &minipump_global.run_steady_state},
         {nullptr, nullptr}
     };
 
@@ -476,7 +484,7 @@ namespace coreneuron {
 
 
     static inline int float_variables_size() {
-        return 10;
+        return 8;
     }
 
 
@@ -486,7 +494,7 @@ namespace coreneuron {
 
 
     static inline int get_mech_type() {
-        return side_effects_global.mech_type;
+        return minipump_global.mech_type;
     }
 
 
@@ -516,25 +524,25 @@ namespace coreneuron {
     }
 
     // Allocate instance structure
-    static void nrn_private_constructor_side_effects(NrnThread* nt, Memb_list* ml, int type) {
+    static void nrn_private_constructor_minipump(NrnThread* nt, Memb_list* ml, int type) {
         assert(!ml->instance);
         assert(!ml->global_variables);
         assert(ml->global_variables_size == 0);
-        auto* const inst = new side_effects_Instance{};
-        assert(inst->global == &side_effects_global);
+        auto* const inst = new minipump_Instance{};
+        assert(inst->global == &minipump_global);
         ml->instance = inst;
         ml->global_variables = inst->global;
-        ml->global_variables_size = sizeof(side_effects_Store);
+        ml->global_variables_size = sizeof(minipump_Store);
     }
 
     // Deallocate the instance structure
-    static void nrn_private_destructor_side_effects(NrnThread* nt, Memb_list* ml, int type) {
-        auto* const inst = static_cast<side_effects_Instance*>(ml->instance);
+    static void nrn_private_destructor_minipump(NrnThread* nt, Memb_list* ml, int type) {
+        auto* const inst = static_cast<minipump_Instance*>(ml->instance);
         assert(inst);
         assert(inst->global);
-        assert(inst->global == &side_effects_global);
+        assert(inst->global == &minipump_global);
         assert(inst->global == ml->global_variables);
-        assert(ml->global_variables_size == sizeof(side_effects_Store));
+        assert(ml->global_variables_size == sizeof(minipump_Store));
         delete inst;
         ml->instance = nullptr;
         ml->global_variables = nullptr;
@@ -543,34 +551,32 @@ namespace coreneuron {
 
     /** initialize mechanism instance variables */
     static inline void setup_instance(NrnThread* nt, Memb_list* ml) {
-        auto* const inst = static_cast<side_effects_Instance*>(ml->instance);
+        auto* const inst = static_cast<minipump_Instance*>(ml->instance);
         assert(inst);
         assert(inst->global);
-        assert(inst->global == &side_effects_global);
+        assert(inst->global == &minipump_global);
         assert(inst->global == ml->global_variables);
-        assert(ml->global_variables_size == sizeof(side_effects_Store));
+        assert(ml->global_variables_size == sizeof(minipump_Store));
         int pnodecount = ml->_nodecount_padded;
         Datum* indexes = ml->pdata;
-        inst->il = ml->data+0*pnodecount;
-        inst->x = ml->data+1*pnodecount;
-        inst->forward_flux = ml->data+2*pnodecount;
-        inst->backward_flux = ml->data+3*pnodecount;
-        inst->X = ml->data+4*pnodecount;
-        inst->Y = ml->data+5*pnodecount;
-        inst->DX = ml->data+6*pnodecount;
-        inst->DY = ml->data+7*pnodecount;
-        inst->v_unused = ml->data+8*pnodecount;
-        inst->g_unused = ml->data+9*pnodecount;
+        inst->X = ml->data+0*pnodecount;
+        inst->Y = ml->data+1*pnodecount;
+        inst->Z = ml->data+2*pnodecount;
+        inst->DX = ml->data+3*pnodecount;
+        inst->DY = ml->data+4*pnodecount;
+        inst->DZ = ml->data+5*pnodecount;
+        inst->v_unused = ml->data+6*pnodecount;
+        inst->g_unused = ml->data+7*pnodecount;
     }
 
 
 
-    static void nrn_alloc_side_effects(double* data, Datum* indexes, int type) {
+    static void nrn_alloc_minipump(double* data, Datum* indexes, int type) {
         // do nothing
     }
 
 
-    void nrn_constructor_side_effects(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_constructor_minipump(NrnThread* nt, Memb_list* ml, int type) {
         #ifndef CORENEURON_BUILD
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
@@ -579,13 +585,13 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<side_effects_Instance*>(ml->instance);
+        auto* const inst = static_cast<minipump_Instance*>(ml->instance);
 
         #endif
     }
 
 
-    void nrn_destructor_side_effects(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_destructor_minipump(NrnThread* nt, Memb_list* ml, int type) {
         #ifndef CORENEURON_BUILD
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
@@ -594,15 +600,15 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<side_effects_Instance*>(ml->instance);
+        auto* const inst = static_cast<minipump_Instance*>(ml->instance);
 
         #endif
     }
 
 
-    struct functor_side_effects_0 {
+    struct functor_minipump_1 {
         NrnThread* nt;
-        side_effects_Instance* inst;
+        minipump_Instance* inst;
         int id;
         int pnodecount;
         double v;
@@ -612,28 +618,76 @@ namespace coreneuron {
         double kf0_, kb0_, old_X, old_Y;
 
         void initialize() {
-            kf0_ = 0.4;
-            kb0_ = 0.5;
-            inst->forward_flux[id] = kf0_ * inst->X[id];
-            inst->backward_flux[id] = kb0_ * inst->Y[id];
-            inst->x[id] = inst->X[id];
+            kf0_ = inst->global->kf;
+            kb0_ = inst->global->kb;
             old_X = inst->X[id];
             old_Y = inst->Y[id];
         }
 
-        functor_side_effects_0(NrnThread* nt, side_effects_Instance* inst, int id, int pnodecount, double v, const Datum* indexes, double* data, ThreadDatum* thread)
+        functor_minipump_1(NrnThread* nt, minipump_Instance* inst, int id, int pnodecount, double v, const Datum* indexes, double* data, ThreadDatum* thread)
             : nt(nt), inst(inst), id(id), pnodecount(pnodecount), v(v), indexes(indexes), data(data), thread(thread)
         {}
-        void operator()(const Eigen::Matrix<double, 2, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 2, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 2, 2>& nmodl_eigen_jm) const {
+        void operator()(const Eigen::Matrix<double, 3, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 3, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 3, 3>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
             double* nmodl_eigen_j = nmodl_eigen_jm.data();
             double* nmodl_eigen_f = nmodl_eigen_fm.data();
-            nmodl_eigen_f[static_cast<int>(0)] = ( -nmodl_eigen_x[static_cast<int>(0)] + nt->_dt * ( -nmodl_eigen_x[static_cast<int>(0)] * kf0_ + nmodl_eigen_x[static_cast<int>(1)] * kb0_) + old_X) / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(0)] =  -kf0_ - 1.0 / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(2)] = kb0_;
-            nmodl_eigen_f[static_cast<int>(1)] = ( -nmodl_eigen_x[static_cast<int>(1)] + nt->_dt * (nmodl_eigen_x[static_cast<int>(0)] * kf0_ - nmodl_eigen_x[static_cast<int>(1)] * kb0_) + old_Y) / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(1)] = kf0_;
-            nmodl_eigen_j[static_cast<int>(3)] =  -kb0_ - 1.0 / nt->_dt;
+            nmodl_eigen_f[static_cast<int>(0)] = (nt->_dt * ( -nmodl_eigen_x[static_cast<int>(0)] * nmodl_eigen_x[static_cast<int>(1)] * kf0_ + nmodl_eigen_x[static_cast<int>(2)] * kb0_) + inst->global->volA * ( -nmodl_eigen_x[static_cast<int>(0)] + old_X)) / (nt->_dt * inst->global->volA);
+            nmodl_eigen_j[static_cast<int>(0)] =  -nmodl_eigen_x[static_cast<int>(1)] * kf0_ / inst->global->volA - 1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(3)] =  -nmodl_eigen_x[static_cast<int>(0)] * kf0_ / inst->global->volA;
+            nmodl_eigen_j[static_cast<int>(6)] = kb0_ / inst->global->volA;
+            nmodl_eigen_f[static_cast<int>(1)] = (nt->_dt * ( -nmodl_eigen_x[static_cast<int>(0)] * nmodl_eigen_x[static_cast<int>(1)] * kf0_ + nmodl_eigen_x[static_cast<int>(2)] * kb0_) + inst->global->volB * ( -nmodl_eigen_x[static_cast<int>(1)] + old_Y)) / (nt->_dt * inst->global->volB);
+            nmodl_eigen_j[static_cast<int>(1)] =  -nmodl_eigen_x[static_cast<int>(1)] * kf0_ / inst->global->volB;
+            nmodl_eigen_j[static_cast<int>(4)] =  -nmodl_eigen_x[static_cast<int>(0)] * kf0_ / inst->global->volB - 1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(7)] = kb0_ / inst->global->volB;
+            nmodl_eigen_f[static_cast<int>(2)] = ( -nmodl_eigen_x[static_cast<int>(1)] * inst->global->volB + 8.0 * inst->global->volB + inst->global->volC * (1.0 - nmodl_eigen_x[static_cast<int>(2)])) / inst->global->volC;
+            nmodl_eigen_j[static_cast<int>(2)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(5)] =  -inst->global->volB / inst->global->volC;
+            nmodl_eigen_j[static_cast<int>(8)] =  -1.0;
+        }
+
+        void finalize() {
+        }
+    };
+
+
+    struct functor_minipump_0 {
+        NrnThread* nt;
+        minipump_Instance* inst;
+        int id;
+        int pnodecount;
+        double v;
+        const Datum* indexes;
+        double* data;
+        ThreadDatum* thread;
+        double kf0_, kb0_, old_X, old_Y;
+
+        void initialize() {
+            ;
+            kf0_ = inst->global->kf;
+            kb0_ = inst->global->kb;
+            old_X = inst->X[id];
+            old_Y = inst->Y[id];
+        }
+
+        functor_minipump_0(NrnThread* nt, minipump_Instance* inst, int id, int pnodecount, double v, const Datum* indexes, double* data, ThreadDatum* thread)
+            : nt(nt), inst(inst), id(id), pnodecount(pnodecount), v(v), indexes(indexes), data(data), thread(thread)
+        {}
+        void operator()(const Eigen::Matrix<double, 3, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 3, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 3, 3>& nmodl_eigen_jm) const {
+            const double* nmodl_eigen_x = nmodl_eigen_xm.data();
+            double* nmodl_eigen_j = nmodl_eigen_jm.data();
+            double* nmodl_eigen_f = nmodl_eigen_fm.data();
+            nmodl_eigen_f[static_cast<int>(0)] = (nt->_dt * ( -nmodl_eigen_x[static_cast<int>(0)] * nmodl_eigen_x[static_cast<int>(1)] * kf0_ + nmodl_eigen_x[static_cast<int>(2)] * kb0_) + inst->global->volA * ( -nmodl_eigen_x[static_cast<int>(0)] + old_X)) / (nt->_dt * inst->global->volA);
+            nmodl_eigen_j[static_cast<int>(0)] =  -nmodl_eigen_x[static_cast<int>(1)] * kf0_ / inst->global->volA - 1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(3)] =  -nmodl_eigen_x[static_cast<int>(0)] * kf0_ / inst->global->volA;
+            nmodl_eigen_j[static_cast<int>(6)] = kb0_ / inst->global->volA;
+            nmodl_eigen_f[static_cast<int>(1)] = (nt->_dt * ( -nmodl_eigen_x[static_cast<int>(0)] * nmodl_eigen_x[static_cast<int>(1)] * kf0_ + nmodl_eigen_x[static_cast<int>(2)] * kb0_) + inst->global->volB * ( -nmodl_eigen_x[static_cast<int>(1)] + old_Y)) / (nt->_dt * inst->global->volB);
+            nmodl_eigen_j[static_cast<int>(1)] =  -nmodl_eigen_x[static_cast<int>(1)] * kf0_ / inst->global->volB;
+            nmodl_eigen_j[static_cast<int>(4)] =  -nmodl_eigen_x[static_cast<int>(0)] * kf0_ / inst->global->volB - 1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(7)] = kb0_ / inst->global->volB;
+            nmodl_eigen_f[static_cast<int>(2)] = ( -nmodl_eigen_x[static_cast<int>(1)] * inst->global->volB + 8.0 * inst->global->volB + inst->global->volC * (1.0 - nmodl_eigen_x[static_cast<int>(2)])) / inst->global->volC;
+            nmodl_eigen_j[static_cast<int>(2)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(5)] =  -inst->global->volB / inst->global->volC;
+            nmodl_eigen_j[static_cast<int>(8)] =  -1.0;
         }
 
         void finalize() {
@@ -642,7 +696,7 @@ namespace coreneuron {
 
 
     /** initialize channel */
-    void nrn_init_side_effects(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_init_minipump(NrnThread* nt, Memb_list* ml, int type) {
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
         const int* node_index = ml->nodeindices;
@@ -652,9 +706,11 @@ namespace coreneuron {
         ThreadDatum* thread = ml->_thread;
 
         setup_instance(nt, ml);
-        auto* const inst = static_cast<side_effects_Instance*>(ml->instance);
+        auto* const inst = static_cast<minipump_Instance*>(ml->instance);
 
         if (_nrn_skip_initmodel == 0) {
+            double _save_prev_dt = nt->_dt;
+            nt->_dt = 1000000000;
             #pragma omp simd
             #pragma ivdep
             for (int id = 0; id < nodecount; id++) {
@@ -665,56 +721,38 @@ namespace coreneuron {
                 #endif
                 inst->X[id] = inst->global->X0;
                 inst->Y[id] = inst->global->Y0;
-                inst->X[id] = 1.0;
-                inst->Y[id] = 2.0;
+                inst->Z[id] = inst->global->Z0;
+                inst->X[id] = 40.0;
+                inst->Y[id] = 8.0;
+                inst->Z[id] = 1.0;
+                if (inst->global->run_steady_state > 0.0) {
+                                        
+                    Eigen::Matrix<double, 3, 1> nmodl_eigen_xm;
+                    double* nmodl_eigen_x = nmodl_eigen_xm.data();
+                    nmodl_eigen_x[static_cast<int>(0)] = inst->X[id];
+                    nmodl_eigen_x[static_cast<int>(1)] = inst->Y[id];
+                    nmodl_eigen_x[static_cast<int>(2)] = inst->Z[id];
+                    // call newton solver
+                    functor_minipump_0 newton_functor(nt, inst, id, pnodecount, v, indexes, data, thread);
+                    newton_functor.initialize();
+                    int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
+                    if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
+                    inst->X[id] = nmodl_eigen_x[static_cast<int>(0)];
+                    inst->Y[id] = nmodl_eigen_x[static_cast<int>(1)];
+                    inst->Z[id] = nmodl_eigen_x[static_cast<int>(2)];
+                    newton_functor.initialize(); // TODO mimic calling F again.
+                    newton_functor.finalize();
+
+
+                }
             }
-        }
-    }
-
-
-    inline double nrn_current_side_effects(int id, int pnodecount, side_effects_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
-        double current = 0.0;
-        inst->il[id] = inst->forward_flux[id] - inst->backward_flux[id];
-        current += inst->il[id];
-        return current;
-    }
-
-
-    /** update current */
-    void nrn_cur_side_effects(NrnThread* nt, Memb_list* ml, int type) {
-        int nodecount = ml->nodecount;
-        int pnodecount = ml->_nodecount_padded;
-        const int* node_index = ml->nodeindices;
-        double* data = ml->data;
-        const double* voltage = nt->_actual_v;
-        double* vec_rhs = nt->_actual_rhs;
-        double* vec_d = nt->_actual_d;
-        Datum* indexes = ml->pdata;
-        ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<side_effects_Instance*>(ml->instance);
-
-        #pragma omp simd
-        #pragma ivdep
-        for (int id = 0; id < nodecount; id++) {
-            int node_id = node_index[id];
-            double v = voltage[node_id];
-            #if NRN_PRCELLSTATE
-            inst->v_unused[id] = v;
-            #endif
-            double g = nrn_current_side_effects(id, pnodecount, inst, data, indexes, thread, nt, v+0.001);
-            double rhs = nrn_current_side_effects(id, pnodecount, inst, data, indexes, thread, nt, v);
-            g = (g-rhs)/0.001;
-            #if NRN_PRCELLSTATE
-            inst->g_unused[id] = g;
-            #endif
-            vec_rhs[node_id] -= rhs;
-            vec_d[node_id] += g;
+            nt->_dt = _save_prev_dt;
         }
     }
 
 
     /** update state */
-    void nrn_state_side_effects(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_state_minipump(NrnThread* nt, Memb_list* ml, int type) {
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
         const int* node_index = ml->nodeindices;
@@ -722,7 +760,7 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<side_effects_Instance*>(ml->instance);
+        auto* const inst = static_cast<minipump_Instance*>(ml->instance);
 
         #pragma omp simd
         #pragma ivdep
@@ -733,17 +771,19 @@ namespace coreneuron {
             inst->v_unused[id] = v;
             #endif
             
-            Eigen::Matrix<double, 2, 1> nmodl_eigen_xm;
+            Eigen::Matrix<double, 3, 1> nmodl_eigen_xm;
             double* nmodl_eigen_x = nmodl_eigen_xm.data();
             nmodl_eigen_x[static_cast<int>(0)] = inst->X[id];
             nmodl_eigen_x[static_cast<int>(1)] = inst->Y[id];
+            nmodl_eigen_x[static_cast<int>(2)] = inst->Z[id];
             // call newton solver
-            functor_side_effects_0 newton_functor(nt, inst, id, pnodecount, v, indexes, data, thread);
+            functor_minipump_1 newton_functor(nt, inst, id, pnodecount, v, indexes, data, thread);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
             inst->X[id] = nmodl_eigen_x[static_cast<int>(0)];
             inst->Y[id] = nmodl_eigen_x[static_cast<int>(1)];
+            inst->Z[id] = nmodl_eigen_x[static_cast<int>(2)];
             newton_functor.initialize(); // TODO mimic calling F again.
             newton_functor.finalize();
 
@@ -752,16 +792,16 @@ namespace coreneuron {
 
 
     /** register channel with the simulator */
-    void _side_effects_reg() {
+    void _minipump_reg() {
 
-        int mech_type = nrn_get_mechtype("side_effects");
-        side_effects_global.mech_type = mech_type;
+        int mech_type = nrn_get_mechtype("minipump");
+        minipump_global.mech_type = mech_type;
         if (mech_type == -1) {
             return;
         }
 
         _nrn_layout_reg(mech_type, 0);
-        register_mech(mechanism_info, nrn_alloc_side_effects, nrn_cur_side_effects, nullptr, nrn_state_side_effects, nrn_init_side_effects, nrn_private_constructor_side_effects, nrn_private_destructor_side_effects, first_pointer_var_index(), 1);
+        register_mech(mechanism_info, nrn_alloc_minipump, nullptr, nullptr, nrn_state_minipump, nrn_init_minipump, nrn_private_constructor_minipump, nrn_private_destructor_minipump, first_pointer_var_index(), 1);
 
         hoc_register_prop_size(mech_type, float_variables_size(), int_variables_size());
         hoc_register_var(hoc_scalar_double, hoc_vector_double, NULL);
