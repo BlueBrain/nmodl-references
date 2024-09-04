@@ -141,6 +141,18 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    static localize_arguments_NodeData make_node_data_localize_arguments(Prop * _prop) {
+        static std::vector<int> node_index{0};
+        Node* _node = _nrn_mechanism_access_node(_prop);
+        return localize_arguments_NodeData {
+            node_index.data(),
+            &_nrn_mechanism_access_voltage(_node),
+            &_nrn_mechanism_access_d(_node),
+            &_nrn_mechanism_access_rhs(_node),
+            1
+        };
+    }
+
     void nrn_destructor_localize_arguments(Prop* _prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
     }
@@ -176,13 +188,13 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
-    inline double id_v_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
-    inline double id_nai_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lnai);
-    inline double id_ina_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lina);
-    inline double id_x_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
-    inline double id_g_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lg);
-    inline double id_s_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _ls);
-    inline double id_p_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lp);
+    inline double id_v_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
+    inline double id_nai_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lnai);
+    inline double id_ina_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lina);
+    inline double id_x_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
+    inline double id_g_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lg);
+    inline double id_s_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _ls);
+    inline double id_p_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lp);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -250,7 +262,8 @@ namespace neuron {
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_localize_arguments(_lmc);
-        _r = id_v_localize_arguments(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
+        auto node_data = make_node_data_localize_arguments(_local_prop);
+        _r = id_v_localize_arguments(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_id_v(Prop* _prop) {
@@ -259,12 +272,13 @@ namespace neuron {
         Datum* _thread;
         NrnThread* nt;
         _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const id{};
+        size_t const id = 0;
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_localize_arguments(_lmc);
-        _r = id_v_localize_arguments(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
+        auto node_data = make_node_data_localize_arguments(_prop);
+        _r = id_v_localize_arguments(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
     static void _hoc_id_nai(void) {
@@ -279,7 +293,8 @@ namespace neuron {
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_localize_arguments(_lmc);
-        _r = id_nai_localize_arguments(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
+        auto node_data = make_node_data_localize_arguments(_local_prop);
+        _r = id_nai_localize_arguments(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_id_nai(Prop* _prop) {
@@ -288,12 +303,13 @@ namespace neuron {
         Datum* _thread;
         NrnThread* nt;
         _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const id{};
+        size_t const id = 0;
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_localize_arguments(_lmc);
-        _r = id_nai_localize_arguments(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
+        auto node_data = make_node_data_localize_arguments(_prop);
+        _r = id_nai_localize_arguments(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
     static void _hoc_id_ina(void) {
@@ -308,7 +324,8 @@ namespace neuron {
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_localize_arguments(_lmc);
-        _r = id_ina_localize_arguments(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
+        auto node_data = make_node_data_localize_arguments(_local_prop);
+        _r = id_ina_localize_arguments(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_id_ina(Prop* _prop) {
@@ -317,12 +334,13 @@ namespace neuron {
         Datum* _thread;
         NrnThread* nt;
         _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const id{};
+        size_t const id = 0;
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_localize_arguments(_lmc);
-        _r = id_ina_localize_arguments(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
+        auto node_data = make_node_data_localize_arguments(_prop);
+        _r = id_ina_localize_arguments(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
     static void _hoc_id_x(void) {
@@ -337,7 +355,8 @@ namespace neuron {
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_localize_arguments(_lmc);
-        _r = id_x_localize_arguments(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
+        auto node_data = make_node_data_localize_arguments(_local_prop);
+        _r = id_x_localize_arguments(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_id_x(Prop* _prop) {
@@ -346,12 +365,13 @@ namespace neuron {
         Datum* _thread;
         NrnThread* nt;
         _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const id{};
+        size_t const id = 0;
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_localize_arguments(_lmc);
-        _r = id_x_localize_arguments(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
+        auto node_data = make_node_data_localize_arguments(_prop);
+        _r = id_x_localize_arguments(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
     static void _hoc_id_g(void) {
@@ -366,7 +386,8 @@ namespace neuron {
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_localize_arguments(_lmc);
-        _r = id_g_localize_arguments(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
+        auto node_data = make_node_data_localize_arguments(_local_prop);
+        _r = id_g_localize_arguments(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_id_g(Prop* _prop) {
@@ -375,12 +396,13 @@ namespace neuron {
         Datum* _thread;
         NrnThread* nt;
         _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const id{};
+        size_t const id = 0;
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_localize_arguments(_lmc);
-        _r = id_g_localize_arguments(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
+        auto node_data = make_node_data_localize_arguments(_prop);
+        _r = id_g_localize_arguments(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
     static void _hoc_id_s(void) {
@@ -395,7 +417,8 @@ namespace neuron {
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_localize_arguments(_lmc);
-        _r = id_s_localize_arguments(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
+        auto node_data = make_node_data_localize_arguments(_local_prop);
+        _r = id_s_localize_arguments(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_id_s(Prop* _prop) {
@@ -404,12 +427,13 @@ namespace neuron {
         Datum* _thread;
         NrnThread* nt;
         _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const id{};
+        size_t const id = 0;
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_localize_arguments(_lmc);
-        _r = id_s_localize_arguments(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
+        auto node_data = make_node_data_localize_arguments(_prop);
+        _r = id_s_localize_arguments(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
     static void _hoc_id_p(void) {
@@ -424,7 +448,8 @@ namespace neuron {
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_localize_arguments(_lmc);
-        _r = id_p_localize_arguments(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
+        auto node_data = make_node_data_localize_arguments(_local_prop);
+        _r = id_p_localize_arguments(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_id_p(Prop* _prop) {
@@ -433,67 +458,68 @@ namespace neuron {
         Datum* _thread;
         NrnThread* nt;
         _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const id{};
+        size_t const id = 0;
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_localize_arguments(_lmc);
-        _r = id_p_localize_arguments(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
+        auto node_data = make_node_data_localize_arguments(_prop);
+        _r = id_p_localize_arguments(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
 
 
-    inline double id_v_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv) {
+    inline double id_v_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv) {
         double ret_id_v = 0.0;
-        auto v = inst.v_unused[id];
+        auto v = node_data.node_voltages[node_data.nodeindices[id]];
         ret_id_v = _lv;
         return ret_id_v;
     }
 
 
-    inline double id_nai_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lnai) {
+    inline double id_nai_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lnai) {
         double ret_id_nai = 0.0;
-        auto v = inst.v_unused[id];
+        auto v = node_data.node_voltages[node_data.nodeindices[id]];
         ret_id_nai = _lnai;
         return ret_id_nai;
     }
 
 
-    inline double id_ina_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lina) {
+    inline double id_ina_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lina) {
         double ret_id_ina = 0.0;
-        auto v = inst.v_unused[id];
+        auto v = node_data.node_voltages[node_data.nodeindices[id]];
         ret_id_ina = _lina;
         return ret_id_ina;
     }
 
 
-    inline double id_x_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx) {
+    inline double id_x_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx) {
         double ret_id_x = 0.0;
-        auto v = inst.v_unused[id];
+        auto v = node_data.node_voltages[node_data.nodeindices[id]];
         ret_id_x = _lx;
         return ret_id_x;
     }
 
 
-    inline double id_g_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lg) {
+    inline double id_g_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lg) {
         double ret_id_g = 0.0;
-        auto v = inst.v_unused[id];
+        auto v = node_data.node_voltages[node_data.nodeindices[id]];
         ret_id_g = _lg;
         return ret_id_g;
     }
 
 
-    inline double id_s_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _ls) {
+    inline double id_s_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _ls) {
         double ret_id_s = 0.0;
-        auto v = inst.v_unused[id];
+        auto v = node_data.node_voltages[node_data.nodeindices[id]];
         ret_id_s = _ls;
         return ret_id_s;
     }
 
 
-    inline double id_p_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lp) {
+    inline double id_p_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lp) {
         double ret_id_p = 0.0;
-        auto v = inst.v_unused[id];
+        auto v = node_data.node_voltages[node_data.nodeindices[id]];
         ret_id_p = _lp;
         return ret_id_p;
     }
@@ -509,7 +535,6 @@ namespace neuron {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
-            inst.v_unused[id] = v;
             inst.s[id] = inst.global->s0;
             inst.ina[id] = (*inst.ion_ina[id]);
             inst.nai[id] = (*inst.ion_nai[id]);

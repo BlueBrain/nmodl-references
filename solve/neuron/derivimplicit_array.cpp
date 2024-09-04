@@ -497,6 +497,18 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    static derivimplicit_array_NodeData make_node_data_derivimplicit_array(Prop * _prop) {
+        static std::vector<int> node_index{0};
+        Node* _node = _nrn_mechanism_access_node(_prop);
+        return derivimplicit_array_NodeData {
+            node_index.data(),
+            &_nrn_mechanism_access_voltage(_node),
+            &_nrn_mechanism_access_d(_node),
+            &_nrn_mechanism_access_rhs(_node),
+            1
+        };
+    }
+
     void nrn_destructor_derivimplicit_array(Prop* _prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
     }
@@ -528,6 +540,7 @@ namespace neuron {
     struct functor_derivimplicit_array_0 {
         _nrn_mechanism_cache_range& _lmc;
         derivimplicit_array_Instance& inst;
+        derivimplicit_array_NodeData& node_data;
         size_t id;
         Datum* _ppvar;
         Datum* _thread;
@@ -539,8 +552,8 @@ namespace neuron {
             old_x = inst.x[id];
         }
 
-        functor_derivimplicit_array_0(_nrn_mechanism_cache_range& _lmc, derivimplicit_array_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v)
-            : _lmc(_lmc), inst(inst), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt), v(v)
+        functor_derivimplicit_array_0(_nrn_mechanism_cache_range& _lmc, derivimplicit_array_Instance& inst, derivimplicit_array_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v)
+            : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt), v(v)
         {}
         void operator()(const Eigen::Matrix<double, 1, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
@@ -590,7 +603,6 @@ namespace neuron {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
-            inst.v_unused[id] = v;
             inst.x[id] = inst.global->x0;
             (inst.s+id*2)[0] = inst.global->s0;
             (inst.s+id*2)[1] = inst.global->s0;
@@ -619,7 +631,7 @@ namespace neuron {
             double* nmodl_eigen_x = nmodl_eigen_xm.data();
             nmodl_eigen_x[static_cast<int>(0)] = inst.x[id];
             // call newton solver
-            functor_derivimplicit_array_0 newton_functor(_lmc, inst, id, _ppvar, _thread, nt, v);
+            functor_derivimplicit_array_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, nt, v);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");

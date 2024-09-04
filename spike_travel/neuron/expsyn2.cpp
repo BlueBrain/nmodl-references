@@ -141,6 +141,18 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    static ExpSyn2_NodeData make_node_data_ExpSyn2(Prop * _prop) {
+        static std::vector<int> node_index{0};
+        Node* _node = _nrn_mechanism_access_node(_prop);
+        return ExpSyn2_NodeData {
+            node_index.data(),
+            &_nrn_mechanism_access_voltage(_node),
+            &_nrn_mechanism_access_d(_node),
+            &_nrn_mechanism_access_rhs(_node),
+            1
+        };
+    }
+
     void nrn_destructor_ExpSyn2(Prop* _prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
     }
@@ -230,7 +242,6 @@ namespace neuron {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
-            inst.v_unused[id] = v;
             inst.g[id] = inst.global->g0;
             inst.g[id] = 0.0;
         }
@@ -299,6 +310,7 @@ namespace neuron {
         auto * nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto * _ppvar = _nrn_mechanism_access_dparam(_pnt->prop);
         auto inst = make_instance_ExpSyn2(_lmc);
+        auto node_data = make_node_data_ExpSyn2(_pnt->prop);
         // nocmodl has a nullptr dereference for thread variables.
         // NMODL will fail to compile at a later point, because of
         // missing '_thread_vars'.

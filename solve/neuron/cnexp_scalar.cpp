@@ -128,6 +128,18 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    static cnexp_scalar_NodeData make_node_data_cnexp_scalar(Prop * _prop) {
+        static std::vector<int> node_index{0};
+        Node* _node = _nrn_mechanism_access_node(_prop);
+        return cnexp_scalar_NodeData {
+            node_index.data(),
+            &_nrn_mechanism_access_voltage(_node),
+            &_nrn_mechanism_access_d(_node),
+            &_nrn_mechanism_access_rhs(_node),
+            1
+        };
+    }
+
     void nrn_destructor_cnexp_scalar(Prop* _prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
     }
@@ -191,7 +203,6 @@ namespace neuron {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
-            inst.v_unused[id] = v;
             inst.x[id] = inst.global->x0;
             inst.x[id] = 42.0;
         }
