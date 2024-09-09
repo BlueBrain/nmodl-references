@@ -505,6 +505,18 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    static X2Y_NodeData make_node_data_X2Y(Prop * _prop) {
+        static std::vector<int> node_index{0};
+        Node* _node = _nrn_mechanism_access_node(_prop);
+        return X2Y_NodeData {
+            node_index.data(),
+            &_nrn_mechanism_access_voltage(_node),
+            &_nrn_mechanism_access_d(_node),
+            &_nrn_mechanism_access_rhs(_node),
+            1
+        };
+    }
+
     void nrn_destructor_X2Y(Prop* _prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
     }
@@ -531,12 +543,13 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
-    inline int rates_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline int rates_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, X2Y_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
 
 
     struct functor_X2Y_0 {
         _nrn_mechanism_cache_range& _lmc;
         X2Y_Instance& inst;
+        X2Y_NodeData& node_data;
         size_t id;
         Datum* _ppvar;
         Datum* _thread;
@@ -545,7 +558,7 @@ namespace neuron {
         double kf0_, kb0_, old_X, old_Y;
 
         void initialize() {
-            rates_X2Y(_lmc, inst, id, _ppvar, _thread, nt);
+            rates_X2Y(_lmc, inst, node_data, id, _ppvar, _thread, nt);
             kf0_ = inst.c1[id];
             kb0_ = inst.c2[id];
             inst.i[id] = (kf0_ * inst.X[id] - kb0_ * inst.Y[id]);
@@ -553,8 +566,8 @@ namespace neuron {
             old_Y = inst.Y[id];
         }
 
-        functor_X2Y_0(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v)
-            : _lmc(_lmc), inst(inst), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt), v(v)
+        functor_X2Y_0(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, X2Y_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v)
+            : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt), v(v)
         {}
         void operator()(const Eigen::Matrix<double, 2, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 2, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 2, 2>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
@@ -615,8 +628,9 @@ namespace neuron {
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_X2Y(_lmc);
+        auto node_data = make_node_data_X2Y(_local_prop);
         _r = 1.;
-        rates_X2Y(_lmc, inst, id, _ppvar, _thread, nt);
+        rates_X2Y(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_rates(Prop* _prop) {
@@ -625,20 +639,21 @@ namespace neuron {
         Datum* _thread;
         NrnThread* nt;
         _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const id{};
+        size_t const id = 0;
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_X2Y(_lmc);
+        auto node_data = make_node_data_X2Y(_prop);
         _r = 1.;
-        rates_X2Y(_lmc, inst, id, _ppvar, _thread, nt);
+        rates_X2Y(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
 
 
-    inline int rates_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+    inline int rates_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, X2Y_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         int ret_rates = 0;
-        auto v = inst.v_unused[id];
+        auto v = node_data.node_voltages[node_data.nodeindices[id]];
         inst.c1[id] = 0.4;
         inst.c2[id] = 0.5;
         return ret_rates;
@@ -655,7 +670,6 @@ namespace neuron {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
-            inst.v_unused[id] = v;
             inst.X[id] = inst.global->X0;
             inst.Y[id] = inst.global->Y0;
             inst.X[id] = 0.0;
@@ -711,7 +725,7 @@ namespace neuron {
             nmodl_eigen_x[static_cast<int>(0)] = inst.X[id];
             nmodl_eigen_x[static_cast<int>(1)] = inst.Y[id];
             // call newton solver
-            functor_X2Y_0 newton_functor(_lmc, inst, id, _ppvar, _thread, nt, v);
+            functor_X2Y_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, nt, v);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");

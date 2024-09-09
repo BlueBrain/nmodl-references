@@ -1,8 +1,8 @@
 /*********************************************************
-Model Name      : SnapSyn
-Filename        : snapsyn.mod
+Model Name      : art_functions
+Filename        : artificial_functions.mod
 NMODL Version   : 7.7.0
-Vectorized      : true
+Vectorized      : false
 Threadsafe      : true
 Created         : DATE
 Simulator       : NEURON
@@ -23,11 +23,11 @@ NMODL Compiler  : VERSION
 #include "section_fwd.hpp"
 
 /* NEURON global macro definitions */
-/* VECTORIZED */
-#define NRN_VECTORIZED 1
+/* NOT VECTORIZED */
+#define NRN_VECTORIZED 0
 
 static constexpr auto number_of_datum_variables = 2;
-static constexpr auto number_of_floating_point_variables = 6;
+static constexpr auto number_of_floating_point_variables = 3;
 
 namespace {
 template <typename T>
@@ -57,11 +57,11 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "SnapSyn",
-        "e",
+        "art_functions",
         0,
-        "i",
+        "x",
         0,
+        "z",
         0,
         0
     };
@@ -75,33 +75,31 @@ namespace neuron {
 
 
     /** all global variables */
-    struct SnapSyn_Store {
+    struct art_functions_Store {
+        double gbl{0};
+        double z0{0};
     };
-    static_assert(std::is_trivially_copy_constructible_v<SnapSyn_Store>);
-    static_assert(std::is_trivially_move_constructible_v<SnapSyn_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<SnapSyn_Store>);
-    static_assert(std::is_trivially_move_assignable_v<SnapSyn_Store>);
-    static_assert(std::is_trivially_destructible_v<SnapSyn_Store>);
-    SnapSyn_Store SnapSyn_global;
+    static_assert(std::is_trivially_copy_constructible_v<art_functions_Store>);
+    static_assert(std::is_trivially_move_constructible_v<art_functions_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<art_functions_Store>);
+    static_assert(std::is_trivially_move_assignable_v<art_functions_Store>);
+    static_assert(std::is_trivially_destructible_v<art_functions_Store>);
+    art_functions_Store art_functions_global;
     static std::vector<double> _parameter_defaults = {
-        10 /* e */
     };
 
 
     /** all mechanism instance variables and global variables */
-    struct SnapSyn_Instance  {
-        double* e{};
-        double* i{};
-        double* g{};
-        double* v_unused{};
-        double* g_unused{};
-        double* tsave{};
+    struct art_functions_Instance  {
+        double* x{};
+        double* z{};
+        double* Dz{};
         const double* const* node_area{};
-        SnapSyn_Store* global{&SnapSyn_global};
+        art_functions_Store* global{&art_functions_global};
     };
 
 
-    struct SnapSyn_NodeData  {
+    struct art_functions_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -110,21 +108,18 @@ namespace neuron {
     };
 
 
-    static SnapSyn_Instance make_instance_SnapSyn(_nrn_mechanism_cache_range& _lmc) {
-        return SnapSyn_Instance {
+    static art_functions_Instance make_instance_art_functions(_nrn_mechanism_cache_range& _lmc) {
+        return art_functions_Instance {
             _lmc.template fpfield_ptr<0>(),
             _lmc.template fpfield_ptr<1>(),
             _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>(),
-            _lmc.template fpfield_ptr<4>(),
-            _lmc.template fpfield_ptr<5>(),
             _lmc.template dptr_field_ptr<0>()
         };
     }
 
 
-    static SnapSyn_NodeData make_node_data_SnapSyn(NrnThread& nt, Memb_list& _ml_arg) {
-        return SnapSyn_NodeData {
+    static art_functions_NodeData make_node_data_art_functions(NrnThread& nt, Memb_list& _ml_arg) {
+        return art_functions_NodeData {
             _ml_arg.nodeindices,
             nt.node_voltage_storage(),
             nt.node_d_storage(),
@@ -132,10 +127,10 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
-    static SnapSyn_NodeData make_node_data_SnapSyn(Prop * _prop) {
+    static art_functions_NodeData make_node_data_art_functions(Prop * _prop) {
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
-        return SnapSyn_NodeData {
+        return art_functions_NodeData {
             node_index.data(),
             &_nrn_mechanism_access_voltage(_node),
             &_nrn_mechanism_access_d(_node),
@@ -144,12 +139,12 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_SnapSyn(Prop* _prop) {
+    void nrn_destructor_art_functions(Prop* _prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
     }
 
 
-    static void nrn_alloc_SnapSyn(Prop* _prop) {
+    static void nrn_alloc_art_functions(Prop* _prop) {
         Datum *_ppvar = nullptr;
         if (nrn_point_prop_) {
             _nrn_mechanism_access_alloc_seq(_prop) = _nrn_mechanism_access_alloc_seq(nrn_point_prop_);
@@ -159,9 +154,8 @@ namespace neuron {
             _nrn_mechanism_access_dparam(_prop) = _ppvar;
             _nrn_mechanism_cache_instance _lmc{_prop};
             size_t const _iml = 0;
-            assert(_nrn_mechanism_get_num_vars(_prop) == 6);
+            assert(_nrn_mechanism_get_num_vars(_prop) == 3);
             /*initialize range parameters*/
-            _lmc.template fpfield<0>(_iml) = _parameter_defaults[0]; /* e */
         }
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
     }
@@ -193,10 +187,13 @@ namespace neuron {
         _setdata(_prop);
     }
     /* Mechanism procedures and functions */
+    inline double x_plus_a_art_functions(_nrn_mechanism_cache_range& _lmc, art_functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
+    inline double identity_art_functions(_nrn_mechanism_cache_range& _lmc, art_functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
 
 
     /** connect global (scalar) variables to hoc -- */
     static DoubScal hoc_scalar_double[] = {
+        {"gbl_art_functions", &art_functions_global.gbl},
         {nullptr, nullptr}
     };
 
@@ -208,6 +205,8 @@ namespace neuron {
 
 
     /* declaration of user functions */
+    static double _hoc_x_plus_a(void*);
+    static double _hoc_identity(void*);
 
 
     /* connect user functions to hoc names */
@@ -218,95 +217,86 @@ namespace neuron {
         {"loc", _hoc_loc_pnt},
         {"has_loc", _hoc_has_loc},
         {"get_loc", _hoc_get_loc_pnt},
+        {"x_plus_a", _hoc_x_plus_a},
+        {"identity", _hoc_identity},
         {nullptr, nullptr}
     };
+    static double _hoc_x_plus_a(void* _vptr) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        auto* const _pnt = static_cast<Point_process*>(_vptr);
+        auto* const _p = _pnt->prop;
+        if (!_p) {
+            hoc_execerror("POINT_PROCESS data instance not valid", NULL);
+        }
+        _nrn_mechanism_cache_instance _lmc{_p};
+        size_t const id{};
+        _ppvar = _nrn_mechanism_access_dparam(_p);
+        _thread = _extcall_thread.data();
+        nt = static_cast<NrnThread*>(_pnt->_vnt);
+        auto inst = make_instance_art_functions(_lmc);
+        _r = x_plus_a_art_functions(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
+        return(_r);
+    }
+    static double _hoc_identity(void* _vptr) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        auto* const _pnt = static_cast<Point_process*>(_vptr);
+        auto* const _p = _pnt->prop;
+        if (!_p) {
+            hoc_execerror("POINT_PROCESS data instance not valid", NULL);
+        }
+        _nrn_mechanism_cache_instance _lmc{_p};
+        size_t const id{};
+        _ppvar = _nrn_mechanism_access_dparam(_p);
+        _thread = _extcall_thread.data();
+        nt = static_cast<NrnThread*>(_pnt->_vnt);
+        auto inst = make_instance_art_functions(_lmc);
+        _r = identity_art_functions(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
+        return(_r);
+    }
 
 
-    void nrn_init_SnapSyn(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    inline double x_plus_a_art_functions(_nrn_mechanism_cache_range& _lmc, art_functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la) {
+        double ret_x_plus_a = 0.0;
+        ret_x_plus_a = inst.x[id] + _la;
+        return ret_x_plus_a;
+    }
+
+
+    inline double identity_art_functions(_nrn_mechanism_cache_range& _lmc, art_functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv) {
+        double ret_identity = 0.0;
+        ret_identity = _lv;
+        return ret_identity;
+    }
+
+
+    void nrn_init_art_functions(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_SnapSyn(_lmc);
-        auto node_data = make_node_data_SnapSyn(*nt, *_ml_arg);
+        auto inst = make_instance_art_functions(_lmc);
+        auto node_data = make_node_data_art_functions(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
-            int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
-            inst.g[id] = 0.0;
+            inst.z[id] = inst.global->z0;
+            inst.x[id] = 1.0;
+            inst.global->gbl = 42.0;
         }
     }
 
 
-    inline double nrn_current_SnapSyn(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, SnapSyn_Instance& inst, SnapSyn_NodeData& node_data, double v) {
-        double current = 0.0;
-        inst.i[id] = inst.g[id] * (v - inst.e[id]);
-        current += inst.i[id];
-        return current;
-    }
-
-
-    /** update current */
-    void nrn_cur_SnapSyn(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_art_functions(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_SnapSyn(_lmc);
-        auto node_data = make_node_data_SnapSyn(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
-        auto* _thread = _ml_arg->_thread;
-        for (int id = 0; id < nodecount; id++) {
-            int node_id = node_data.nodeindices[id];
-            double v = node_data.node_voltages[node_id];
-            auto* _ppvar = _ml_arg->pdata[id];
-            double I1 = nrn_current_SnapSyn(_lmc, nt, _ppvar, _thread, id, inst, node_data, v+0.001);
-            double I0 = nrn_current_SnapSyn(_lmc, nt, _ppvar, _thread, id, inst, node_data, v);
-            double rhs = I0;
-            double g = (I1-I0)/0.001;
-            double mfactor = 1.e2/(*inst.node_area[id]);
-            g = g*mfactor;
-            rhs = rhs*mfactor;
-            node_data.node_rhs[node_id] -= rhs;
-            inst.g_unused[id] = g;
-        }
-    }
-
-
-    void nrn_state_SnapSyn(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_SnapSyn(_lmc);
-        auto node_data = make_node_data_SnapSyn(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
-        auto* _thread = _ml_arg->_thread;
-        for (int id = 0; id < nodecount; id++) {
-            int node_id = node_data.nodeindices[id];
-            auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
-        }
-    }
-
-
-    static void nrn_jacob_SnapSyn(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_SnapSyn(_lmc);
-        auto node_data = make_node_data_SnapSyn(*nt, *_ml_arg);
+        auto inst = make_instance_art_functions(_lmc);
+        auto node_data = make_node_data_art_functions(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
-            int node_id = node_data.nodeindices[id];
-            node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
-    }
-    static void nrn_net_receive_SnapSyn(Point_process* _pnt, double* _args, double flag) {
-        _nrn_mechanism_cache_instance _lmc{_pnt->prop};
-        auto * nt = static_cast<NrnThread*>(_pnt->_vnt);
-        auto * _ppvar = _nrn_mechanism_access_dparam(_pnt->prop);
-        auto inst = make_instance_SnapSyn(_lmc);
-        auto node_data = make_node_data_SnapSyn(_pnt->prop);
-        // nocmodl has a nullptr dereference for thread variables.
-        // NMODL will fail to compile at a later point, because of
-        // missing '_thread_vars'.
-        Datum * _thread = nullptr;
-        size_t id = 0;
-        double t = nt->_t;
-        inst.g[id] = inst.g[id] + _args[0];
-
     }
 
 
@@ -315,29 +305,25 @@ namespace neuron {
 
 
     /** register channel with the simulator */
-    extern "C" void _snapsyn_reg() {
+    extern "C" void _artificial_functions_reg() {
         _initlists();
 
-        _pointtype = point_register_mech(mechanism_info, nrn_alloc_SnapSyn, nrn_cur_SnapSyn, nrn_jacob_SnapSyn, nrn_state_SnapSyn, nrn_init_SnapSyn, hoc_nrnpointerindex, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
+        _pointtype = point_register_mech(mechanism_info, nrn_alloc_art_functions, nullptr, nullptr, nullptr, nrn_init_art_functions, hoc_nrnpointerindex, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
-            _nrn_mechanism_field<double>{"e"} /* 0 */,
-            _nrn_mechanism_field<double>{"i"} /* 1 */,
-            _nrn_mechanism_field<double>{"g"} /* 2 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 3 */,
-            _nrn_mechanism_field<double>{"g_unused"} /* 4 */,
-            _nrn_mechanism_field<double>{"tsave"} /* 5 */,
+            _nrn_mechanism_field<double>{"x"} /* 0 */,
+            _nrn_mechanism_field<double>{"z"} /* 1 */,
+            _nrn_mechanism_field<double>{"Dz"} /* 2 */,
             _nrn_mechanism_field<double*>{"node_area", "area"} /* 0 */,
             _nrn_mechanism_field<Point_process*>{"point_process", "pntproc"} /* 1 */
         );
 
-        hoc_register_prop_size(mech_type, 6, 2);
+        hoc_register_prop_size(mech_type, 3, 2);
         hoc_register_dparam_semantics(mech_type, 0, "area");
         hoc_register_dparam_semantics(mech_type, 1, "pntproc");
+        add_nrn_artcell(mech_type, 0);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
-        pnt_receive[mech_type] = nrn_net_receive_SnapSyn;
-        pnt_receive_size[mech_type] = 1;
     }
 }

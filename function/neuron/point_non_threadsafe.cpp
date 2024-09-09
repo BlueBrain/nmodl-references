@@ -1,8 +1,8 @@
 /*********************************************************
-Model Name      : NetReceiveCalls
-Filename        : NetReceiveCalls.mod
+Model Name      : point_non_threadsafe
+Filename        : point_non_threadsafe.mod
 NMODL Version   : 7.7.0
-Vectorized      : true
+Vectorized      : false
 Threadsafe      : true
 Created         : DATE
 Simulator       : NEURON
@@ -23,11 +23,11 @@ NMODL Compiler  : VERSION
 #include "section_fwd.hpp"
 
 /* NEURON global macro definitions */
-/* VECTORIZED */
-#define NRN_VECTORIZED 1
+/* NOT VECTORIZED */
+#define NRN_VECTORIZED 0
 
 static constexpr auto number_of_datum_variables = 2;
-static constexpr auto number_of_floating_point_variables = 4;
+static constexpr auto number_of_floating_point_variables = 3;
 
 namespace {
 template <typename T>
@@ -57,11 +57,11 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "NetReceiveCalls",
+        "point_non_threadsafe",
         0,
-        "c1",
-        "c2",
+        "x",
         0,
+        "z",
         0,
         0
     };
@@ -75,30 +75,31 @@ namespace neuron {
 
 
     /** all global variables */
-    struct NetReceiveCalls_Store {
+    struct point_non_threadsafe_Store {
+        double gbl{0};
+        double z0{0};
     };
-    static_assert(std::is_trivially_copy_constructible_v<NetReceiveCalls_Store>);
-    static_assert(std::is_trivially_move_constructible_v<NetReceiveCalls_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<NetReceiveCalls_Store>);
-    static_assert(std::is_trivially_move_assignable_v<NetReceiveCalls_Store>);
-    static_assert(std::is_trivially_destructible_v<NetReceiveCalls_Store>);
-    NetReceiveCalls_Store NetReceiveCalls_global;
+    static_assert(std::is_trivially_copy_constructible_v<point_non_threadsafe_Store>);
+    static_assert(std::is_trivially_move_constructible_v<point_non_threadsafe_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<point_non_threadsafe_Store>);
+    static_assert(std::is_trivially_move_assignable_v<point_non_threadsafe_Store>);
+    static_assert(std::is_trivially_destructible_v<point_non_threadsafe_Store>);
+    point_non_threadsafe_Store point_non_threadsafe_global;
     static std::vector<double> _parameter_defaults = {
     };
 
 
     /** all mechanism instance variables and global variables */
-    struct NetReceiveCalls_Instance  {
-        double* c1{};
-        double* c2{};
-        double* v_unused{};
-        double* tsave{};
+    struct point_non_threadsafe_Instance  {
+        double* x{};
+        double* z{};
+        double* Dz{};
         const double* const* node_area{};
-        NetReceiveCalls_Store* global{&NetReceiveCalls_global};
+        point_non_threadsafe_Store* global{&point_non_threadsafe_global};
     };
 
 
-    struct NetReceiveCalls_NodeData  {
+    struct point_non_threadsafe_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -107,19 +108,18 @@ namespace neuron {
     };
 
 
-    static NetReceiveCalls_Instance make_instance_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc) {
-        return NetReceiveCalls_Instance {
+    static point_non_threadsafe_Instance make_instance_point_non_threadsafe(_nrn_mechanism_cache_range& _lmc) {
+        return point_non_threadsafe_Instance {
             _lmc.template fpfield_ptr<0>(),
             _lmc.template fpfield_ptr<1>(),
             _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>(),
             _lmc.template dptr_field_ptr<0>()
         };
     }
 
 
-    static NetReceiveCalls_NodeData make_node_data_NetReceiveCalls(NrnThread& nt, Memb_list& _ml_arg) {
-        return NetReceiveCalls_NodeData {
+    static point_non_threadsafe_NodeData make_node_data_point_non_threadsafe(NrnThread& nt, Memb_list& _ml_arg) {
+        return point_non_threadsafe_NodeData {
             _ml_arg.nodeindices,
             nt.node_voltage_storage(),
             nt.node_d_storage(),
@@ -127,10 +127,10 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
-    static NetReceiveCalls_NodeData make_node_data_NetReceiveCalls(Prop * _prop) {
+    static point_non_threadsafe_NodeData make_node_data_point_non_threadsafe(Prop * _prop) {
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
-        return NetReceiveCalls_NodeData {
+        return point_non_threadsafe_NodeData {
             node_index.data(),
             &_nrn_mechanism_access_voltage(_node),
             &_nrn_mechanism_access_d(_node),
@@ -139,12 +139,12 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_NetReceiveCalls(Prop* _prop) {
+    void nrn_destructor_point_non_threadsafe(Prop* _prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
     }
 
 
-    static void nrn_alloc_NetReceiveCalls(Prop* _prop) {
+    static void nrn_alloc_point_non_threadsafe(Prop* _prop) {
         Datum *_ppvar = nullptr;
         if (nrn_point_prop_) {
             _nrn_mechanism_access_alloc_seq(_prop) = _nrn_mechanism_access_alloc_seq(nrn_point_prop_);
@@ -154,7 +154,7 @@ namespace neuron {
             _nrn_mechanism_access_dparam(_prop) = _ppvar;
             _nrn_mechanism_cache_instance _lmc{_prop};
             size_t const _iml = 0;
-            assert(_nrn_mechanism_get_num_vars(_prop) == 4);
+            assert(_nrn_mechanism_get_num_vars(_prop) == 3);
             /*initialize range parameters*/
         }
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
@@ -187,12 +187,14 @@ namespace neuron {
         _setdata(_prop);
     }
     /* Mechanism procedures and functions */
-    inline double one_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, NetReceiveCalls_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline int increment_c2_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, NetReceiveCalls_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline double x_plus_a_point_non_threadsafe(_nrn_mechanism_cache_range& _lmc, point_non_threadsafe_Instance& inst, point_non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
+    inline double v_plus_a_point_non_threadsafe(_nrn_mechanism_cache_range& _lmc, point_non_threadsafe_Instance& inst, point_non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
+    inline double identity_point_non_threadsafe(_nrn_mechanism_cache_range& _lmc, point_non_threadsafe_Instance& inst, point_non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
 
 
     /** connect global (scalar) variables to hoc -- */
     static DoubScal hoc_scalar_double[] = {
+        {"gbl_point_non_threadsafe", &point_non_threadsafe_global.gbl},
         {nullptr, nullptr}
     };
 
@@ -204,8 +206,9 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static double _hoc_increment_c2(void*);
-    static double _hoc_one(void*);
+    static double _hoc_x_plus_a(void*);
+    static double _hoc_v_plus_a(void*);
+    static double _hoc_identity(void*);
 
 
     /* connect user functions to hoc names */
@@ -216,11 +219,12 @@ namespace neuron {
         {"loc", _hoc_loc_pnt},
         {"has_loc", _hoc_has_loc},
         {"get_loc", _hoc_get_loc_pnt},
-        {"increment_c2", _hoc_increment_c2},
-        {"one", _hoc_one},
+        {"x_plus_a", _hoc_x_plus_a},
+        {"v_plus_a", _hoc_v_plus_a},
+        {"identity", _hoc_identity},
         {nullptr, nullptr}
     };
-    static double _hoc_increment_c2(void* _vptr) {
+    static double _hoc_x_plus_a(void* _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -235,13 +239,12 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_p);
         _thread = _extcall_thread.data();
         nt = static_cast<NrnThread*>(_pnt->_vnt);
-        auto inst = make_instance_NetReceiveCalls(_lmc);
-        auto node_data = make_node_data_NetReceiveCalls(_p);
-        _r = 1.;
-        increment_c2_NetReceiveCalls(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        auto inst = make_instance_point_non_threadsafe(_lmc);
+        auto node_data = make_node_data_point_non_threadsafe(_p);
+        _r = x_plus_a_point_non_threadsafe(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static double _hoc_one(void* _vptr) {
+    static double _hoc_v_plus_a(void* _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -256,68 +259,81 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_p);
         _thread = _extcall_thread.data();
         nt = static_cast<NrnThread*>(_pnt->_vnt);
-        auto inst = make_instance_NetReceiveCalls(_lmc);
-        auto node_data = make_node_data_NetReceiveCalls(_p);
-        _r = one_NetReceiveCalls(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        auto inst = make_instance_point_non_threadsafe(_lmc);
+        auto node_data = make_node_data_point_non_threadsafe(_p);
+        _r = v_plus_a_point_non_threadsafe(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
+        return(_r);
+    }
+    static double _hoc_identity(void* _vptr) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        auto* const _pnt = static_cast<Point_process*>(_vptr);
+        auto* const _p = _pnt->prop;
+        if (!_p) {
+            hoc_execerror("POINT_PROCESS data instance not valid", NULL);
+        }
+        _nrn_mechanism_cache_instance _lmc{_p};
+        size_t const id{};
+        _ppvar = _nrn_mechanism_access_dparam(_p);
+        _thread = _extcall_thread.data();
+        nt = static_cast<NrnThread*>(_pnt->_vnt);
+        auto inst = make_instance_point_non_threadsafe(_lmc);
+        auto node_data = make_node_data_point_non_threadsafe(_p);
+        _r = identity_point_non_threadsafe(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
 
 
-    inline int increment_c2_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, NetReceiveCalls_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
-        int ret_increment_c2 = 0;
+    inline double x_plus_a_point_non_threadsafe(_nrn_mechanism_cache_range& _lmc, point_non_threadsafe_Instance& inst, point_non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la) {
+        double ret_x_plus_a = 0.0;
         auto v = node_data.node_voltages[node_data.nodeindices[id]];
-        inst.c2[id] = inst.c2[id] + 2.0;
-        return ret_increment_c2;
+        ret_x_plus_a = inst.x[id] + _la;
+        return ret_x_plus_a;
     }
 
 
-    inline double one_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, NetReceiveCalls_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
-        double ret_one = 0.0;
+    inline double v_plus_a_point_non_threadsafe(_nrn_mechanism_cache_range& _lmc, point_non_threadsafe_Instance& inst, point_non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la) {
+        double ret_v_plus_a = 0.0;
         auto v = node_data.node_voltages[node_data.nodeindices[id]];
-        ret_one = 1.0;
-        return ret_one;
+        ret_v_plus_a = v + _la;
+        return ret_v_plus_a;
     }
 
 
-    void nrn_init_NetReceiveCalls(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    inline double identity_point_non_threadsafe(_nrn_mechanism_cache_range& _lmc, point_non_threadsafe_Instance& inst, point_non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv) {
+        double ret_identity = 0.0;
+        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        ret_identity = _lv;
+        return ret_identity;
+    }
+
+
+    void nrn_init_point_non_threadsafe(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_NetReceiveCalls(_lmc);
-        auto node_data = make_node_data_NetReceiveCalls(*nt, *_ml_arg);
+        auto inst = make_instance_point_non_threadsafe(_lmc);
+        auto node_data = make_node_data_point_non_threadsafe(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
-            inst.c1[id] = 0.0;
-            inst.c2[id] = 0.0;
+            inst.z[id] = inst.global->z0;
+            inst.x[id] = 1.0;
+            inst.global->gbl = 42.0;
         }
     }
 
 
-    static void nrn_jacob_NetReceiveCalls(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_point_non_threadsafe(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_NetReceiveCalls(_lmc);
-        auto node_data = make_node_data_NetReceiveCalls(*nt, *_ml_arg);
+        auto inst = make_instance_point_non_threadsafe(_lmc);
+        auto node_data = make_node_data_point_non_threadsafe(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
-    }
-    static void nrn_net_receive_NetReceiveCalls(Point_process* _pnt, double* _args, double flag) {
-        _nrn_mechanism_cache_instance _lmc{_pnt->prop};
-        auto * nt = static_cast<NrnThread*>(_pnt->_vnt);
-        auto * _ppvar = _nrn_mechanism_access_dparam(_pnt->prop);
-        auto inst = make_instance_NetReceiveCalls(_lmc);
-        auto node_data = make_node_data_NetReceiveCalls(_pnt->prop);
-        // nocmodl has a nullptr dereference for thread variables.
-        // NMODL will fail to compile at a later point, because of
-        // missing '_thread_vars'.
-        Datum * _thread = nullptr;
-        size_t id = 0;
-        double t = nt->_t;
-        inst.c1[id] = inst.c1[id] + one_NetReceiveCalls(_lmc, inst, node_data, id, _ppvar, _thread, nt);
-        increment_c2_NetReceiveCalls(_lmc, inst, node_data, id, _ppvar, _thread, nt);
-
     }
 
 
@@ -326,27 +342,24 @@ namespace neuron {
 
 
     /** register channel with the simulator */
-    extern "C" void _NetReceiveCalls_reg() {
+    extern "C" void _point_non_threadsafe_reg() {
         _initlists();
 
-        _pointtype = point_register_mech(mechanism_info, nrn_alloc_NetReceiveCalls, nullptr, nullptr, nullptr, nrn_init_NetReceiveCalls, hoc_nrnpointerindex, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
+        _pointtype = point_register_mech(mechanism_info, nrn_alloc_point_non_threadsafe, nullptr, nullptr, nullptr, nrn_init_point_non_threadsafe, hoc_nrnpointerindex, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
-            _nrn_mechanism_field<double>{"c1"} /* 0 */,
-            _nrn_mechanism_field<double>{"c2"} /* 1 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 2 */,
-            _nrn_mechanism_field<double>{"tsave"} /* 3 */,
+            _nrn_mechanism_field<double>{"x"} /* 0 */,
+            _nrn_mechanism_field<double>{"z"} /* 1 */,
+            _nrn_mechanism_field<double>{"Dz"} /* 2 */,
             _nrn_mechanism_field<double*>{"node_area", "area"} /* 0 */,
             _nrn_mechanism_field<Point_process*>{"point_process", "pntproc"} /* 1 */
         );
 
-        hoc_register_prop_size(mech_type, 4, 2);
+        hoc_register_prop_size(mech_type, 3, 2);
         hoc_register_dparam_semantics(mech_type, 0, "area");
         hoc_register_dparam_semantics(mech_type, 1, "pntproc");
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
-        pnt_receive[mech_type] = nrn_net_receive_NetReceiveCalls;
-        pnt_receive_size[mech_type] = 1;
     }
 }
