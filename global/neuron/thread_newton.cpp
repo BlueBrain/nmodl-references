@@ -522,8 +522,14 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_thread_newton(Prop* _prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+    void nrn_destructor_thread_newton(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_thread_newton(_lmc);
+        auto node_data = make_node_data_thread_newton(prop);
+        auto _thread_vars = thread_newton_ThreadVariables(thread_newton_global.thread_data);
+
     }
 
 

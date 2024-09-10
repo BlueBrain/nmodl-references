@@ -153,8 +153,13 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_ExpSyn2(Prop* _prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+    void nrn_destructor_ExpSyn2(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_ExpSyn2(_lmc);
+        auto node_data = make_node_data_ExpSyn2(prop);
+
     }
 
 
@@ -174,6 +179,8 @@ namespace neuron {
             _lmc.template fpfield<1>(_iml) = _parameter_defaults[1]; /* e */
         }
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
+        if(!nrn_point_prop_) {
+        }
     }
 
 

@@ -131,8 +131,13 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_pp(Prop* _prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+    void nrn_destructor_pp(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_pp(_lmc);
+        auto node_data = make_node_data_pp(prop);
+
     }
 
 
@@ -150,6 +155,8 @@ namespace neuron {
             /*initialize range parameters*/
         }
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
+        if(!nrn_point_prop_) {
+        }
     }
 
 

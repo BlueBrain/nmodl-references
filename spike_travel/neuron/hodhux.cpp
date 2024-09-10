@@ -213,8 +213,13 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_hodhux(Prop* _prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+    void nrn_destructor_hodhux(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_hodhux(_lmc);
+        auto node_data = make_node_data_hodhux(prop);
+
     }
 
 
