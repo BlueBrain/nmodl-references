@@ -128,6 +128,26 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    static write_cai_NodeData make_node_data_write_cai(Prop * _prop) {
+        static std::vector<int> node_index{0};
+        Node* _node = _nrn_mechanism_access_node(_prop);
+        return write_cai_NodeData {
+            node_index.data(),
+            &_nrn_mechanism_access_voltage(_node),
+            &_nrn_mechanism_access_d(_node),
+            &_nrn_mechanism_access_rhs(_node),
+            1
+        };
+    }
+
+    void nrn_destructor_write_cai(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_write_cai(_lmc);
+        auto node_data = make_node_data_write_cai(prop);
+
+    }
 
 
     static void nrn_alloc_write_cai(Prop* _prop) {
@@ -199,7 +219,6 @@ namespace neuron {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
-            inst.v_unused[id] = v;
             inst.cai[id] = (*inst.ion_cai[id]);
             inst.cai[id] = 1124.0;
             (*inst.ion_cai[id]) = inst.cai[id];

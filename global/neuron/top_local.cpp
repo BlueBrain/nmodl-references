@@ -79,8 +79,8 @@ namespace neuron {
 
     /** all global variables */
     struct top_local_Store {
-        int thread_data_in_use{};
-        double thread_data[1];
+        double thread_data_in_use{0};
+        double thread_data[1] /* TODO init const-array */;
     };
     static_assert(std::is_trivially_copy_constructible_v<top_local_Store>);
     static_assert(std::is_trivially_move_constructible_v<top_local_Store>);
@@ -145,6 +145,27 @@ namespace neuron {
             nt.node_rhs_storage(),
             _ml_arg.nodecount
         };
+    }
+    static top_local_NodeData make_node_data_top_local(Prop * _prop) {
+        static std::vector<int> node_index{0};
+        Node* _node = _nrn_mechanism_access_node(_prop);
+        return top_local_NodeData {
+            node_index.data(),
+            &_nrn_mechanism_access_voltage(_node),
+            &_nrn_mechanism_access_d(_node),
+            &_nrn_mechanism_access_rhs(_node),
+            1
+        };
+    }
+
+    void nrn_destructor_top_local(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_top_local(_lmc);
+        auto node_data = make_node_data_top_local(prop);
+        auto _thread_vars = top_local_ThreadVariables(top_local_global.thread_data);
+
     }
 
 
@@ -225,7 +246,6 @@ namespace neuron {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
-            inst.v_unused[id] = v;
             _thread_vars.gbl(id) = 2.0;
         }
     }
@@ -301,6 +321,9 @@ namespace neuron {
         _initlists();
 
         register_mech(mechanism_info, nrn_alloc_top_local, nrn_cur_top_local, nrn_jacob_top_local, nrn_state_top_local, nrn_init_top_local, hoc_nrnpointerindex, 2);
+        _extcall_thread.resize(2);
+        thread_mem_init(_extcall_thread.data());
+        top_local_global.thread_data_in_use = 0;
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);

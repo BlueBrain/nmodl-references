@@ -120,6 +120,26 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    static constant_mod_NodeData make_node_data_constant_mod(Prop * _prop) {
+        static std::vector<int> node_index{0};
+        Node* _node = _nrn_mechanism_access_node(_prop);
+        return constant_mod_NodeData {
+            node_index.data(),
+            &_nrn_mechanism_access_voltage(_node),
+            &_nrn_mechanism_access_d(_node),
+            &_nrn_mechanism_access_rhs(_node),
+            1
+        };
+    }
+
+    void nrn_destructor_constant_mod(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_constant_mod(_lmc);
+        auto node_data = make_node_data_constant_mod(prop);
+
+    }
 
 
     static void nrn_alloc_constant_mod(Prop* _prop) {
@@ -143,7 +163,7 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
-    inline double foo_constant_mod(_nrn_mechanism_cache_range& _lmc, constant_mod_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline double foo_constant_mod(_nrn_mechanism_cache_range& _lmc, constant_mod_Instance& inst, constant_mod_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -185,7 +205,8 @@ namespace neuron {
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_constant_mod(_lmc);
-        _r = foo_constant_mod(_lmc, inst, id, _ppvar, _thread, nt);
+        auto node_data = make_node_data_constant_mod(_local_prop);
+        _r = foo_constant_mod(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_foo(Prop* _prop) {
@@ -194,19 +215,20 @@ namespace neuron {
         Datum* _thread;
         NrnThread* nt;
         _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const id{};
+        size_t const id = 0;
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_constant_mod(_lmc);
-        _r = foo_constant_mod(_lmc, inst, id, _ppvar, _thread, nt);
+        auto node_data = make_node_data_constant_mod(_prop);
+        _r = foo_constant_mod(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
 
 
-    inline double foo_constant_mod(_nrn_mechanism_cache_range& _lmc, constant_mod_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+    inline double foo_constant_mod(_nrn_mechanism_cache_range& _lmc, constant_mod_Instance& inst, constant_mod_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         double ret_foo = 0.0;
-        auto v = inst.v_unused[id];
+        auto v = node_data.node_voltages[node_data.nodeindices[id]];
         ret_foo = inst.global->a;
         return ret_foo;
     }
@@ -222,7 +244,6 @@ namespace neuron {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
-            inst.v_unused[id] = v;
         }
     }
 

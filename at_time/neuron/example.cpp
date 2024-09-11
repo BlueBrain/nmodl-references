@@ -119,6 +119,26 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    static example_NodeData make_node_data_example(Prop * _prop) {
+        static std::vector<int> node_index{0};
+        Node* _node = _nrn_mechanism_access_node(_prop);
+        return example_NodeData {
+            node_index.data(),
+            &_nrn_mechanism_access_voltage(_node),
+            &_nrn_mechanism_access_d(_node),
+            &_nrn_mechanism_access_rhs(_node),
+            1
+        };
+    }
+
+    void nrn_destructor_example(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_example(_lmc);
+        auto node_data = make_node_data_example(prop);
+
+    }
 
 
     static void nrn_alloc_example(Prop* _prop) {
@@ -142,7 +162,7 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
-    inline double f_example(_nrn_mechanism_cache_range& _lmc, example_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x);
+    inline double f_example(_nrn_mechanism_cache_range& _lmc, example_Instance& inst, example_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -184,7 +204,8 @@ namespace neuron {
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_example(_lmc);
-        _r = f_example(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
+        auto node_data = make_node_data_example(_local_prop);
+        _r = f_example(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_f(Prop* _prop) {
@@ -193,20 +214,21 @@ namespace neuron {
         Datum* _thread;
         NrnThread* nt;
         _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const id{};
+        size_t const id = 0;
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_example(_lmc);
-        _r = f_example(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
+        auto node_data = make_node_data_example(_prop);
+        _r = f_example(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
 
 
-    inline double f_example(_nrn_mechanism_cache_range& _lmc, example_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double x) {
+    inline double f_example(_nrn_mechanism_cache_range& _lmc, example_Instance& inst, example_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx) {
         double ret_f = 0.0;
-        auto v = inst.v_unused[id];
-        ret_f = at_time(nt, x);
+        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        ret_f = at_time(nt, _lx);
         return ret_f;
     }
 
@@ -221,7 +243,6 @@ namespace neuron {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
-            inst.v_unused[id] = v;
         }
     }
 

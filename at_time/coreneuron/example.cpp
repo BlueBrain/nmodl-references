@@ -109,10 +109,10 @@ namespace coreneuron {
     }
 
 
-    static inline void* mem_alloc(size_t num, size_t size, size_t alignment = 16) {
-        void* ptr;
-        posix_memalign(&ptr, alignment, num*size);
-        memset(ptr, 0, size);
+    static inline void* mem_alloc(size_t num, size_t size, size_t alignment = 64) {
+        size_t aligned_size = ((num*size + alignment - 1) / alignment) * alignment;
+        void* ptr = aligned_alloc(alignment, aligned_size);
+        memset(ptr, 0, aligned_size);
         return ptr;
     }
 
@@ -202,12 +202,12 @@ namespace coreneuron {
     }
 
 
-    inline double f_example(int id, int pnodecount, example_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double x);
+    inline double f_example(int id, int pnodecount, example_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lx);
 
 
-    inline double f_example(int id, int pnodecount, example_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double x) {
+    inline double f_example(int id, int pnodecount, example_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lx) {
         double ret_f = 0.0;
-        ret_f = at_time(nt, x);
+        ret_f = at_time(nt, _lx);
         return ret_f;
     }
 

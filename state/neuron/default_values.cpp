@@ -81,11 +81,11 @@ namespace neuron {
 
     /** all global variables */
     struct default_values_Store {
-        double Y0{};
         double X0{2};
         double Z0{3};
         double A0{4};
         double B0{5};
+        double Y0{0};
     };
     static_assert(std::is_trivially_copy_constructible_v<default_values_Store>);
     static_assert(std::is_trivially_move_constructible_v<default_values_Store>);
@@ -148,6 +148,26 @@ namespace neuron {
             nt.node_rhs_storage(),
             _ml_arg.nodecount
         };
+    }
+    static default_values_NodeData make_node_data_default_values(Prop * _prop) {
+        static std::vector<int> node_index{0};
+        Node* _node = _nrn_mechanism_access_node(_prop);
+        return default_values_NodeData {
+            node_index.data(),
+            &_nrn_mechanism_access_voltage(_node),
+            &_nrn_mechanism_access_d(_node),
+            &_nrn_mechanism_access_rhs(_node),
+            1
+        };
+    }
+
+    void nrn_destructor_default_values(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_default_values(_lmc);
+        auto node_data = make_node_data_default_values(prop);
+
     }
 
 
@@ -213,16 +233,14 @@ namespace neuron {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
-            inst.v_unused[id] = v;
             inst.X[id] = inst.global->X0;
             inst.Y[id] = inst.global->Y0;
             inst.Z[id] = inst.global->Z0;
-            for(size_t _i = 0; _i < 3; ++_i) {
-                (inst.A+id*3)[_i] = inst.global->A0;
-            }
-            for(size_t _i = 0; _i < 2; ++_i) {
-                (inst.B+id*2)[_i] = inst.global->B0;
-            }
+            (inst.A+id*3)[0] = inst.global->A0;
+            (inst.A+id*3)[1] = inst.global->A0;
+            (inst.A+id*3)[2] = inst.global->A0;
+            (inst.B+id*2)[0] = inst.global->B0;
+            (inst.B+id*2)[1] = inst.global->B0;
             inst.Z[id] = 7.0;
             (inst.B+id*2)[static_cast<int>(1)] = 8.0;
         }

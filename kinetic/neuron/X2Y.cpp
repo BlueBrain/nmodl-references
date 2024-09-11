@@ -60,9 +60,11 @@ EIGEN_DEVICE_FUNC inline int Crout(int n, T* const a, int* const perm, double* c
     for (i = 0; i < n; i++) {
         perm[i] = i;
         k = 0;
-        for (j = 1; j < n; j++)
-            if (std::fabs(a[i * n + j]) > std::fabs(a[i * n + k]))
+        for (j = 1; j < n; j++) {
+            if (std::fabs(a[i * n + j]) > std::fabs(a[i * n + k])) {
                 k = j;
+            }
+        }
         rowmax[i] = a[i * n + k];
     }
 
@@ -109,8 +111,9 @@ EIGEN_DEVICE_FUNC inline int Crout(int n, T* const a, int* const perm, double* c
 
         /* Check that pivot element is not too small */
 
-        if (std::fabs(a[pivot * n + r]) < roundoff)
+        if (std::fabs(a[pivot * n + r]) < roundoff) {
             return -1;
+        }
 
         /*
          * Operate on row in rth position.  This produces the upper
@@ -161,8 +164,9 @@ EIGEN_DEVICE_FUNC inline int solveCrout(int n,
         for (i = 0; i < n; i++) {
             pivot = perm[i];
             sum = 0.0;
-            for (j = 0; j < i; j++)
+            for (j = 0; j < i; j++) {
                 sum += a[pivot * n + j] * (y_(j));
+            }
             y_(i) = (b_(pivot) - sum) / a[pivot * n + i];
         }
 
@@ -176,16 +180,18 @@ EIGEN_DEVICE_FUNC inline int solveCrout(int n,
         for (i = n - 1; i >= 0; i--) {
             pivot = perm[i];
             sum = 0.0;
-            for (j = i + 1; j < n; j++)
+            for (j = i + 1; j < n; j++) {
                 sum += a[pivot * n + j] * (y_(j));
+            }
             y_(i) -= sum;
         }
     } else {
         for (i = 0; i < n; i++) {
             pivot = perm[i];
             sum = 0.0;
-            for (j = 0; j < i; j++)
+            for (j = 0; j < i; j++) {
                 sum += a[pivot * n + j] * (p[j]);
+            }
             p[i] = (b_(pivot) - sum) / a[pivot * n + i];
         }
 
@@ -199,8 +205,9 @@ EIGEN_DEVICE_FUNC inline int solveCrout(int n,
         for (i = n - 1; i >= 0; i--) {
             pivot = perm[i];
             sum = 0.0;
-            for (j = i + 1; j < n; j++)
+            for (j = i + 1; j < n; j++) {
                 sum += a[pivot * n + j] * (p[j]);
+            }
             p[i] -= sum;
         }
     }
@@ -236,8 +243,7 @@ namespace newton {
  * @brief Solver implementation details
  *
  * Implementation of Newton method for solving system of non-linear equations using Eigen
- *   - newton::newton_solver is the preferred option: requires user to provide Jacobian
- *   - newton::newton_numerical_diff_solver is the fallback option: Jacobian not required
+ *   - newton::newton_solver with user, e.g. SymPy, provided Jacobian
  *
  * @{
  */
@@ -283,93 +289,15 @@ EIGEN_DEVICE_FUNC int newton_solver(Eigen::Matrix<double, N, 1>& X,
         // Crout's implementation requires matrices stored in RowMajor order (C-style arrays).
         // Therefore, the transposeInPlace is critical such that the data() method to give the rows
         // instead of the columns.
-        if (!J.IsRowMajor)
+        if (!J.IsRowMajor) {
             J.transposeInPlace();
+        }
         Eigen::Matrix<int, N, 1> pivot;
         Eigen::Matrix<double, N, 1> rowmax;
         // Check if J is singular
-        if (nmodl::crout::Crout<double>(N, J.data(), pivot.data(), rowmax.data()) < 0)
+        if (nmodl::crout::Crout<double>(N, J.data(), pivot.data(), rowmax.data()) < 0) {
             return -1;
-        Eigen::Matrix<double, N, 1> X_solve;
-        nmodl::crout::solveCrout<double>(N, J.data(), F.data(), X_solve.data(), pivot.data());
-        X -= X_solve;
-    }
-    // If we fail to converge after max_iter iterations, return -1
-    return -1;
-}
-
-static constexpr double SQUARE_ROOT_ULP = 1e-7;
-static constexpr double CUBIC_ROOT_ULP = 1e-5;
-
-/**
- * \brief Newton method without user-provided Jacobian
- *
- * Newton method without user-provided Jacobian: given initial vector X and a
- * functor that calculates `F(X)`, solves for \f$F(X) = 0\f$, starting with
- * initial value of `X` by iterating:
- *
- * \f[
- *     X_{n+1} = X_n - J(X_n)^{-1} F(X_n)
- * \f]
- *
- * where `J(X)` is the Jacobian of `F(X)`, which is approximated numerically
- * using a symmetric finite difference approximation to the derivative
- * when \f$|F|^2 < eps^2\f$, solution has converged/
- *
- * @return number of iterations (-1 if failed to converge)
- */
-template <int N, typename FUNC>
-EIGEN_DEVICE_FUNC int newton_numerical_diff_solver(Eigen::Matrix<double, N, 1>& X,
-                                                   FUNC functor,
-                                                   double eps = EPS,
-                                                   int max_iter = MAX_ITER) {
-    // Vector to store result of function F(X):
-    Eigen::Matrix<double, N, 1> F;
-    // Temporary storage for F(X+dx)
-    Eigen::Matrix<double, N, 1> F_p;
-    // Temporary storage for F(X-dx)
-    Eigen::Matrix<double, N, 1> F_m;
-    // Matrix to store jacobian of F(X):
-    Eigen::Matrix<double, N, N> J;
-    // Solver iteration count:
-    int iter = 0;
-    while (iter < max_iter) {
-        // calculate F from X using user-supplied functor
-        functor(X, F);
-        // get error norm: here we use sqrt(|F|^2)
-        double error = F.norm();
-        if (error < eps) {
-            // we have converged: return iteration count
-            return iter;
         }
-        ++iter;
-        // calculate approximate Jacobian
-        for (int i = 0; i < N; ++i) {
-            // symmetric finite difference approximation to derivative
-            // df/dx ~= ( f(x+dx) - f(x-dx) ) / (2*dx)
-            // choose dx to be ~(ULP)^{1/3}*X[i]
-            // https://aip.scitation.org/doi/pdf/10.1063/1.4822971
-            // also enforce a lower bound ~sqrt(ULP) to avoid dx being too small
-            double dX = std::max(CUBIC_ROOT_ULP * X[i], SQUARE_ROOT_ULP);
-            // F(X + dX)
-            X[i] += dX;
-            functor(X, F_p);
-            // F(X - dX)
-            X[i] -= 2.0 * dX;
-            functor(X, F_m);
-            F_p -= F_m;
-            // J = (F(X + dX) - F(X - dX)) / (2*dX)
-            J.col(i) = F_p / (2.0 * dX);
-            // restore X
-            X[i] += dX;
-        }
-        if (!J.IsRowMajor)
-            J.transposeInPlace();
-        Eigen::Matrix<int, N, 1> pivot;
-        Eigen::Matrix<double, N, 1> rowmax;
-        // Check if J is singular
-        if (nmodl::crout::Crout<double>(N, J.data(), pivot.data(), rowmax.data()) < 0)
-            return -1;
         Eigen::Matrix<double, N, 1> X_solve;
         nmodl::crout::solveCrout<double>(N, J.data(), F.data(), X_solve.data(), pivot.data());
         X -= X_solve;
@@ -402,10 +330,11 @@ EIGEN_DEVICE_FUNC int newton_solver_small_N(Eigen::Matrix<double, N, 1>& X,
         // The inverse can be called from within OpenACC regions without any issue, as opposed to
         // Eigen::PartialPivLU.
         J.computeInverseWithCheck(J_inv, invertible);
-        if (invertible)
+        if (invertible) {
             X -= J_inv * F;
-        else
+        } else {
             return -1;
+        }
     }
     return -1;
 }
@@ -513,8 +442,8 @@ namespace neuron {
 
     /** all global variables */
     struct X2Y_Store {
-        double X0{};
-        double Y0{};
+        double X0{0};
+        double Y0{0};
     };
     static_assert(std::is_trivially_copy_constructible_v<X2Y_Store>);
     static_assert(std::is_trivially_move_constructible_v<X2Y_Store>);
@@ -576,6 +505,26 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    static X2Y_NodeData make_node_data_X2Y(Prop * _prop) {
+        static std::vector<int> node_index{0};
+        Node* _node = _nrn_mechanism_access_node(_prop);
+        return X2Y_NodeData {
+            node_index.data(),
+            &_nrn_mechanism_access_voltage(_node),
+            &_nrn_mechanism_access_d(_node),
+            &_nrn_mechanism_access_rhs(_node),
+            1
+        };
+    }
+
+    void nrn_destructor_X2Y(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_X2Y(_lmc);
+        auto node_data = make_node_data_X2Y(prop);
+
+    }
 
 
     static void nrn_alloc_X2Y(Prop* _prop) {
@@ -599,12 +548,13 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
-    inline int rates_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline int rates_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, X2Y_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
 
 
     struct functor_X2Y_0 {
         _nrn_mechanism_cache_range& _lmc;
         X2Y_Instance& inst;
+        X2Y_NodeData& node_data;
         size_t id;
         Datum* _ppvar;
         Datum* _thread;
@@ -613,7 +563,7 @@ namespace neuron {
         double kf0_, kb0_, old_X, old_Y;
 
         void initialize() {
-            rates_X2Y(_lmc, inst, id, _ppvar, _thread, nt);
+            rates_X2Y(_lmc, inst, node_data, id, _ppvar, _thread, nt);
             kf0_ = inst.c1[id];
             kb0_ = inst.c2[id];
             inst.i[id] = (kf0_ * inst.X[id] - kb0_ * inst.Y[id]);
@@ -621,8 +571,8 @@ namespace neuron {
             old_Y = inst.Y[id];
         }
 
-        functor_X2Y_0(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v)
-            : _lmc(_lmc), inst(inst), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt), v(v)
+        functor_X2Y_0(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, X2Y_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v)
+            : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt), v(v)
         {}
         void operator()(const Eigen::Matrix<double, 2, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 2, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 2, 2>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
@@ -683,8 +633,9 @@ namespace neuron {
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_X2Y(_lmc);
+        auto node_data = make_node_data_X2Y(_local_prop);
         _r = 1.;
-        rates_X2Y(_lmc, inst, id, _ppvar, _thread, nt);
+        rates_X2Y(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_rates(Prop* _prop) {
@@ -693,20 +644,21 @@ namespace neuron {
         Datum* _thread;
         NrnThread* nt;
         _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const id{};
+        size_t const id = 0;
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_X2Y(_lmc);
+        auto node_data = make_node_data_X2Y(_prop);
         _r = 1.;
-        rates_X2Y(_lmc, inst, id, _ppvar, _thread, nt);
+        rates_X2Y(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
 
 
-    inline int rates_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+    inline int rates_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, X2Y_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         int ret_rates = 0;
-        auto v = inst.v_unused[id];
+        auto v = node_data.node_voltages[node_data.nodeindices[id]];
         inst.c1[id] = 0.4;
         inst.c2[id] = 0.5;
         return ret_rates;
@@ -723,7 +675,6 @@ namespace neuron {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
-            inst.v_unused[id] = v;
             inst.X[id] = inst.global->X0;
             inst.Y[id] = inst.global->Y0;
             inst.X[id] = 0.0;
@@ -779,7 +730,7 @@ namespace neuron {
             nmodl_eigen_x[static_cast<int>(0)] = inst.X[id];
             nmodl_eigen_x[static_cast<int>(1)] = inst.Y[id];
             // call newton solver
-            functor_X2Y_0 newton_functor(_lmc, inst, id, _ppvar, _thread, nt, v);
+            functor_X2Y_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, nt, v);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");

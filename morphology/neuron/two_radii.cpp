@@ -132,6 +132,26 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    static two_radii_NodeData make_node_data_two_radii(Prop * _prop) {
+        static std::vector<int> node_index{0};
+        Node* _node = _nrn_mechanism_access_node(_prop);
+        return two_radii_NodeData {
+            node_index.data(),
+            &_nrn_mechanism_access_voltage(_node),
+            &_nrn_mechanism_access_d(_node),
+            &_nrn_mechanism_access_rhs(_node),
+            1
+        };
+    }
+
+    void nrn_destructor_two_radii(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_two_radii(_lmc);
+        auto node_data = make_node_data_two_radii(prop);
+
+    }
 
 
     static void nrn_alloc_two_radii(Prop* _prop) {
@@ -161,8 +181,8 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
-    inline double square_diam_two_radii(_nrn_mechanism_cache_range& _lmc, two_radii_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline double square_area_two_radii(_nrn_mechanism_cache_range& _lmc, two_radii_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline double square_diam_two_radii(_nrn_mechanism_cache_range& _lmc, two_radii_Instance& inst, two_radii_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline double square_area_two_radii(_nrn_mechanism_cache_range& _lmc, two_radii_Instance& inst, two_radii_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -208,7 +228,8 @@ namespace neuron {
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_two_radii(_lmc);
-        _r = square_diam_two_radii(_lmc, inst, id, _ppvar, _thread, nt);
+        auto node_data = make_node_data_two_radii(_local_prop);
+        _r = square_diam_two_radii(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_square_diam(Prop* _prop) {
@@ -217,12 +238,13 @@ namespace neuron {
         Datum* _thread;
         NrnThread* nt;
         _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const id{};
+        size_t const id = 0;
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_two_radii(_lmc);
-        _r = square_diam_two_radii(_lmc, inst, id, _ppvar, _thread, nt);
+        auto node_data = make_node_data_two_radii(_prop);
+        _r = square_diam_two_radii(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
     static void _hoc_square_area(void) {
@@ -237,7 +259,8 @@ namespace neuron {
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_two_radii(_lmc);
-        _r = square_area_two_radii(_lmc, inst, id, _ppvar, _thread, nt);
+        auto node_data = make_node_data_two_radii(_local_prop);
+        _r = square_area_two_radii(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_square_area(Prop* _prop) {
@@ -246,27 +269,28 @@ namespace neuron {
         Datum* _thread;
         NrnThread* nt;
         _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const id{};
+        size_t const id = 0;
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
         auto inst = make_instance_two_radii(_lmc);
-        _r = square_area_two_radii(_lmc, inst, id, _ppvar, _thread, nt);
+        auto node_data = make_node_data_two_radii(_prop);
+        _r = square_area_two_radii(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
 
 
-    inline double square_diam_two_radii(_nrn_mechanism_cache_range& _lmc, two_radii_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+    inline double square_diam_two_radii(_nrn_mechanism_cache_range& _lmc, two_radii_Instance& inst, two_radii_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         double ret_square_diam = 0.0;
-        auto v = inst.v_unused[id];
+        auto v = node_data.node_voltages[node_data.nodeindices[id]];
         ret_square_diam = (*inst.diam[id]) * (*inst.diam[id]);
         return ret_square_diam;
     }
 
 
-    inline double square_area_two_radii(_nrn_mechanism_cache_range& _lmc, two_radii_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+    inline double square_area_two_radii(_nrn_mechanism_cache_range& _lmc, two_radii_Instance& inst, two_radii_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         double ret_square_area = 0.0;
-        auto v = inst.v_unused[id];
+        auto v = node_data.node_voltages[node_data.nodeindices[id]];
         ret_square_area = (*inst.area[id]) * (*inst.area[id]);
         return ret_square_area;
     }
@@ -282,15 +306,14 @@ namespace neuron {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
-            inst.v_unused[id] = v;
-            inst.inv[id] = 1.0 / (square_diam_two_radii(_lmc, inst, id, _ppvar, _thread, nt) + (*inst.area[id]));
+            inst.inv[id] = 1.0 / (square_diam_two_radii(_lmc, inst, node_data, id, _ppvar, _thread, nt) + (*inst.area[id]));
         }
     }
 
 
     inline double nrn_current_two_radii(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, two_radii_Instance& inst, two_radii_NodeData& node_data, double v) {
         double current = 0.0;
-        inst.il[id] = (square_diam_two_radii(_lmc, inst, id, _ppvar, _thread, nt) + (*inst.area[id])) * 0.001 * (v - 20.0);
+        inst.il[id] = (square_diam_two_radii(_lmc, inst, node_data, id, _ppvar, _thread, nt) + (*inst.area[id])) * 0.001 * (v - 20.0);
         current += inst.il[id];
         return current;
     }

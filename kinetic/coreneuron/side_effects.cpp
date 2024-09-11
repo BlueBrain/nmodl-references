@@ -69,9 +69,11 @@ EIGEN_DEVICE_FUNC inline int Crout(int n, T* const a, int* const perm, double* c
     for (i = 0; i < n; i++) {
         perm[i] = i;
         k = 0;
-        for (j = 1; j < n; j++)
-            if (std::fabs(a[i * n + j]) > std::fabs(a[i * n + k]))
+        for (j = 1; j < n; j++) {
+            if (std::fabs(a[i * n + j]) > std::fabs(a[i * n + k])) {
                 k = j;
+            }
+        }
         rowmax[i] = a[i * n + k];
     }
 
@@ -118,8 +120,9 @@ EIGEN_DEVICE_FUNC inline int Crout(int n, T* const a, int* const perm, double* c
 
         /* Check that pivot element is not too small */
 
-        if (std::fabs(a[pivot * n + r]) < roundoff)
+        if (std::fabs(a[pivot * n + r]) < roundoff) {
             return -1;
+        }
 
         /*
          * Operate on row in rth position.  This produces the upper
@@ -170,8 +173,9 @@ EIGEN_DEVICE_FUNC inline int solveCrout(int n,
         for (i = 0; i < n; i++) {
             pivot = perm[i];
             sum = 0.0;
-            for (j = 0; j < i; j++)
+            for (j = 0; j < i; j++) {
                 sum += a[pivot * n + j] * (y_(j));
+            }
             y_(i) = (b_(pivot) - sum) / a[pivot * n + i];
         }
 
@@ -185,16 +189,18 @@ EIGEN_DEVICE_FUNC inline int solveCrout(int n,
         for (i = n - 1; i >= 0; i--) {
             pivot = perm[i];
             sum = 0.0;
-            for (j = i + 1; j < n; j++)
+            for (j = i + 1; j < n; j++) {
                 sum += a[pivot * n + j] * (y_(j));
+            }
             y_(i) -= sum;
         }
     } else {
         for (i = 0; i < n; i++) {
             pivot = perm[i];
             sum = 0.0;
-            for (j = 0; j < i; j++)
+            for (j = 0; j < i; j++) {
                 sum += a[pivot * n + j] * (p[j]);
+            }
             p[i] = (b_(pivot) - sum) / a[pivot * n + i];
         }
 
@@ -208,8 +214,9 @@ EIGEN_DEVICE_FUNC inline int solveCrout(int n,
         for (i = n - 1; i >= 0; i--) {
             pivot = perm[i];
             sum = 0.0;
-            for (j = i + 1; j < n; j++)
+            for (j = i + 1; j < n; j++) {
                 sum += a[pivot * n + j] * (p[j]);
+            }
             p[i] -= sum;
         }
     }
@@ -245,8 +252,7 @@ namespace newton {
  * @brief Solver implementation details
  *
  * Implementation of Newton method for solving system of non-linear equations using Eigen
- *   - newton::newton_solver is the preferred option: requires user to provide Jacobian
- *   - newton::newton_numerical_diff_solver is the fallback option: Jacobian not required
+ *   - newton::newton_solver with user, e.g. SymPy, provided Jacobian
  *
  * @{
  */
@@ -292,93 +298,15 @@ EIGEN_DEVICE_FUNC int newton_solver(Eigen::Matrix<double, N, 1>& X,
         // Crout's implementation requires matrices stored in RowMajor order (C-style arrays).
         // Therefore, the transposeInPlace is critical such that the data() method to give the rows
         // instead of the columns.
-        if (!J.IsRowMajor)
+        if (!J.IsRowMajor) {
             J.transposeInPlace();
+        }
         Eigen::Matrix<int, N, 1> pivot;
         Eigen::Matrix<double, N, 1> rowmax;
         // Check if J is singular
-        if (nmodl::crout::Crout<double>(N, J.data(), pivot.data(), rowmax.data()) < 0)
+        if (nmodl::crout::Crout<double>(N, J.data(), pivot.data(), rowmax.data()) < 0) {
             return -1;
-        Eigen::Matrix<double, N, 1> X_solve;
-        nmodl::crout::solveCrout<double>(N, J.data(), F.data(), X_solve.data(), pivot.data());
-        X -= X_solve;
-    }
-    // If we fail to converge after max_iter iterations, return -1
-    return -1;
-}
-
-static constexpr double SQUARE_ROOT_ULP = 1e-7;
-static constexpr double CUBIC_ROOT_ULP = 1e-5;
-
-/**
- * \brief Newton method without user-provided Jacobian
- *
- * Newton method without user-provided Jacobian: given initial vector X and a
- * functor that calculates `F(X)`, solves for \f$F(X) = 0\f$, starting with
- * initial value of `X` by iterating:
- *
- * \f[
- *     X_{n+1} = X_n - J(X_n)^{-1} F(X_n)
- * \f]
- *
- * where `J(X)` is the Jacobian of `F(X)`, which is approximated numerically
- * using a symmetric finite difference approximation to the derivative
- * when \f$|F|^2 < eps^2\f$, solution has converged/
- *
- * @return number of iterations (-1 if failed to converge)
- */
-template <int N, typename FUNC>
-EIGEN_DEVICE_FUNC int newton_numerical_diff_solver(Eigen::Matrix<double, N, 1>& X,
-                                                   FUNC functor,
-                                                   double eps = EPS,
-                                                   int max_iter = MAX_ITER) {
-    // Vector to store result of function F(X):
-    Eigen::Matrix<double, N, 1> F;
-    // Temporary storage for F(X+dx)
-    Eigen::Matrix<double, N, 1> F_p;
-    // Temporary storage for F(X-dx)
-    Eigen::Matrix<double, N, 1> F_m;
-    // Matrix to store jacobian of F(X):
-    Eigen::Matrix<double, N, N> J;
-    // Solver iteration count:
-    int iter = 0;
-    while (iter < max_iter) {
-        // calculate F from X using user-supplied functor
-        functor(X, F);
-        // get error norm: here we use sqrt(|F|^2)
-        double error = F.norm();
-        if (error < eps) {
-            // we have converged: return iteration count
-            return iter;
         }
-        ++iter;
-        // calculate approximate Jacobian
-        for (int i = 0; i < N; ++i) {
-            // symmetric finite difference approximation to derivative
-            // df/dx ~= ( f(x+dx) - f(x-dx) ) / (2*dx)
-            // choose dx to be ~(ULP)^{1/3}*X[i]
-            // https://aip.scitation.org/doi/pdf/10.1063/1.4822971
-            // also enforce a lower bound ~sqrt(ULP) to avoid dx being too small
-            double dX = std::max(CUBIC_ROOT_ULP * X[i], SQUARE_ROOT_ULP);
-            // F(X + dX)
-            X[i] += dX;
-            functor(X, F_p);
-            // F(X - dX)
-            X[i] -= 2.0 * dX;
-            functor(X, F_m);
-            F_p -= F_m;
-            // J = (F(X + dX) - F(X - dX)) / (2*dX)
-            J.col(i) = F_p / (2.0 * dX);
-            // restore X
-            X[i] += dX;
-        }
-        if (!J.IsRowMajor)
-            J.transposeInPlace();
-        Eigen::Matrix<int, N, 1> pivot;
-        Eigen::Matrix<double, N, 1> rowmax;
-        // Check if J is singular
-        if (nmodl::crout::Crout<double>(N, J.data(), pivot.data(), rowmax.data()) < 0)
-            return -1;
         Eigen::Matrix<double, N, 1> X_solve;
         nmodl::crout::solveCrout<double>(N, J.data(), F.data(), X_solve.data(), pivot.data());
         X -= X_solve;
@@ -411,10 +339,11 @@ EIGEN_DEVICE_FUNC int newton_solver_small_N(Eigen::Matrix<double, N, 1>& X,
         // The inverse can be called from within OpenACC regions without any issue, as opposed to
         // Eigen::PartialPivLU.
         J.computeInverseWithCheck(J_inv, invertible);
-        if (invertible)
+        if (invertible) {
             X -= J_inv * F;
-        else
+        } else {
             return -1;
+        }
     }
     return -1;
 }
@@ -559,10 +488,10 @@ namespace coreneuron {
     }
 
 
-    static inline void* mem_alloc(size_t num, size_t size, size_t alignment = 16) {
-        void* ptr;
-        posix_memalign(&ptr, alignment, num*size);
-        memset(ptr, 0, size);
+    static inline void* mem_alloc(size_t num, size_t size, size_t alignment = 64) {
+        size_t aligned_size = ((num*size + alignment - 1) / alignment) * alignment;
+        void* ptr = aligned_alloc(alignment, aligned_size);
+        memset(ptr, 0, aligned_size);
         return ptr;
     }
 
