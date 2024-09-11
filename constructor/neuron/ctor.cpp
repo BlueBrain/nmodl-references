@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : spiker
-Filename        : spiker.mod
+Model Name      : ctor
+Filename        : ctor.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -21,13 +21,14 @@ NMODL Compiler  : VERSION
 #include "neuron/cache/mechanism_range.hpp"
 #include "nrniv_mf.h"
 #include "section_fwd.hpp"
+extern void _nrn_thread_reg(int, int, void(*)(Datum*));
 
 /* NEURON global macro definitions */
 /* VECTORIZED */
 #define NRN_VECTORIZED 1
 
-static constexpr auto number_of_datum_variables = 3;
-static constexpr auto number_of_floating_point_variables = 4;
+static constexpr auto number_of_datum_variables = 2;
+static constexpr auto number_of_floating_point_variables = 1;
 
 namespace {
 template <typename T>
@@ -57,10 +58,8 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "spiker",
+        "ctor",
         0,
-        "y",
-        "z",
         0,
         0,
         0
@@ -75,30 +74,29 @@ namespace neuron {
 
 
     /** all global variables */
-    struct spiker_Store {
+    struct ctor_Store {
+        double thread_data_in_use{0};
+        double thread_data[2] /* TODO init const-array */;
     };
-    static_assert(std::is_trivially_copy_constructible_v<spiker_Store>);
-    static_assert(std::is_trivially_move_constructible_v<spiker_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<spiker_Store>);
-    static_assert(std::is_trivially_move_assignable_v<spiker_Store>);
-    static_assert(std::is_trivially_destructible_v<spiker_Store>);
-    spiker_Store spiker_global;
+    static_assert(std::is_trivially_copy_constructible_v<ctor_Store>);
+    static_assert(std::is_trivially_move_constructible_v<ctor_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<ctor_Store>);
+    static_assert(std::is_trivially_move_assignable_v<ctor_Store>);
+    static_assert(std::is_trivially_destructible_v<ctor_Store>);
+    ctor_Store ctor_global;
     static std::vector<double> _parameter_defaults = {
     };
 
 
     /** all mechanism instance variables and global variables */
-    struct spiker_Instance  {
-        double* y{};
-        double* z{};
+    struct ctor_Instance  {
         double* v_unused{};
-        double* tsave{};
         const double* const* node_area{};
-        spiker_Store* global{&spiker_global};
+        ctor_Store* global{&ctor_global};
     };
 
 
-    struct spiker_NodeData  {
+    struct ctor_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -107,19 +105,38 @@ namespace neuron {
     };
 
 
-    static spiker_Instance make_instance_spiker(_nrn_mechanism_cache_range& _lmc) {
-        return spiker_Instance {
+    struct ctor_ThreadVariables  {
+        double * thread_data;
+
+        double * ctor_calls_ptr(size_t id) {
+            return thread_data + 0 + (id % 1);
+        }
+        double & ctor_calls(size_t id) {
+            return thread_data[0 + (id % 1)];
+        }
+        double * dtor_calls_ptr(size_t id) {
+            return thread_data + 1 + (id % 1);
+        }
+        double & dtor_calls(size_t id) {
+            return thread_data[1 + (id % 1)];
+        }
+
+        ctor_ThreadVariables(double * const thread_data) {
+            this->thread_data = thread_data;
+        }
+    };
+
+
+    static ctor_Instance make_instance_ctor(_nrn_mechanism_cache_range& _lmc) {
+        return ctor_Instance {
             _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>(),
             _lmc.template dptr_field_ptr<0>()
         };
     }
 
 
-    static spiker_NodeData make_node_data_spiker(NrnThread& nt, Memb_list& _ml_arg) {
-        return spiker_NodeData {
+    static ctor_NodeData make_node_data_ctor(NrnThread& nt, Memb_list& _ml_arg) {
+        return ctor_NodeData {
             _ml_arg.nodeindices,
             nt.node_voltage_storage(),
             nt.node_d_storage(),
@@ -127,10 +144,10 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
-    static spiker_NodeData make_node_data_spiker(Prop * _prop) {
+    static ctor_NodeData make_node_data_ctor(Prop * _prop) {
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
-        return spiker_NodeData {
+        return ctor_NodeData {
             node_index.data(),
             &_nrn_mechanism_access_voltage(_node),
             &_nrn_mechanism_access_d(_node),
@@ -139,31 +156,44 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_spiker(Prop* prop) {
+    void nrn_constructor_ctor(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_spiker(_lmc);
-        auto node_data = make_node_data_spiker(prop);
+        auto inst = make_instance_ctor(_lmc);
+        auto node_data = make_node_data_ctor(prop);
+        auto _thread_vars = ctor_ThreadVariables(ctor_global.thread_data);
 
+        _thread_vars.ctor_calls(id) = _thread_vars.ctor_calls(id) + 1.0;
+    }
+    void nrn_destructor_ctor(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_ctor(_lmc);
+        auto node_data = make_node_data_ctor(prop);
+        auto _thread_vars = ctor_ThreadVariables(ctor_global.thread_data);
+
+        _thread_vars.dtor_calls(id) = _thread_vars.dtor_calls(id) + 1.0;
     }
 
 
-    static void nrn_alloc_spiker(Prop* _prop) {
+    static void nrn_alloc_ctor(Prop* _prop) {
         Datum *_ppvar = nullptr;
         if (nrn_point_prop_) {
             _nrn_mechanism_access_alloc_seq(_prop) = _nrn_mechanism_access_alloc_seq(nrn_point_prop_);
             _ppvar = _nrn_mechanism_access_dparam(nrn_point_prop_);
         } else {
-            _ppvar = nrn_prop_datum_alloc(mech_type, 3, _prop);
+            _ppvar = nrn_prop_datum_alloc(mech_type, 2, _prop);
             _nrn_mechanism_access_dparam(_prop) = _ppvar;
             _nrn_mechanism_cache_instance _lmc{_prop};
             size_t const _iml = 0;
-            assert(_nrn_mechanism_get_num_vars(_prop) == 4);
+            assert(_nrn_mechanism_get_num_vars(_prop) == 1);
             /*initialize range parameters*/
         }
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
         if(!nrn_point_prop_) {
+            nrn_constructor_ctor(_prop);
         }
     }
 
@@ -198,6 +228,8 @@ namespace neuron {
 
     /** connect global (scalar) variables to hoc -- */
     static DoubScal hoc_scalar_double[] = {
+        {"ctor_calls_ctor", &ctor_global.thread_data[0]},
+        {"dtor_calls_ctor", &ctor_global.thread_data[1]},
         {nullptr, nullptr}
     };
 
@@ -221,53 +253,48 @@ namespace neuron {
         {"get_loc", _hoc_get_loc_pnt},
         {nullptr, nullptr}
     };
+    static void thread_mem_init(Datum* _thread)  {
+        if(ctor_global.thread_data_in_use) {
+            _thread[0] = {neuron::container::do_not_search, new double[2]{}};
+        }
+        else {
+            _thread[0] = {neuron::container::do_not_search, ctor_global.thread_data};
+            ctor_global.thread_data_in_use = 1;
+        }
+    }
+    static void thread_mem_cleanup(Datum* _thread)  {
+        double * _thread_data_ptr = _thread[0].get<double*>();
+        if(_thread_data_ptr == ctor_global.thread_data) {
+            ctor_global.thread_data_in_use = 0;
+        }
+        else {
+            delete[] _thread_data_ptr;
+        }
+    }
 
 
-    void nrn_init_spiker(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    void nrn_init_ctor(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_spiker(_lmc);
-        auto node_data = make_node_data_spiker(*nt, *_ml_arg);
+        auto inst = make_instance_ctor(_lmc);
+        auto node_data = make_node_data_ctor(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
+        auto _thread_vars = ctor_ThreadVariables(_thread[0].get<double*>());
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
-            inst.y[id] = 0.0;
-            inst.z[id] = 0.0;
-            net_send(/* tqitem */ &_ppvar[2], nullptr, _ppvar[1].get<Point_process*>(), nt->_t + 1.8, 1.0);
         }
     }
 
 
-    static void nrn_jacob_spiker(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_ctor(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_spiker(_lmc);
-        auto node_data = make_node_data_spiker(*nt, *_ml_arg);
+        auto inst = make_instance_ctor(_lmc);
+        auto node_data = make_node_data_ctor(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
-    }
-    static void nrn_net_receive_spiker(Point_process* _pnt, double* _args, double flag) {
-        _nrn_mechanism_cache_instance _lmc{_pnt->prop};
-        auto * nt = static_cast<NrnThread*>(_pnt->_vnt);
-        auto * _ppvar = _nrn_mechanism_access_dparam(_pnt->prop);
-        auto inst = make_instance_spiker(_lmc);
-        auto node_data = make_node_data_spiker(_pnt->prop);
-        // nocmodl has a nullptr dereference for thread variables.
-        // NMODL will fail to compile at a later point, because of
-        // missing '_thread_vars'.
-        Datum * _thread = nullptr;
-        size_t id = 0;
-        double t = nt->_t;
-        if (flag == 0.0) {
-            inst.y[id] = inst.y[id] + 1.0;
-            net_move(/* tqitem */ &_ppvar[2], _pnt, nt->_t + 0.1);
-        } else {
-            inst.z[id] = inst.z[id] + 1.0;
-            net_send(/* tqitem */ &_ppvar[2], nullptr, _pnt, nt->_t + 2.0, 1.0);
-        }
-
     }
 
 
@@ -276,29 +303,28 @@ namespace neuron {
 
 
     /** register channel with the simulator */
-    extern "C" void _spiker_reg() {
+    extern "C" void _ctor_reg() {
         _initlists();
 
-        _pointtype = point_register_mech(mechanism_info, nrn_alloc_spiker, nullptr, nullptr, nullptr, nrn_init_spiker, hoc_nrnpointerindex, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
+        _pointtype = point_register_mech(mechanism_info, nrn_alloc_ctor, nullptr, nullptr, nullptr, nrn_init_ctor, hoc_nrnpointerindex, 2, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
+        register_destructor(nrn_destructor_ctor);
+        _extcall_thread.resize(2);
+        thread_mem_init(_extcall_thread.data());
+        ctor_global.thread_data_in_use = 0;
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
-            _nrn_mechanism_field<double>{"y"} /* 0 */,
-            _nrn_mechanism_field<double>{"z"} /* 1 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 2 */,
-            _nrn_mechanism_field<double>{"tsave"} /* 3 */,
+            _nrn_mechanism_field<double>{"v_unused"} /* 0 */,
             _nrn_mechanism_field<double*>{"node_area", "area"} /* 0 */,
-            _nrn_mechanism_field<Point_process*>{"point_process", "pntproc"} /* 1 */,
-            _nrn_mechanism_field<void*>{"tqitem", "netsend"} /* 2 */
+            _nrn_mechanism_field<Point_process*>{"point_process", "pntproc"} /* 1 */
         );
 
-        hoc_register_prop_size(mech_type, 4, 3);
+        hoc_register_prop_size(mech_type, 1, 2);
         hoc_register_dparam_semantics(mech_type, 0, "area");
         hoc_register_dparam_semantics(mech_type, 1, "pntproc");
-        hoc_register_dparam_semantics(mech_type, 2, "netsend");
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
-        pnt_receive[mech_type] = nrn_net_receive_spiker;
-        pnt_receive_size[mech_type] = 1;
+        _nrn_thread_reg(mech_type, 1, thread_mem_init);
+        _nrn_thread_reg(mech_type, 0, thread_mem_cleanup);
     }
 }

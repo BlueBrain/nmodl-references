@@ -140,8 +140,13 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_write_cao(Prop* _prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+    void nrn_destructor_write_cao(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_write_cao(_lmc);
+        auto node_data = make_node_data_write_cao(prop);
+
     }
 
 

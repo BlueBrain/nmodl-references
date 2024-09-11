@@ -158,8 +158,14 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_top_local(Prop* _prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+    void nrn_destructor_top_local(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_top_local(_lmc);
+        auto node_data = make_node_data_top_local(prop);
+        auto _thread_vars = top_local_ThreadVariables(top_local_global.thread_data);
+
     }
 
 

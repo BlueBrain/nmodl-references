@@ -178,8 +178,14 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_shared_global(Prop* _prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+    void nrn_destructor_shared_global(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_shared_global(_lmc);
+        auto node_data = make_node_data_shared_global(prop);
+        auto _thread_vars = shared_global_ThreadVariables(shared_global_global.thread_data);
+
     }
 
 

@@ -139,8 +139,13 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_range_parameter(Prop* _prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+    void nrn_destructor_range_parameter(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_range_parameter(_lmc);
+        auto node_data = make_node_data_range_parameter(prop);
+
     }
 
 
@@ -160,6 +165,8 @@ namespace neuron {
             _lmc.template fpfield<1>(_iml) = _parameter_defaults[1]; /* y */
         }
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
+        if(!nrn_point_prop_) {
+        }
     }
 
 
