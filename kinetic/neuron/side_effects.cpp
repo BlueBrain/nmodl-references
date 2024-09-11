@@ -256,6 +256,7 @@ EIGEN_DEVICE_FUNC bool is_converged(const Eigen::Matrix<double, N, 1>& X,
                                     const Eigen::Matrix<double, N, N>& J,
                                     const Eigen::Matrix<double, N, 1>& F,
                                     double eps) {
+    bool converged = true;
     double square_eps = eps * eps;
     for (Eigen::Index i = 0; i < N; ++i) {
         double square_error = 0.0;
@@ -265,10 +266,14 @@ EIGEN_DEVICE_FUNC bool is_converged(const Eigen::Matrix<double, N, 1>& X,
         }
 
         if (F(i) * F(i) > square_eps * square_error) {
-            return false;
+            converged = false;
+// The NVHPC is buggy and wont allow us to short-circuit.
+#ifndef __NVCOMPILER
+            return converged;
+#endif
         }
     }
-    return true;
+    return converged;
 }
 
 /**
@@ -522,8 +527,25 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
-    void nrn_destructor_side_effects(Prop* _prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+    static side_effects_NodeData make_node_data_side_effects(Prop * _prop) {
+        static std::vector<int> node_index{0};
+        Node* _node = _nrn_mechanism_access_node(_prop);
+        return side_effects_NodeData {
+            node_index.data(),
+            &_nrn_mechanism_access_voltage(_node),
+            &_nrn_mechanism_access_d(_node),
+            &_nrn_mechanism_access_rhs(_node),
+            1
+        };
+    }
+
+    void nrn_destructor_side_effects(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_side_effects(_lmc);
+        auto node_data = make_node_data_side_effects(prop);
+
     }
 
 
@@ -553,6 +575,7 @@ namespace neuron {
     struct functor_side_effects_0 {
         _nrn_mechanism_cache_range& _lmc;
         side_effects_Instance& inst;
+        side_effects_NodeData& node_data;
         size_t id;
         Datum* _ppvar;
         Datum* _thread;
@@ -570,8 +593,8 @@ namespace neuron {
             old_Y = inst.Y[id];
         }
 
-        functor_side_effects_0(_nrn_mechanism_cache_range& _lmc, side_effects_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v)
-            : _lmc(_lmc), inst(inst), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt), v(v)
+        functor_side_effects_0(_nrn_mechanism_cache_range& _lmc, side_effects_Instance& inst, side_effects_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v)
+            : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt), v(v)
         {}
         void operator()(const Eigen::Matrix<double, 2, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 2, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 2, 2>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
@@ -625,7 +648,6 @@ namespace neuron {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
-            inst.v_unused[id] = v;
             inst.X[id] = inst.global->X0;
             inst.Y[id] = inst.global->Y0;
             inst.X[id] = 1.0;
@@ -679,7 +701,7 @@ namespace neuron {
             nmodl_eigen_x[static_cast<int>(0)] = inst.X[id];
             nmodl_eigen_x[static_cast<int>(1)] = inst.Y[id];
             // call newton solver
-            functor_side_effects_0 newton_functor(_lmc, inst, id, _ppvar, _thread, nt, v);
+            functor_side_effects_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, nt, v);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");

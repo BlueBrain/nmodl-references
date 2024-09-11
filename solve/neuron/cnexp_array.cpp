@@ -137,8 +137,25 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
-    void nrn_destructor_cnexp_array(Prop* _prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+    static cnexp_array_NodeData make_node_data_cnexp_array(Prop * _prop) {
+        static std::vector<int> node_index{0};
+        Node* _node = _nrn_mechanism_access_node(_prop);
+        return cnexp_array_NodeData {
+            node_index.data(),
+            &_nrn_mechanism_access_voltage(_node),
+            &_nrn_mechanism_access_d(_node),
+            &_nrn_mechanism_access_rhs(_node),
+            1
+        };
+    }
+
+    void nrn_destructor_cnexp_array(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_cnexp_array(_lmc);
+        auto node_data = make_node_data_cnexp_array(prop);
+
     }
 
 
@@ -200,7 +217,6 @@ namespace neuron {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
-            inst.v_unused[id] = v;
             inst.x[id] = inst.global->x0;
             (inst.s+id*2)[0] = inst.global->s0;
             (inst.s+id*2)[1] = inst.global->s0;

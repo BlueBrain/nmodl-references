@@ -132,8 +132,25 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
-    void nrn_destructor_SnapSyn(Prop* _prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+    static SnapSyn_NodeData make_node_data_SnapSyn(Prop * _prop) {
+        static std::vector<int> node_index{0};
+        Node* _node = _nrn_mechanism_access_node(_prop);
+        return SnapSyn_NodeData {
+            node_index.data(),
+            &_nrn_mechanism_access_voltage(_node),
+            &_nrn_mechanism_access_d(_node),
+            &_nrn_mechanism_access_rhs(_node),
+            1
+        };
+    }
+
+    void nrn_destructor_SnapSyn(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_SnapSyn(_lmc);
+        auto node_data = make_node_data_SnapSyn(prop);
+
     }
 
 
@@ -152,6 +169,8 @@ namespace neuron {
             _lmc.template fpfield<0>(_iml) = _parameter_defaults[0]; /* e */
         }
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
+        if(!nrn_point_prop_) {
+        }
     }
 
 
@@ -220,7 +239,6 @@ namespace neuron {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
-            inst.v_unused[id] = v;
             inst.g[id] = 0.0;
         }
     }
@@ -287,6 +305,7 @@ namespace neuron {
         auto * nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto * _ppvar = _nrn_mechanism_access_dparam(_pnt->prop);
         auto inst = make_instance_SnapSyn(_lmc);
+        auto node_data = make_node_data_SnapSyn(_pnt->prop);
         // nocmodl has a nullptr dereference for thread variables.
         // NMODL will fail to compile at a later point, because of
         // missing '_thread_vars'.

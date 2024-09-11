@@ -124,8 +124,24 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
-    void nrn_destructor_art_toggle(Prop* _prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(_prop);
+    static art_toggle_NodeData make_node_data_art_toggle(Prop * _prop) {
+        static std::vector<int> node_index{0};
+        Node* _node = _nrn_mechanism_access_node(_prop);
+        return art_toggle_NodeData {
+            node_index.data(),
+            &_nrn_mechanism_access_voltage(_node),
+            &_nrn_mechanism_access_d(_node),
+            &_nrn_mechanism_access_rhs(_node),
+            1
+        };
+    }
+
+    void nrn_destructor_art_toggle(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_art_toggle(_lmc);
+
     }
 
 
@@ -143,6 +159,8 @@ namespace neuron {
             /*initialize range parameters*/
         }
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
+        if(!nrn_point_prop_) {
+        }
     }
 
 
