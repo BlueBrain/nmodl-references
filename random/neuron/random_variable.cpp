@@ -132,15 +132,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_random_variable(Prop* prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
-        _nrn_mechanism_cache_instance _lmc{prop};
-        const size_t id = 0;
-        auto inst = make_instance_random_variable(_lmc);
-        auto node_data = make_node_data_random_variable(prop);
-
-        nrnran123_deletestream((nrnran123_State*) (nrnran123_State*) _ppvar[0].literal_value<void*>());
-    }
+    void nrn_destructor_random_variable(Prop* prop);
 
 
     static void nrn_alloc_random_variable(Prop* _prop) {
@@ -153,7 +145,7 @@ namespace neuron {
         /*initialize range parameters*/
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
         _ppvar[0].literal_value<void*>() = nrnran123_newstream();
-        nrn_mech_inst_destruct[mech_type] = nrn_destructor_random_variable;
+        nrn_mech_inst_destruct[mech_type] = neuron::nrn_destructor_random_variable;
     }
 
 
@@ -261,6 +253,15 @@ namespace neuron {
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
+    }
+    void nrn_destructor_random_variable(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_random_variable(_lmc);
+        auto node_data = make_node_data_random_variable(prop);
+
+        nrnran123_deletestream((nrnran123_State*) (nrnran123_State*) _ppvar[0].literal_value<void*>());
     }
 
 

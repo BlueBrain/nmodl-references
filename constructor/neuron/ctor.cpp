@@ -156,26 +156,8 @@ namespace neuron {
         };
     }
 
-    void nrn_constructor_ctor(Prop* prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
-        _nrn_mechanism_cache_instance _lmc{prop};
-        const size_t id = 0;
-        auto inst = make_instance_ctor(_lmc);
-        auto node_data = make_node_data_ctor(prop);
-        auto _thread_vars = ctor_ThreadVariables(ctor_global.thread_data);
-
-        _thread_vars.ctor_calls(id) = _thread_vars.ctor_calls(id) + 1.0;
-    }
-    void nrn_destructor_ctor(Prop* prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
-        _nrn_mechanism_cache_instance _lmc{prop};
-        const size_t id = 0;
-        auto inst = make_instance_ctor(_lmc);
-        auto node_data = make_node_data_ctor(prop);
-        auto _thread_vars = ctor_ThreadVariables(ctor_global.thread_data);
-
-        _thread_vars.dtor_calls(id) = _thread_vars.dtor_calls(id) + 1.0;
-    }
+    void nrn_constructor_ctor(Prop* prop);
+    void nrn_destructor_ctor(Prop* prop);
 
 
     static void nrn_alloc_ctor(Prop* _prop) {
@@ -295,6 +277,26 @@ namespace neuron {
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
+    }
+    void nrn_constructor_ctor(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_ctor(_lmc);
+        auto node_data = make_node_data_ctor(prop);
+        auto _thread_vars = ctor_ThreadVariables(ctor_global.thread_data);
+
+        _thread_vars.ctor_calls(id) = _thread_vars.ctor_calls(id) + 1.0;
+    }
+    void nrn_destructor_ctor(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_ctor(_lmc);
+        auto node_data = make_node_data_ctor(prop);
+        auto _thread_vars = ctor_ThreadVariables(ctor_global.thread_data);
+
+        _thread_vars.dtor_calls(id) = _thread_vars.dtor_calls(id) + 1.0;
     }
 
 

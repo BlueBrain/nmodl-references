@@ -151,14 +151,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_style_ion(Prop* prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
-        _nrn_mechanism_cache_instance _lmc{prop};
-        const size_t id = 0;
-        auto inst = make_instance_style_ion(_lmc);
-        auto node_data = make_node_data_style_ion(prop);
-
-    }
+    void nrn_destructor_style_ion(Prop* prop);
 
 
     static void nrn_alloc_style_ion(Prop* _prop) {
@@ -254,6 +247,14 @@ namespace neuron {
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
+    }
+    void nrn_destructor_style_ion(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_style_ion(_lmc);
+        auto node_data = make_node_data_style_ion(prop);
+
     }
 
 
