@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : constant_mod
-Filename        : constant.mod
+Model Name      : src
+Filename        : src.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -57,7 +57,7 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "constant_mod",
+        "src",
         0,
         0,
         0,
@@ -75,17 +75,21 @@ namespace neuron {
 
 
     /** all global variables */
-    struct constant_mod_Store {
-        double a{2.3};
+    struct src_Store {
+        double gbl{0};
+        double param{123};
     };
-    static_assert(std::is_trivially_copy_constructible_v<constant_mod_Store>);
-    static_assert(std::is_trivially_move_constructible_v<constant_mod_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<constant_mod_Store>);
-    static_assert(std::is_trivially_move_assignable_v<constant_mod_Store>);
-    static_assert(std::is_trivially_destructible_v<constant_mod_Store>);
-    constant_mod_Store constant_mod_global;
-    auto a_constant_mod() -> std::decay<decltype(constant_mod_global.a)>::type  {
-        return constant_mod_global.a;
+    static_assert(std::is_trivially_copy_constructible_v<src_Store>);
+    static_assert(std::is_trivially_move_constructible_v<src_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<src_Store>);
+    static_assert(std::is_trivially_move_assignable_v<src_Store>);
+    static_assert(std::is_trivially_destructible_v<src_Store>);
+    src_Store src_global;
+    auto gbl_src() -> std::decay<decltype(src_global.gbl)>::type  {
+        return src_global.gbl;
+    }
+    auto param_src() -> std::decay<decltype(src_global.param)>::type  {
+        return src_global.param;
     }
 
     static std::vector<double> _parameter_defaults = {
@@ -93,13 +97,13 @@ namespace neuron {
 
 
     /** all mechanism instance variables and global variables */
-    struct constant_mod_Instance  {
+    struct src_Instance  {
         double* v_unused{};
-        constant_mod_Store* global{&constant_mod_global};
+        src_Store* global{&src_global};
     };
 
 
-    struct constant_mod_NodeData  {
+    struct src_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -108,15 +112,15 @@ namespace neuron {
     };
 
 
-    static constant_mod_Instance make_instance_constant_mod(_nrn_mechanism_cache_range& _lmc) {
-        return constant_mod_Instance {
+    static src_Instance make_instance_src(_nrn_mechanism_cache_range& _lmc) {
+        return src_Instance {
             _lmc.template fpfield_ptr<0>()
         };
     }
 
 
-    static constant_mod_NodeData make_node_data_constant_mod(NrnThread& nt, Memb_list& _ml_arg) {
-        return constant_mod_NodeData {
+    static src_NodeData make_node_data_src(NrnThread& nt, Memb_list& _ml_arg) {
+        return src_NodeData {
             _ml_arg.nodeindices,
             nt.node_voltage_storage(),
             nt.node_d_storage(),
@@ -124,10 +128,10 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
-    static constant_mod_NodeData make_node_data_constant_mod(Prop * _prop) {
+    static src_NodeData make_node_data_src(Prop * _prop) {
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
-        return constant_mod_NodeData {
+        return src_NodeData {
             node_index.data(),
             &_nrn_mechanism_access_voltage(_node),
             &_nrn_mechanism_access_d(_node),
@@ -136,17 +140,17 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_constant_mod(Prop* prop) {
+    void nrn_destructor_src(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_constant_mod(_lmc);
-        auto node_data = make_node_data_constant_mod(prop);
+        auto inst = make_instance_src(_lmc);
+        auto node_data = make_node_data_src(prop);
 
     }
 
 
-    static void nrn_alloc_constant_mod(Prop* _prop) {
+    static void nrn_alloc_src(Prop* _prop) {
         Datum *_ppvar = nullptr;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const _iml = 0;
@@ -167,11 +171,12 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
-    inline double foo_constant_mod(_nrn_mechanism_cache_range& _lmc, constant_mod_Instance& inst, constant_mod_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
 
 
     /** connect global (scalar) variables to hoc -- */
     static DoubScal hoc_scalar_double[] = {
+        {"gbl_src", &src_global.gbl},
+        {"param_src", &src_global.param},
         {nullptr, nullptr}
     };
 
@@ -183,65 +188,22 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_foo(void);
-    static double _npy_foo(Prop*);
 
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
-        {"setdata_constant_mod", _hoc_setdata},
-        {"foo_constant_mod", _hoc_foo},
+        {"setdata_src", _hoc_setdata},
         {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
-        {"foo", _npy_foo},
         {nullptr, nullptr}
     };
-    static void _hoc_foo(void) {
-        double _r{};
-        Datum* _ppvar;
-        Datum* _thread;
-        NrnThread* nt;
-        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
-        _nrn_mechanism_cache_instance _lmc{_local_prop};
-        size_t const id{};
-        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
-        _thread = _extcall_thread.data();
-        nt = nrn_threads;
-        auto inst = make_instance_constant_mod(_lmc);
-        auto node_data = make_node_data_constant_mod(_local_prop);
-        _r = foo_constant_mod(_lmc, inst, node_data, id, _ppvar, _thread, nt);
-        hoc_retpushx(_r);
-    }
-    static double _npy_foo(Prop* _prop) {
-        double _r{};
-        Datum* _ppvar;
-        Datum* _thread;
-        NrnThread* nt;
-        _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const id = 0;
-        _ppvar = _nrn_mechanism_access_dparam(_prop);
-        _thread = _extcall_thread.data();
-        nt = nrn_threads;
-        auto inst = make_instance_constant_mod(_lmc);
-        auto node_data = make_node_data_constant_mod(_prop);
-        _r = foo_constant_mod(_lmc, inst, node_data, id, _ppvar, _thread, nt);
-        return(_r);
-    }
 
 
-    inline double foo_constant_mod(_nrn_mechanism_cache_range& _lmc, constant_mod_Instance& inst, constant_mod_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
-        double ret_foo = 0.0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
-        ret_foo = inst.global->a;
-        return ret_foo;
-    }
-
-
-    void nrn_init_constant_mod(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    void nrn_init_src(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_constant_mod(_lmc);
-        auto node_data = make_node_data_constant_mod(*nt, *_ml_arg);
+        auto inst = make_instance_src(_lmc);
+        auto node_data = make_node_data_src(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
@@ -252,10 +214,10 @@ namespace neuron {
     }
 
 
-    static void nrn_jacob_constant_mod(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_src(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_constant_mod(_lmc);
-        auto node_data = make_node_data_constant_mod(*nt, *_ml_arg);
+        auto inst = make_instance_src(_lmc);
+        auto node_data = make_node_data_src(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
@@ -267,10 +229,10 @@ namespace neuron {
 
 
     /** register channel with the simulator */
-    extern "C" void _constant_reg() {
+    extern "C" void _src_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_constant_mod, nullptr, nullptr, nullptr, nrn_init_constant_mod, hoc_nrnpointerindex, 1);
+        register_mech(mechanism_info, nrn_alloc_src, nullptr, nullptr, nullptr, nrn_init_src, hoc_nrnpointerindex, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);

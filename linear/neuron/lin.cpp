@@ -91,6 +91,25 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<lin_Store>);
     static_assert(std::is_trivially_destructible_v<lin_Store>);
     lin_Store lin_global;
+    auto a_lin() -> std::decay<decltype(lin_global.a)>::type  {
+        return lin_global.a;
+    }
+    auto b_lin() -> std::decay<decltype(lin_global.b)>::type  {
+        return lin_global.b;
+    }
+    auto c_lin() -> std::decay<decltype(lin_global.c)>::type  {
+        return lin_global.c;
+    }
+    auto d_lin() -> std::decay<decltype(lin_global.d)>::type  {
+        return lin_global.d;
+    }
+    auto xx0_lin() -> std::decay<decltype(lin_global.xx0)>::type  {
+        return lin_global.xx0;
+    }
+    auto yy0_lin() -> std::decay<decltype(lin_global.yy0)>::type  {
+        return lin_global.yy0;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 

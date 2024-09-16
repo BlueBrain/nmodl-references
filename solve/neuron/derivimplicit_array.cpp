@@ -470,6 +470,13 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<derivimplicit_array_Store>);
     static_assert(std::is_trivially_destructible_v<derivimplicit_array_Store>);
     derivimplicit_array_Store derivimplicit_array_global;
+    auto x0_derivimplicit_array() -> std::decay<decltype(derivimplicit_array_global.x0)>::type  {
+        return derivimplicit_array_global.x0;
+    }
+    auto s0_derivimplicit_array() -> std::decay<decltype(derivimplicit_array_global.s0)>::type  {
+        return derivimplicit_array_global.s0;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 

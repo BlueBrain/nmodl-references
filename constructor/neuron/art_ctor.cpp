@@ -84,6 +84,13 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<art_ctor_Store>);
     static_assert(std::is_trivially_destructible_v<art_ctor_Store>);
     art_ctor_Store art_ctor_global;
+    auto thread_data_in_use_art_ctor() -> std::decay<decltype(art_ctor_global.thread_data_in_use)>::type  {
+        return art_ctor_global.thread_data_in_use;
+    }
+    auto thread_data_art_ctor() -> std::decay<decltype(art_ctor_global.thread_data)>::type  {
+        return art_ctor_global.thread_data;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 

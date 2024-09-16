@@ -471,6 +471,16 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<thread_newton_Store>);
     static_assert(std::is_trivially_destructible_v<thread_newton_Store>);
     thread_newton_Store thread_newton_global;
+    auto thread_data_in_use_thread_newton() -> std::decay<decltype(thread_newton_global.thread_data_in_use)>::type  {
+        return thread_newton_global.thread_data_in_use;
+    }
+    auto thread_data_thread_newton() -> std::decay<decltype(thread_newton_global.thread_data)>::type  {
+        return thread_newton_global.thread_data;
+    }
+    auto X0_thread_newton() -> std::decay<decltype(thread_newton_global.X0)>::type  {
+        return thread_newton_global.X0;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 

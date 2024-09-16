@@ -467,6 +467,10 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<derivimplicit_scalar_Store>);
     static_assert(std::is_trivially_destructible_v<derivimplicit_scalar_Store>);
     derivimplicit_scalar_Store derivimplicit_scalar_global;
+    auto x0_derivimplicit_scalar() -> std::decay<decltype(derivimplicit_scalar_global.x0)>::type  {
+        return derivimplicit_scalar_global.x0;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 

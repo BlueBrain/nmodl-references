@@ -473,6 +473,13 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<side_effects_Store>);
     static_assert(std::is_trivially_destructible_v<side_effects_Store>);
     side_effects_Store side_effects_global;
+    auto X0_side_effects() -> std::decay<decltype(side_effects_global.X0)>::type  {
+        return side_effects_global.X0;
+    }
+    auto Y0_side_effects() -> std::decay<decltype(side_effects_global.Y0)>::type  {
+        return side_effects_global.Y0;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 

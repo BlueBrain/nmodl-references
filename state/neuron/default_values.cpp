@@ -93,6 +93,22 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<default_values_Store>);
     static_assert(std::is_trivially_destructible_v<default_values_Store>);
     default_values_Store default_values_global;
+    auto X0_default_values() -> std::decay<decltype(default_values_global.X0)>::type  {
+        return default_values_global.X0;
+    }
+    auto Z0_default_values() -> std::decay<decltype(default_values_global.Z0)>::type  {
+        return default_values_global.Z0;
+    }
+    auto A0_default_values() -> std::decay<decltype(default_values_global.A0)>::type  {
+        return default_values_global.A0;
+    }
+    auto B0_default_values() -> std::decay<decltype(default_values_global.B0)>::type  {
+        return default_values_global.B0;
+    }
+    auto Y0_default_values() -> std::decay<decltype(default_values_global.Y0)>::type  {
+        return default_values_global.Y0;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 

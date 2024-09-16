@@ -94,6 +94,25 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<shared_global_Store>);
     static_assert(std::is_trivially_destructible_v<shared_global_Store>);
     shared_global_Store shared_global_global;
+    auto thread_data_in_use_shared_global() -> std::decay<decltype(shared_global_global.thread_data_in_use)>::type  {
+        return shared_global_global.thread_data_in_use;
+    }
+    auto thread_data_shared_global() -> std::decay<decltype(shared_global_global.thread_data)>::type  {
+        return shared_global_global.thread_data;
+    }
+    auto usetable_shared_global() -> std::decay<decltype(shared_global_global.usetable)>::type  {
+        return shared_global_global.usetable;
+    }
+    auto tmin_compute_g_v1_shared_global() -> std::decay<decltype(shared_global_global.tmin_compute_g_v1)>::type  {
+        return shared_global_global.tmin_compute_g_v1;
+    }
+    auto mfac_compute_g_v1_shared_global() -> std::decay<decltype(shared_global_global.mfac_compute_g_v1)>::type  {
+        return shared_global_global.mfac_compute_g_v1;
+    }
+    auto t_g_v1_shared_global() -> std::decay<decltype(shared_global_global.t_g_v1)>::type  {
+        return shared_global_global.t_g_v1;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 

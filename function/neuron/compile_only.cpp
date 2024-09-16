@@ -85,6 +85,10 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<func_in_breakpoint_Store>);
     static_assert(std::is_trivially_destructible_v<func_in_breakpoint_Store>);
     func_in_breakpoint_Store func_in_breakpoint_global;
+    auto c_func_in_breakpoint() -> std::decay<decltype(func_in_breakpoint_global.c)>::type  {
+        return func_in_breakpoint_global.c;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 
