@@ -83,8 +83,8 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<dst_Store>);
     static_assert(std::is_trivially_destructible_v<dst_Store>);
     dst_Store dst_global;
-    extern double gbl_src();
-    extern double param_src();
+    double gbl_src();
+    double param_src();
 
     static std::vector<double> _parameter_defaults = {
     };
