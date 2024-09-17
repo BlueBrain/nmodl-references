@@ -136,14 +136,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_receiver(Prop* prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
-        _nrn_mechanism_cache_instance _lmc{prop};
-        const size_t id = 0;
-        auto inst = make_instance_receiver(_lmc);
-        auto node_data = make_node_data_receiver(prop);
-
-    }
+    void nrn_destructor_receiver(Prop* prop);
 
 
     static void nrn_alloc_receiver(Prop* _prop) {
@@ -256,6 +249,14 @@ namespace neuron {
         size_t id = 0;
         double t = nt->_t;
         inst.y[id] = inst.y[id] + 0.1;
+
+    }
+    void nrn_destructor_receiver(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_receiver(_lmc);
+        auto node_data = make_node_data_receiver(prop);
 
     }
 

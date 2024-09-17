@@ -136,14 +136,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_write_eca(Prop* prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
-        _nrn_mechanism_cache_instance _lmc{prop};
-        const size_t id = 0;
-        auto inst = make_instance_write_eca(_lmc);
-        auto node_data = make_node_data_write_eca(prop);
-
-    }
+    void nrn_destructor_write_eca(Prop* prop);
 
 
     static void nrn_alloc_write_eca(Prop* _prop) {
@@ -224,6 +217,14 @@ namespace neuron {
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
+    }
+    void nrn_destructor_write_eca(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_write_eca(_lmc);
+        auto node_data = make_node_data_write_eca(prop);
+
     }
 
 

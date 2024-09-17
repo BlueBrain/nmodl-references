@@ -144,14 +144,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_two_radii(Prop* prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
-        _nrn_mechanism_cache_instance _lmc{prop};
-        const size_t id = 0;
-        auto inst = make_instance_two_radii(_lmc);
-        auto node_data = make_node_data_two_radii(prop);
-
-    }
+    void nrn_destructor_two_radii(Prop* prop);
 
 
     static void nrn_alloc_two_radii(Prop* _prop) {
@@ -363,6 +356,14 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
+    }
+    void nrn_destructor_two_radii(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_two_radii(_lmc);
+        auto node_data = make_node_data_two_radii(prop);
+
     }
 
 

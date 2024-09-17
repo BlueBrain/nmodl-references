@@ -139,13 +139,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_art_spiker(Prop* prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
-        _nrn_mechanism_cache_instance _lmc{prop};
-        const size_t id = 0;
-        auto inst = make_instance_art_spiker(_lmc);
-
-    }
+    void nrn_destructor_art_spiker(Prop* prop);
 
 
     static void nrn_alloc_art_spiker(Prop* _prop) {
@@ -263,6 +257,13 @@ namespace neuron {
             inst.z[id] = inst.z[id] + 1.0;
             artcell_net_send(/* tqitem */ &_ppvar[2], nullptr, _pnt, nt->_t + 2.0, 1.0);
         }
+
+    }
+    void nrn_destructor_art_spiker(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_art_spiker(_lmc);
 
     }
 

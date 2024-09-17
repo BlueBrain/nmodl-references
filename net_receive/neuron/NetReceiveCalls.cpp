@@ -139,14 +139,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_NetReceiveCalls(Prop* prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
-        _nrn_mechanism_cache_instance _lmc{prop};
-        const size_t id = 0;
-        auto inst = make_instance_NetReceiveCalls(_lmc);
-        auto node_data = make_node_data_NetReceiveCalls(prop);
-
-    }
+    void nrn_destructor_NetReceiveCalls(Prop* prop);
 
 
     static void nrn_alloc_NetReceiveCalls(Prop* _prop) {
@@ -324,6 +317,14 @@ namespace neuron {
         double t = nt->_t;
         inst.c1[id] = inst.c1[id] + one_NetReceiveCalls(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         increment_c2_NetReceiveCalls(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+
+    }
+    void nrn_destructor_NetReceiveCalls(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_NetReceiveCalls(_lmc);
+        auto node_data = make_node_data_NetReceiveCalls(prop);
 
     }
 
