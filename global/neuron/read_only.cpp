@@ -147,14 +147,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_read_only(Prop* prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
-        _nrn_mechanism_cache_instance _lmc{prop};
-        const size_t id = 0;
-        auto inst = make_instance_read_only(_lmc);
-        auto node_data = make_node_data_read_only(prop);
-
-    }
+    void nrn_destructor_read_only(Prop* prop);
 
 
     static void nrn_alloc_read_only(Prop* _prop) {
@@ -246,6 +239,14 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
+    }
+    void nrn_destructor_read_only(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_read_only(_lmc);
+        auto node_data = make_node_data_read_only(prop);
+
     }
 
 

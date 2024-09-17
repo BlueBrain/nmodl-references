@@ -157,14 +157,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_ExpSyn2(Prop* prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
-        _nrn_mechanism_cache_instance _lmc{prop};
-        const size_t id = 0;
-        auto inst = make_instance_ExpSyn2(_lmc);
-        auto node_data = make_node_data_ExpSyn2(prop);
-
-    }
+    void nrn_destructor_ExpSyn2(Prop* prop);
 
 
     static void nrn_alloc_ExpSyn2(Prop* _prop) {
@@ -329,6 +322,14 @@ namespace neuron {
         size_t id = 0;
         double t = nt->_t;
         inst.g[id] = inst.g[id] + _args[0];
+
+    }
+    void nrn_destructor_ExpSyn2(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_ExpSyn2(_lmc);
+        auto node_data = make_node_data_ExpSyn2(prop);
 
     }
 

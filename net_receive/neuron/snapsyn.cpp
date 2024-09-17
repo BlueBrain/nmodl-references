@@ -144,14 +144,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_SnapSyn(Prop* prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
-        _nrn_mechanism_cache_instance _lmc{prop};
-        const size_t id = 0;
-        auto inst = make_instance_SnapSyn(_lmc);
-        auto node_data = make_node_data_SnapSyn(prop);
-
-    }
+    void nrn_destructor_SnapSyn(Prop* prop);
 
 
     static void nrn_alloc_SnapSyn(Prop* _prop) {
@@ -313,6 +306,14 @@ namespace neuron {
         size_t id = 0;
         double t = nt->_t;
         inst.g[id] = inst.g[id] + _args[0];
+
+    }
+    void nrn_destructor_SnapSyn(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_SnapSyn(_lmc);
+        auto node_data = make_node_data_SnapSyn(prop);
 
     }
 

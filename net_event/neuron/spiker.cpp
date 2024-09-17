@@ -136,14 +136,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_spiker(Prop* prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
-        _nrn_mechanism_cache_instance _lmc{prop};
-        const size_t id = 0;
-        auto inst = make_instance_spiker(_lmc);
-        auto node_data = make_node_data_spiker(prop);
-
-    }
+    void nrn_destructor_spiker(Prop* prop);
 
 
     static void nrn_alloc_spiker(Prop* _prop) {
@@ -261,6 +254,14 @@ namespace neuron {
             net_event(_pnt, t);
             inst.tnext[id] = inst.tnext[id] + 1.0;
         }
+
+    }
+    void nrn_destructor_spiker(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_spiker(_lmc);
+        auto node_data = make_node_data_spiker(prop);
 
     }
 

@@ -136,14 +136,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_toggle(Prop* prop) {
-        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
-        _nrn_mechanism_cache_instance _lmc{prop};
-        const size_t id = 0;
-        auto inst = make_instance_toggle(_lmc);
-        auto node_data = make_node_data_toggle(prop);
-
-    }
+    void nrn_destructor_toggle(Prop* prop);
 
 
     static void nrn_alloc_toggle(Prop* _prop) {
@@ -260,6 +253,14 @@ namespace neuron {
         if (nt->_t < 3.7) {
             net_send(/* tqitem */ &_ppvar[2], nullptr, _pnt, nt->_t + 4.001 - nt->_t, 1.0);
         }
+
+    }
+    void nrn_destructor_toggle(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_toggle(_lmc);
+        auto node_data = make_node_data_toggle(prop);
 
     }
 

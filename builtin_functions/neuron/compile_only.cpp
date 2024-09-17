@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : recursion
-Filename        : recursion.mod
+Model Name      : compile_only
+Filename        : compile_only.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -57,7 +57,7 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "recursion",
+        "compile_only",
         0,
         0,
         0,
@@ -75,26 +75,26 @@ namespace neuron {
 
 
     /** all global variables */
-    struct recursion_Store {
+    struct compile_only_Store {
     };
-    static_assert(std::is_trivially_copy_constructible_v<recursion_Store>);
-    static_assert(std::is_trivially_move_constructible_v<recursion_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<recursion_Store>);
-    static_assert(std::is_trivially_move_assignable_v<recursion_Store>);
-    static_assert(std::is_trivially_destructible_v<recursion_Store>);
-    recursion_Store recursion_global;
+    static_assert(std::is_trivially_copy_constructible_v<compile_only_Store>);
+    static_assert(std::is_trivially_move_constructible_v<compile_only_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<compile_only_Store>);
+    static_assert(std::is_trivially_move_assignable_v<compile_only_Store>);
+    static_assert(std::is_trivially_destructible_v<compile_only_Store>);
+    compile_only_Store compile_only_global;
     static std::vector<double> _parameter_defaults = {
     };
 
 
     /** all mechanism instance variables and global variables */
-    struct recursion_Instance  {
+    struct compile_only_Instance  {
         double* v_unused{};
-        recursion_Store* global{&recursion_global};
+        compile_only_Store* global{&compile_only_global};
     };
 
 
-    struct recursion_NodeData  {
+    struct compile_only_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -103,15 +103,15 @@ namespace neuron {
     };
 
 
-    static recursion_Instance make_instance_recursion(_nrn_mechanism_cache_range& _lmc) {
-        return recursion_Instance {
+    static compile_only_Instance make_instance_compile_only(_nrn_mechanism_cache_range& _lmc) {
+        return compile_only_Instance {
             _lmc.template fpfield_ptr<0>()
         };
     }
 
 
-    static recursion_NodeData make_node_data_recursion(NrnThread& nt, Memb_list& _ml_arg) {
-        return recursion_NodeData {
+    static compile_only_NodeData make_node_data_compile_only(NrnThread& nt, Memb_list& _ml_arg) {
+        return compile_only_NodeData {
             _ml_arg.nodeindices,
             nt.node_voltage_storage(),
             nt.node_d_storage(),
@@ -119,10 +119,10 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
-    static recursion_NodeData make_node_data_recursion(Prop * _prop) {
+    static compile_only_NodeData make_node_data_compile_only(Prop * _prop) {
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
-        return recursion_NodeData {
+        return compile_only_NodeData {
             node_index.data(),
             &_nrn_mechanism_access_voltage(_node),
             &_nrn_mechanism_access_d(_node),
@@ -131,10 +131,10 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_recursion(Prop* prop);
+    void nrn_destructor_compile_only(Prop* prop);
 
 
-    static void nrn_alloc_recursion(Prop* _prop) {
+    static void nrn_alloc_compile_only(Prop* _prop) {
         Datum *_ppvar = nullptr;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const _iml = 0;
@@ -155,7 +155,7 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
-    inline double fibonacci_recursion(_nrn_mechanism_cache_range& _lmc, recursion_Instance& inst, recursion_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _ln);
+    inline double call_nrn_ghk_compile_only(_nrn_mechanism_cache_range& _lmc, compile_only_Instance& inst, compile_only_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -171,21 +171,21 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_fibonacci(void);
-    static double _npy_fibonacci(Prop*);
+    static void _hoc_call_nrn_ghk(void);
+    static double _npy_call_nrn_ghk(Prop*);
 
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
-        {"setdata_recursion", _hoc_setdata},
-        {"fibonacci_recursion", _hoc_fibonacci},
+        {"setdata_compile_only", _hoc_setdata},
+        {"call_nrn_ghk_compile_only", _hoc_call_nrn_ghk},
         {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
-        {"fibonacci", _npy_fibonacci},
+        {"call_nrn_ghk", _npy_call_nrn_ghk},
         {nullptr, nullptr}
     };
-    static void _hoc_fibonacci(void) {
+    static void _hoc_call_nrn_ghk(void) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -196,12 +196,12 @@ namespace neuron {
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_recursion(_lmc);
-        auto node_data = make_node_data_recursion(_local_prop);
-        _r = fibonacci_recursion(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
+        auto inst = make_instance_compile_only(_lmc);
+        auto node_data = make_node_data_compile_only(_local_prop);
+        _r = call_nrn_ghk_compile_only(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
-    static double _npy_fibonacci(Prop* _prop) {
+    static double _npy_call_nrn_ghk(Prop* _prop) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -211,29 +211,25 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_recursion(_lmc);
-        auto node_data = make_node_data_recursion(_prop);
-        _r = fibonacci_recursion(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
+        auto inst = make_instance_compile_only(_lmc);
+        auto node_data = make_node_data_compile_only(_prop);
+        _r = call_nrn_ghk_compile_only(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
 
 
-    inline double fibonacci_recursion(_nrn_mechanism_cache_range& _lmc, recursion_Instance& inst, recursion_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _ln) {
-        double ret_fibonacci = 0.0;
+    inline double call_nrn_ghk_compile_only(_nrn_mechanism_cache_range& _lmc, compile_only_Instance& inst, compile_only_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+        double ret_call_nrn_ghk = 0.0;
         auto v = node_data.node_voltages[node_data.nodeindices[id]];
-        if (_ln == 0.0 || _ln == 1.0) {
-            ret_fibonacci = 1.0;
-        } else {
-            ret_fibonacci = fibonacci_recursion(_lmc, inst, node_data, id, _ppvar, _thread, nt, _ln - 1.0) + fibonacci_recursion(_lmc, inst, node_data, id, _ppvar, _thread, nt, _ln - 2.0);
-        }
-        return ret_fibonacci;
+        ret_call_nrn_ghk = nrn_ghk(1.0, 2.0, 3.0, 4.0);
+        return ret_call_nrn_ghk;
     }
 
 
-    void nrn_init_recursion(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    void nrn_init_compile_only(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_recursion(_lmc);
-        auto node_data = make_node_data_recursion(*nt, *_ml_arg);
+        auto inst = make_instance_compile_only(_lmc);
+        auto node_data = make_node_data_compile_only(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
@@ -244,20 +240,20 @@ namespace neuron {
     }
 
 
-    static void nrn_jacob_recursion(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_compile_only(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_recursion(_lmc);
-        auto node_data = make_node_data_recursion(*nt, *_ml_arg);
+        auto inst = make_instance_compile_only(_lmc);
+        auto node_data = make_node_data_compile_only(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
     }
-    void nrn_destructor_recursion(Prop* prop) {
+    void nrn_destructor_compile_only(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_recursion(_lmc);
-        auto node_data = make_node_data_recursion(prop);
+        auto inst = make_instance_compile_only(_lmc);
+        auto node_data = make_node_data_compile_only(prop);
 
     }
 
@@ -267,10 +263,10 @@ namespace neuron {
 
 
     /** register channel with the simulator */
-    extern "C" void _recursion_reg() {
+    extern "C" void _compile_only_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_recursion, nullptr, nullptr, nullptr, nrn_init_recursion, hoc_nrnpointerindex, 1);
+        register_mech(mechanism_info, nrn_alloc_compile_only, nullptr, nullptr, nullptr, nrn_init_compile_only, hoc_nrnpointerindex, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);
