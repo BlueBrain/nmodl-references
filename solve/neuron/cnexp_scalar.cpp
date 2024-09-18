@@ -86,6 +86,10 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<cnexp_scalar_Store>);
     static_assert(std::is_trivially_destructible_v<cnexp_scalar_Store>);
     cnexp_scalar_Store cnexp_scalar_global;
+    auto x0_cnexp_scalar() -> std::decay<decltype(cnexp_scalar_global.x0)>::type  {
+        return cnexp_scalar_global.x0;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 

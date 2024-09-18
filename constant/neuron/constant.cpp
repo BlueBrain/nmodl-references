@@ -84,6 +84,10 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<constant_mod_Store>);
     static_assert(std::is_trivially_destructible_v<constant_mod_Store>);
     constant_mod_Store constant_mod_global;
+    auto a_constant_mod() -> std::decay<decltype(constant_mod_global.a)>::type  {
+        return constant_mod_global.a;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 

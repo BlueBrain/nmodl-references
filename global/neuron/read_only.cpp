@@ -86,6 +86,13 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<read_only_Store>);
     static_assert(std::is_trivially_destructible_v<read_only_Store>);
     read_only_Store read_only_global;
+    auto c_read_only() -> std::decay<decltype(read_only_global.c)>::type  {
+        return read_only_global.c;
+    }
+    auto x0_read_only() -> std::decay<decltype(read_only_global.x0)>::type  {
+        return read_only_global.x0;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 

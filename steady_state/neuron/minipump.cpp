@@ -477,6 +477,34 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<minipump_Store>);
     static_assert(std::is_trivially_destructible_v<minipump_Store>);
     minipump_Store minipump_global;
+    auto volA_minipump() -> std::decay<decltype(minipump_global.volA)>::type  {
+        return minipump_global.volA;
+    }
+    auto volB_minipump() -> std::decay<decltype(minipump_global.volB)>::type  {
+        return minipump_global.volB;
+    }
+    auto volC_minipump() -> std::decay<decltype(minipump_global.volC)>::type  {
+        return minipump_global.volC;
+    }
+    auto kf_minipump() -> std::decay<decltype(minipump_global.kf)>::type  {
+        return minipump_global.kf;
+    }
+    auto kb_minipump() -> std::decay<decltype(minipump_global.kb)>::type  {
+        return minipump_global.kb;
+    }
+    auto run_steady_state_minipump() -> std::decay<decltype(minipump_global.run_steady_state)>::type  {
+        return minipump_global.run_steady_state;
+    }
+    auto X0_minipump() -> std::decay<decltype(minipump_global.X0)>::type  {
+        return minipump_global.X0;
+    }
+    auto Y0_minipump() -> std::decay<decltype(minipump_global.Y0)>::type  {
+        return minipump_global.Y0;
+    }
+    auto Z0_minipump() -> std::decay<decltype(minipump_global.Z0)>::type  {
+        return minipump_global.Z0;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 

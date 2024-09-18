@@ -101,6 +101,52 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<tbl_point_process_Store>);
     static_assert(std::is_trivially_destructible_v<tbl_point_process_Store>);
     tbl_point_process_Store tbl_point_process_global;
+    auto k_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.k)>::type  {
+        return tbl_point_process_global.k;
+    }
+    auto d_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.d)>::type  {
+        return tbl_point_process_global.d;
+    }
+    auto c1_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.c1)>::type  {
+        return tbl_point_process_global.c1;
+    }
+    auto c2_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.c2)>::type  {
+        return tbl_point_process_global.c2;
+    }
+    auto usetable_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.usetable)>::type  {
+        return tbl_point_process_global.usetable;
+    }
+    auto tmin_sigmoidal_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.tmin_sigmoidal)>::type  {
+        return tbl_point_process_global.tmin_sigmoidal;
+    }
+    auto mfac_sigmoidal_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.mfac_sigmoidal)>::type  {
+        return tbl_point_process_global.mfac_sigmoidal;
+    }
+    auto tmin_quadratic_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.tmin_quadratic)>::type  {
+        return tbl_point_process_global.tmin_quadratic;
+    }
+    auto mfac_quadratic_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.mfac_quadratic)>::type  {
+        return tbl_point_process_global.mfac_quadratic;
+    }
+    auto tmin_sinusoidal_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.tmin_sinusoidal)>::type  {
+        return tbl_point_process_global.tmin_sinusoidal;
+    }
+    auto mfac_sinusoidal_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.mfac_sinusoidal)>::type  {
+        return tbl_point_process_global.mfac_sinusoidal;
+    }
+    auto t_v1_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.t_v1)>::type  {
+        return tbl_point_process_global.t_v1;
+    }
+    auto t_v2_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.t_v2)>::type  {
+        return tbl_point_process_global.t_v2;
+    }
+    auto t_sig_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.t_sig)>::type  {
+        return tbl_point_process_global.t_sig;
+    }
+    auto t_quadratic_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.t_quadratic)>::type  {
+        return tbl_point_process_global.t_quadratic;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 

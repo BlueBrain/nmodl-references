@@ -103,6 +103,52 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<tbl_Store>);
     static_assert(std::is_trivially_destructible_v<tbl_Store>);
     tbl_Store tbl_global;
+    auto k_tbl() -> std::decay<decltype(tbl_global.k)>::type  {
+        return tbl_global.k;
+    }
+    auto d_tbl() -> std::decay<decltype(tbl_global.d)>::type  {
+        return tbl_global.d;
+    }
+    auto c1_tbl() -> std::decay<decltype(tbl_global.c1)>::type  {
+        return tbl_global.c1;
+    }
+    auto c2_tbl() -> std::decay<decltype(tbl_global.c2)>::type  {
+        return tbl_global.c2;
+    }
+    auto usetable_tbl() -> std::decay<decltype(tbl_global.usetable)>::type  {
+        return tbl_global.usetable;
+    }
+    auto tmin_sigmoidal_tbl() -> std::decay<decltype(tbl_global.tmin_sigmoidal)>::type  {
+        return tbl_global.tmin_sigmoidal;
+    }
+    auto mfac_sigmoidal_tbl() -> std::decay<decltype(tbl_global.mfac_sigmoidal)>::type  {
+        return tbl_global.mfac_sigmoidal;
+    }
+    auto tmin_quadratic_tbl() -> std::decay<decltype(tbl_global.tmin_quadratic)>::type  {
+        return tbl_global.tmin_quadratic;
+    }
+    auto mfac_quadratic_tbl() -> std::decay<decltype(tbl_global.mfac_quadratic)>::type  {
+        return tbl_global.mfac_quadratic;
+    }
+    auto tmin_sinusoidal_tbl() -> std::decay<decltype(tbl_global.tmin_sinusoidal)>::type  {
+        return tbl_global.tmin_sinusoidal;
+    }
+    auto mfac_sinusoidal_tbl() -> std::decay<decltype(tbl_global.mfac_sinusoidal)>::type  {
+        return tbl_global.mfac_sinusoidal;
+    }
+    auto t_v1_tbl() -> std::decay<decltype(tbl_global.t_v1)>::type  {
+        return tbl_global.t_v1;
+    }
+    auto t_v2_tbl() -> std::decay<decltype(tbl_global.t_v2)>::type  {
+        return tbl_global.t_v2;
+    }
+    auto t_sig_tbl() -> std::decay<decltype(tbl_global.t_sig)>::type  {
+        return tbl_global.t_sig;
+    }
+    auto t_quadratic_tbl() -> std::decay<decltype(tbl_global.t_quadratic)>::type  {
+        return tbl_global.t_quadratic;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 

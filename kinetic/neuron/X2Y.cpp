@@ -472,6 +472,13 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<X2Y_Store>);
     static_assert(std::is_trivially_destructible_v<X2Y_Store>);
     X2Y_Store X2Y_global;
+    auto X0_X2Y() -> std::decay<decltype(X2Y_global.X0)>::type  {
+        return X2Y_global.X0;
+    }
+    auto Y0_X2Y() -> std::decay<decltype(X2Y_global.Y0)>::type  {
+        return X2Y_global.Y0;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 

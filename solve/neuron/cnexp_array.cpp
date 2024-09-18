@@ -89,6 +89,13 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<cnexp_array_Store>);
     static_assert(std::is_trivially_destructible_v<cnexp_array_Store>);
     cnexp_array_Store cnexp_array_global;
+    auto x0_cnexp_array() -> std::decay<decltype(cnexp_array_global.x0)>::type  {
+        return cnexp_array_global.x0;
+    }
+    auto s0_cnexp_array() -> std::decay<decltype(cnexp_array_global.s0)>::type  {
+        return cnexp_array_global.s0;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 

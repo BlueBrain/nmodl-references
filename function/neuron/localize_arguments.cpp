@@ -89,6 +89,16 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<localize_arguments_Store>);
     static_assert(std::is_trivially_destructible_v<localize_arguments_Store>);
     localize_arguments_Store localize_arguments_global;
+    auto g_localize_arguments() -> std::decay<decltype(localize_arguments_global.g)>::type  {
+        return localize_arguments_global.g;
+    }
+    auto p_localize_arguments() -> std::decay<decltype(localize_arguments_global.p)>::type  {
+        return localize_arguments_global.p;
+    }
+    auto s0_localize_arguments() -> std::decay<decltype(localize_arguments_global.s0)>::type  {
+        return localize_arguments_global.s0;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 

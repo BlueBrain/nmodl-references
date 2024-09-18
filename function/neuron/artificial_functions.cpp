@@ -85,6 +85,13 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<art_functions_Store>);
     static_assert(std::is_trivially_destructible_v<art_functions_Store>);
     art_functions_Store art_functions_global;
+    auto gbl_art_functions() -> std::decay<decltype(art_functions_global.gbl)>::type  {
+        return art_functions_global.gbl;
+    }
+    auto z0_art_functions() -> std::decay<decltype(art_functions_global.z0)>::type  {
+        return art_functions_global.z0;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 

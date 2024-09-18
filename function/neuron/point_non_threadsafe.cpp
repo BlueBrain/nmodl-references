@@ -85,6 +85,13 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<point_non_threadsafe_Store>);
     static_assert(std::is_trivially_destructible_v<point_non_threadsafe_Store>);
     point_non_threadsafe_Store point_non_threadsafe_global;
+    auto gbl_point_non_threadsafe() -> std::decay<decltype(point_non_threadsafe_global.gbl)>::type  {
+        return point_non_threadsafe_global.gbl;
+    }
+    auto z0_point_non_threadsafe() -> std::decay<decltype(point_non_threadsafe_global.z0)>::type  {
+        return point_non_threadsafe_global.z0;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 

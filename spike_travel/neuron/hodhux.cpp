@@ -103,6 +103,16 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<hodhux_Store>);
     static_assert(std::is_trivially_destructible_v<hodhux_Store>);
     hodhux_Store hodhux_global;
+    auto m0_hodhux() -> std::decay<decltype(hodhux_global.m0)>::type  {
+        return hodhux_global.m0;
+    }
+    auto h0_hodhux() -> std::decay<decltype(hodhux_global.h0)>::type  {
+        return hodhux_global.h0;
+    }
+    auto n0_hodhux() -> std::decay<decltype(hodhux_global.n0)>::type  {
+        return hodhux_global.n0;
+    }
+
     static std::vector<double> _parameter_defaults = {
         0.12 /* gnabar */,
         0.036 /* gkbar */,
