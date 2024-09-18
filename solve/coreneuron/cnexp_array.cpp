@@ -247,11 +247,11 @@ namespace coreneuron {
                 (inst->s+id*2)[0] = inst->global->s0;
                 (inst->s+id*2)[1] = inst->global->s0;
                 inst->x[id] = 42.0;
-                (inst->s+id*2)[static_cast<int>(0)] = 0.1;
-                (inst->s+id*2)[static_cast<int>(1)] =  -1.0;
-                (inst->z+id*3)[static_cast<int>(0)] = 0.7;
-                (inst->z+id*3)[static_cast<int>(1)] = 0.8;
-                (inst->z+id*3)[static_cast<int>(2)] = 0.9;
+                (inst->s+id*2)[0] = 0.1;
+                (inst->s+id*2)[1] =  -1.0;
+                (inst->z+id*3)[0] = 0.7;
+                (inst->z+id*3)[1] = 0.8;
+                (inst->z+id*3)[2] = 0.9;
             }
         }
     }
@@ -276,7 +276,7 @@ namespace coreneuron {
             #if NRN_PRCELLSTATE
             inst->v_unused[id] = v;
             #endif
-            inst->x[id] = inst->x[id] + (1.0 - exp(nt->_dt * ((((inst->s+id*2)[static_cast<int>(0)] + (inst->s+id*2)[static_cast<int>(1)]) * ((inst->z+id*3)[static_cast<int>(0)] * (inst->z+id*3)[static_cast<int>(1)] * (inst->z+id*3)[static_cast<int>(2)])) * (1.0)))) * ( -(0.0) / (((((inst->s+id*2)[static_cast<int>(0)] + (inst->s+id*2)[static_cast<int>(1)])) * (((((inst->z+id*3)[static_cast<int>(0)]) * ((inst->z+id*3)[static_cast<int>(1)])) * ((inst->z+id*3)[static_cast<int>(2)])))) * (1.0)) - inst->x[id]);
+            inst->x[id] = inst->x[id] + (1.0 - exp(nt->_dt * ((((inst->s+id*2)[0] + (inst->s+id*2)[1]) * ((inst->z+id*3)[0] * (inst->z+id*3)[1] * (inst->z+id*3)[2])) * (1.0)))) * ( -(0.0) / (((((inst->s+id*2)[0] + (inst->s+id*2)[1])) * (((((inst->z+id*3)[0]) * ((inst->z+id*3)[1])) * ((inst->z+id*3)[2])))) * (1.0)) - inst->x[id]);
         }
     }
 

@@ -600,12 +600,12 @@ namespace neuron {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
             double* nmodl_eigen_j = nmodl_eigen_jm.data();
             double* nmodl_eigen_f = nmodl_eigen_fm.data();
-            nmodl_eigen_f[static_cast<int>(0)] = ( -nmodl_eigen_x[static_cast<int>(0)] + nt->_dt * ( -nmodl_eigen_x[static_cast<int>(0)] * kf0_ + nmodl_eigen_x[static_cast<int>(1)] * kb0_) + old_X) / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(0)] =  -kf0_ - 1.0 / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(2)] = kb0_;
-            nmodl_eigen_f[static_cast<int>(1)] = ( -nmodl_eigen_x[static_cast<int>(1)] + nt->_dt * (nmodl_eigen_x[static_cast<int>(0)] * kf0_ - nmodl_eigen_x[static_cast<int>(1)] * kb0_) + old_Y) / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(1)] = kf0_;
-            nmodl_eigen_j[static_cast<int>(3)] =  -kb0_ - 1.0 / nt->_dt;
+            nmodl_eigen_f[0] = ( -nmodl_eigen_x[0] + nt->_dt * ( -nmodl_eigen_x[0] * kf0_ + nmodl_eigen_x[1] * kb0_) + old_X) / nt->_dt;
+            nmodl_eigen_j[0] =  -kf0_ - 1.0 / nt->_dt;
+            nmodl_eigen_j[2] = kb0_;
+            nmodl_eigen_f[1] = ( -nmodl_eigen_x[1] + nt->_dt * (nmodl_eigen_x[0] * kf0_ - nmodl_eigen_x[1] * kb0_) + old_Y) / nt->_dt;
+            nmodl_eigen_j[1] = kf0_;
+            nmodl_eigen_j[3] =  -kb0_ - 1.0 / nt->_dt;
         }
 
         void finalize() {
@@ -698,15 +698,15 @@ namespace neuron {
             
             Eigen::Matrix<double, 2, 1> nmodl_eigen_xm;
             double* nmodl_eigen_x = nmodl_eigen_xm.data();
-            nmodl_eigen_x[static_cast<int>(0)] = inst.X[id];
-            nmodl_eigen_x[static_cast<int>(1)] = inst.Y[id];
+            nmodl_eigen_x[0] = inst.X[id];
+            nmodl_eigen_x[1] = inst.Y[id];
             // call newton solver
             functor_side_effects_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, nt, v);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
-            inst.X[id] = nmodl_eigen_x[static_cast<int>(0)];
-            inst.Y[id] = nmodl_eigen_x[static_cast<int>(1)];
+            inst.X[id] = nmodl_eigen_x[0];
+            inst.Y[id] = nmodl_eigen_x[1];
             newton_functor.initialize(); // TODO mimic calling F again.
             newton_functor.finalize();
 

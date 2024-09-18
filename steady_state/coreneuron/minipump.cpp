@@ -642,18 +642,18 @@ namespace coreneuron {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
             double* nmodl_eigen_j = nmodl_eigen_jm.data();
             double* nmodl_eigen_f = nmodl_eigen_fm.data();
-            nmodl_eigen_f[static_cast<int>(0)] = (nt->_dt * ( -nmodl_eigen_x[static_cast<int>(0)] * nmodl_eigen_x[static_cast<int>(1)] * kf0_ + nmodl_eigen_x[static_cast<int>(2)] * kb0_) + inst->global->volA * ( -nmodl_eigen_x[static_cast<int>(0)] + old_X)) / (nt->_dt * inst->global->volA);
-            nmodl_eigen_j[static_cast<int>(0)] =  -nmodl_eigen_x[static_cast<int>(1)] * kf0_ / inst->global->volA - 1.0 / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(3)] =  -nmodl_eigen_x[static_cast<int>(0)] * kf0_ / inst->global->volA;
-            nmodl_eigen_j[static_cast<int>(6)] = kb0_ / inst->global->volA;
-            nmodl_eigen_f[static_cast<int>(1)] = (nt->_dt * ( -nmodl_eigen_x[static_cast<int>(0)] * nmodl_eigen_x[static_cast<int>(1)] * kf0_ + nmodl_eigen_x[static_cast<int>(2)] * kb0_) + inst->global->volB * ( -nmodl_eigen_x[static_cast<int>(1)] + old_Y)) / (nt->_dt * inst->global->volB);
-            nmodl_eigen_j[static_cast<int>(1)] =  -nmodl_eigen_x[static_cast<int>(1)] * kf0_ / inst->global->volB;
-            nmodl_eigen_j[static_cast<int>(4)] =  -nmodl_eigen_x[static_cast<int>(0)] * kf0_ / inst->global->volB - 1.0 / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(7)] = kb0_ / inst->global->volB;
-            nmodl_eigen_f[static_cast<int>(2)] = ( -nmodl_eigen_x[static_cast<int>(1)] * inst->global->volB + 8.0 * inst->global->volB + inst->global->volC * (1.0 - nmodl_eigen_x[static_cast<int>(2)])) / inst->global->volC;
-            nmodl_eigen_j[static_cast<int>(2)] = 0.0;
-            nmodl_eigen_j[static_cast<int>(5)] =  -inst->global->volB / inst->global->volC;
-            nmodl_eigen_j[static_cast<int>(8)] =  -1.0;
+            nmodl_eigen_f[0] = (nt->_dt * ( -nmodl_eigen_x[0] * nmodl_eigen_x[1] * kf0_ + nmodl_eigen_x[2] * kb0_) + inst->global->volA * ( -nmodl_eigen_x[0] + old_X)) / (nt->_dt * inst->global->volA);
+            nmodl_eigen_j[0] =  -nmodl_eigen_x[1] * kf0_ / inst->global->volA - 1.0 / nt->_dt;
+            nmodl_eigen_j[3] =  -nmodl_eigen_x[0] * kf0_ / inst->global->volA;
+            nmodl_eigen_j[6] = kb0_ / inst->global->volA;
+            nmodl_eigen_f[1] = (nt->_dt * ( -nmodl_eigen_x[0] * nmodl_eigen_x[1] * kf0_ + nmodl_eigen_x[2] * kb0_) + inst->global->volB * ( -nmodl_eigen_x[1] + old_Y)) / (nt->_dt * inst->global->volB);
+            nmodl_eigen_j[1] =  -nmodl_eigen_x[1] * kf0_ / inst->global->volB;
+            nmodl_eigen_j[4] =  -nmodl_eigen_x[0] * kf0_ / inst->global->volB - 1.0 / nt->_dt;
+            nmodl_eigen_j[7] = kb0_ / inst->global->volB;
+            nmodl_eigen_f[2] = ( -nmodl_eigen_x[1] * inst->global->volB + 8.0 * inst->global->volB + inst->global->volC * (1.0 - nmodl_eigen_x[2])) / inst->global->volC;
+            nmodl_eigen_j[2] = 0.0;
+            nmodl_eigen_j[5] =  -inst->global->volB / inst->global->volC;
+            nmodl_eigen_j[8] =  -1.0;
         }
 
         void finalize() {
@@ -687,18 +687,18 @@ namespace coreneuron {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
             double* nmodl_eigen_j = nmodl_eigen_jm.data();
             double* nmodl_eigen_f = nmodl_eigen_fm.data();
-            nmodl_eigen_f[static_cast<int>(0)] = (nt->_dt * ( -nmodl_eigen_x[static_cast<int>(0)] * nmodl_eigen_x[static_cast<int>(1)] * kf0_ + nmodl_eigen_x[static_cast<int>(2)] * kb0_) + inst->global->volA * ( -nmodl_eigen_x[static_cast<int>(0)] + old_X)) / (nt->_dt * inst->global->volA);
-            nmodl_eigen_j[static_cast<int>(0)] =  -nmodl_eigen_x[static_cast<int>(1)] * kf0_ / inst->global->volA - 1.0 / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(3)] =  -nmodl_eigen_x[static_cast<int>(0)] * kf0_ / inst->global->volA;
-            nmodl_eigen_j[static_cast<int>(6)] = kb0_ / inst->global->volA;
-            nmodl_eigen_f[static_cast<int>(1)] = (nt->_dt * ( -nmodl_eigen_x[static_cast<int>(0)] * nmodl_eigen_x[static_cast<int>(1)] * kf0_ + nmodl_eigen_x[static_cast<int>(2)] * kb0_) + inst->global->volB * ( -nmodl_eigen_x[static_cast<int>(1)] + old_Y)) / (nt->_dt * inst->global->volB);
-            nmodl_eigen_j[static_cast<int>(1)] =  -nmodl_eigen_x[static_cast<int>(1)] * kf0_ / inst->global->volB;
-            nmodl_eigen_j[static_cast<int>(4)] =  -nmodl_eigen_x[static_cast<int>(0)] * kf0_ / inst->global->volB - 1.0 / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(7)] = kb0_ / inst->global->volB;
-            nmodl_eigen_f[static_cast<int>(2)] = ( -nmodl_eigen_x[static_cast<int>(1)] * inst->global->volB + 8.0 * inst->global->volB + inst->global->volC * (1.0 - nmodl_eigen_x[static_cast<int>(2)])) / inst->global->volC;
-            nmodl_eigen_j[static_cast<int>(2)] = 0.0;
-            nmodl_eigen_j[static_cast<int>(5)] =  -inst->global->volB / inst->global->volC;
-            nmodl_eigen_j[static_cast<int>(8)] =  -1.0;
+            nmodl_eigen_f[0] = (nt->_dt * ( -nmodl_eigen_x[0] * nmodl_eigen_x[1] * kf0_ + nmodl_eigen_x[2] * kb0_) + inst->global->volA * ( -nmodl_eigen_x[0] + old_X)) / (nt->_dt * inst->global->volA);
+            nmodl_eigen_j[0] =  -nmodl_eigen_x[1] * kf0_ / inst->global->volA - 1.0 / nt->_dt;
+            nmodl_eigen_j[3] =  -nmodl_eigen_x[0] * kf0_ / inst->global->volA;
+            nmodl_eigen_j[6] = kb0_ / inst->global->volA;
+            nmodl_eigen_f[1] = (nt->_dt * ( -nmodl_eigen_x[0] * nmodl_eigen_x[1] * kf0_ + nmodl_eigen_x[2] * kb0_) + inst->global->volB * ( -nmodl_eigen_x[1] + old_Y)) / (nt->_dt * inst->global->volB);
+            nmodl_eigen_j[1] =  -nmodl_eigen_x[1] * kf0_ / inst->global->volB;
+            nmodl_eigen_j[4] =  -nmodl_eigen_x[0] * kf0_ / inst->global->volB - 1.0 / nt->_dt;
+            nmodl_eigen_j[7] = kb0_ / inst->global->volB;
+            nmodl_eigen_f[2] = ( -nmodl_eigen_x[1] * inst->global->volB + 8.0 * inst->global->volB + inst->global->volC * (1.0 - nmodl_eigen_x[2])) / inst->global->volC;
+            nmodl_eigen_j[2] = 0.0;
+            nmodl_eigen_j[5] =  -inst->global->volB / inst->global->volC;
+            nmodl_eigen_j[8] =  -1.0;
         }
 
         void finalize() {
@@ -740,17 +740,17 @@ namespace coreneuron {
                                         
                     Eigen::Matrix<double, 3, 1> nmodl_eigen_xm;
                     double* nmodl_eigen_x = nmodl_eigen_xm.data();
-                    nmodl_eigen_x[static_cast<int>(0)] = inst->X[id];
-                    nmodl_eigen_x[static_cast<int>(1)] = inst->Y[id];
-                    nmodl_eigen_x[static_cast<int>(2)] = inst->Z[id];
+                    nmodl_eigen_x[0] = inst->X[id];
+                    nmodl_eigen_x[1] = inst->Y[id];
+                    nmodl_eigen_x[2] = inst->Z[id];
                     // call newton solver
                     functor_minipump_0 newton_functor(nt, inst, id, pnodecount, v, indexes, data, thread);
                     newton_functor.initialize();
                     int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
                     if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
-                    inst->X[id] = nmodl_eigen_x[static_cast<int>(0)];
-                    inst->Y[id] = nmodl_eigen_x[static_cast<int>(1)];
-                    inst->Z[id] = nmodl_eigen_x[static_cast<int>(2)];
+                    inst->X[id] = nmodl_eigen_x[0];
+                    inst->Y[id] = nmodl_eigen_x[1];
+                    inst->Z[id] = nmodl_eigen_x[2];
                     newton_functor.initialize(); // TODO mimic calling F again.
                     newton_functor.finalize();
 
@@ -784,17 +784,17 @@ namespace coreneuron {
             
             Eigen::Matrix<double, 3, 1> nmodl_eigen_xm;
             double* nmodl_eigen_x = nmodl_eigen_xm.data();
-            nmodl_eigen_x[static_cast<int>(0)] = inst->X[id];
-            nmodl_eigen_x[static_cast<int>(1)] = inst->Y[id];
-            nmodl_eigen_x[static_cast<int>(2)] = inst->Z[id];
+            nmodl_eigen_x[0] = inst->X[id];
+            nmodl_eigen_x[1] = inst->Y[id];
+            nmodl_eigen_x[2] = inst->Z[id];
             // call newton solver
             functor_minipump_1 newton_functor(nt, inst, id, pnodecount, v, indexes, data, thread);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
-            inst->X[id] = nmodl_eigen_x[static_cast<int>(0)];
-            inst->Y[id] = nmodl_eigen_x[static_cast<int>(1)];
-            inst->Z[id] = nmodl_eigen_x[static_cast<int>(2)];
+            inst->X[id] = nmodl_eigen_x[0];
+            inst->Y[id] = nmodl_eigen_x[1];
+            inst->Z[id] = nmodl_eigen_x[2];
             newton_functor.initialize(); // TODO mimic calling F again.
             newton_functor.finalize();
 

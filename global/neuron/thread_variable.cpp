@@ -460,7 +460,7 @@ namespace neuron {
     inline double sum_arr_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, shared_global_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* nt) {
         double ret_sum_arr = 0.0;
         auto v = node_data.node_voltages[node_data.nodeindices[id]];
-        ret_sum_arr = (_thread_vars.g_arr_ptr(id))[static_cast<int>(0)] + (_thread_vars.g_arr_ptr(id))[static_cast<int>(1)] + (_thread_vars.g_arr_ptr(id))[static_cast<int>(2)];
+        ret_sum_arr = (_thread_vars.g_arr_ptr(id))[0] + (_thread_vars.g_arr_ptr(id))[1] + (_thread_vars.g_arr_ptr(id))[2];
         return ret_sum_arr;
     }
 
@@ -478,9 +478,9 @@ namespace neuron {
             auto v = node_data.node_voltages[node_id];
             _thread_vars.g_w(id) = 48.0;
             _thread_vars.g_v1(id) = 0.0;
-            (_thread_vars.g_arr_ptr(id))[static_cast<int>(0)] = 10.0 + inst.z[id];
-            (_thread_vars.g_arr_ptr(id))[static_cast<int>(1)] = 10.1;
-            (_thread_vars.g_arr_ptr(id))[static_cast<int>(2)] = 10.2;
+            (_thread_vars.g_arr_ptr(id))[0] = 10.0 + inst.z[id];
+            (_thread_vars.g_arr_ptr(id))[1] = 10.1;
+            (_thread_vars.g_arr_ptr(id))[2] = 10.2;
             inst.y[id] = 10.0;
         }
     }

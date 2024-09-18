@@ -251,7 +251,7 @@ namespace neuron {
             (inst.B+id*2)[0] = inst.global->B0;
             (inst.B+id*2)[1] = inst.global->B0;
             inst.Z[id] = 7.0;
-            (inst.B+id*2)[static_cast<int>(1)] = 8.0;
+            (inst.B+id*2)[1] = 8.0;
         }
     }
 

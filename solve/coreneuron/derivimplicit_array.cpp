@@ -259,7 +259,7 @@ namespace coreneuron {
                 auto const& slist1 = inst->global->slist1;
                 auto const& dlist1 = inst->global->dlist1;
                 double* dlist2 = static_cast<double*>(thread[dith1()].pval) + (1*pnodecount);
-                inst->Dx[id] = ((inst->s+id*2)[static_cast<int>(0)] + (inst->s+id*2)[static_cast<int>(1)]) * ((inst->z+id*3)[static_cast<int>(0)] * (inst->z+id*3)[static_cast<int>(1)] * (inst->z+id*3)[static_cast<int>(2)]) * inst->x[id];
+                inst->Dx[id] = ((inst->s+id*2)[0] + (inst->s+id*2)[1]) * ((inst->z+id*3)[0] * (inst->z+id*3)[1] * (inst->z+id*3)[2]) * inst->x[id];
                 int counter = -1;
                 for (int i=0; i<1; i++) {
                     if (*deriv1_advance(thread)) {
@@ -326,11 +326,11 @@ namespace coreneuron {
                 (inst->s+id*2)[0] = inst->global->s0;
                 (inst->s+id*2)[1] = inst->global->s0;
                 inst->x[id] = 42.0;
-                (inst->s+id*2)[static_cast<int>(0)] = 0.1;
-                (inst->s+id*2)[static_cast<int>(1)] =  -1.0;
-                (inst->z+id*3)[static_cast<int>(0)] = 0.7;
-                (inst->z+id*3)[static_cast<int>(1)] = 0.8;
-                (inst->z+id*3)[static_cast<int>(2)] = 0.9;
+                (inst->s+id*2)[0] = 0.1;
+                (inst->s+id*2)[1] =  -1.0;
+                (inst->z+id*3)[0] = 0.7;
+                (inst->z+id*3)[1] = 0.8;
+                (inst->z+id*3)[2] = 0.9;
             }
         }
         deriv_advance_flag = 1;

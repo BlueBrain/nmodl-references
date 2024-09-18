@@ -573,8 +573,8 @@ namespace neuron {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
             double* nmodl_eigen_j = nmodl_eigen_jm.data();
             double* nmodl_eigen_f = nmodl_eigen_fm.data();
-            nmodl_eigen_f[static_cast<int>(0)] = ( -nmodl_eigen_x[static_cast<int>(0)] * nt->_dt - nmodl_eigen_x[static_cast<int>(0)] + old_x) / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(0)] = ( -nt->_dt - 1.0) / nt->_dt;
+            nmodl_eigen_f[0] = ( -nmodl_eigen_x[0] * nt->_dt - nmodl_eigen_x[0] + old_x) / nt->_dt;
+            nmodl_eigen_j[0] = ( -nt->_dt - 1.0) / nt->_dt;
         }
 
         void finalize() {
@@ -636,13 +636,13 @@ namespace neuron {
             
             Eigen::Matrix<double, 1, 1> nmodl_eigen_xm;
             double* nmodl_eigen_x = nmodl_eigen_xm.data();
-            nmodl_eigen_x[static_cast<int>(0)] = inst.x[id];
+            nmodl_eigen_x[0] = inst.x[id];
             // call newton solver
             functor_derivimplicit_scalar_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, nt, v);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
-            inst.x[id] = nmodl_eigen_x[static_cast<int>(0)];
+            inst.x[id] = nmodl_eigen_x[0];
             newton_functor.initialize(); // TODO mimic calling F again.
             newton_functor.finalize();
 
