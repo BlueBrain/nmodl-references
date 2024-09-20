@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : derivimplicit_scalar
-Filename        : derivimplicit_scalar.mod
+Model Name      : finite_difference
+Filename        : finite_difference.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -405,6 +405,7 @@ EIGEN_DEVICE_FUNC int newton_solver(Eigen::Matrix<double, 4, 1>& X,
 #include "neuron/cache/mechanism_range.hpp"
 #include "nrniv_mf.h"
 #include "section_fwd.hpp"
+extern void _nrn_thread_reg(int, int, void(*)(Datum*));
 
 /* NEURON global macro definitions */
 /* VECTORIZED */
@@ -441,10 +442,10 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "derivimplicit_scalar",
+        "finite_difference",
         0,
         0,
-        "x_derivimplicit_scalar",
+        "x_finite_difference",
         0,
         0
     };
@@ -461,17 +462,25 @@ namespace neuron {
 
 
     /** all global variables */
-    struct derivimplicit_scalar_Store {
+    struct finite_difference_Store {
+        double thread_data_in_use{0};
+        double thread_data[1] /* TODO init const-array */;
         double x0{0};
     };
-    static_assert(std::is_trivially_copy_constructible_v<derivimplicit_scalar_Store>);
-    static_assert(std::is_trivially_move_constructible_v<derivimplicit_scalar_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<derivimplicit_scalar_Store>);
-    static_assert(std::is_trivially_move_assignable_v<derivimplicit_scalar_Store>);
-    static_assert(std::is_trivially_destructible_v<derivimplicit_scalar_Store>);
-    derivimplicit_scalar_Store derivimplicit_scalar_global;
-    auto x0_derivimplicit_scalar() -> std::decay<decltype(derivimplicit_scalar_global.x0)>::type  {
-        return derivimplicit_scalar_global.x0;
+    static_assert(std::is_trivially_copy_constructible_v<finite_difference_Store>);
+    static_assert(std::is_trivially_move_constructible_v<finite_difference_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<finite_difference_Store>);
+    static_assert(std::is_trivially_move_assignable_v<finite_difference_Store>);
+    static_assert(std::is_trivially_destructible_v<finite_difference_Store>);
+    finite_difference_Store finite_difference_global;
+    auto thread_data_in_use_finite_difference() -> std::decay<decltype(finite_difference_global.thread_data_in_use)>::type  {
+        return finite_difference_global.thread_data_in_use;
+    }
+    auto thread_data_finite_difference() -> std::decay<decltype(finite_difference_global.thread_data)>::type  {
+        return finite_difference_global.thread_data;
+    }
+    auto x0_finite_difference() -> std::decay<decltype(finite_difference_global.x0)>::type  {
+        return finite_difference_global.x0;
     }
 
     static std::vector<double> _parameter_defaults = {
@@ -479,16 +488,16 @@ namespace neuron {
 
 
     /** all mechanism instance variables and global variables */
-    struct derivimplicit_scalar_Instance  {
+    struct finite_difference_Instance  {
         double* x{};
         double* Dx{};
         double* v_unused{};
         double* g_unused{};
-        derivimplicit_scalar_Store* global{&derivimplicit_scalar_global};
+        finite_difference_Store* global{&finite_difference_global};
     };
 
 
-    struct derivimplicit_scalar_NodeData  {
+    struct finite_difference_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -497,8 +506,24 @@ namespace neuron {
     };
 
 
-    static derivimplicit_scalar_Instance make_instance_derivimplicit_scalar(_nrn_mechanism_cache_range& _lmc) {
-        return derivimplicit_scalar_Instance {
+    struct finite_difference_ThreadVariables  {
+        double * thread_data;
+
+        double * a_ptr(size_t id) {
+            return thread_data + 0 + (id % 1);
+        }
+        double & a(size_t id) {
+            return thread_data[0 + (id % 1)];
+        }
+
+        finite_difference_ThreadVariables(double * const thread_data) {
+            this->thread_data = thread_data;
+        }
+    };
+
+
+    static finite_difference_Instance make_instance_finite_difference(_nrn_mechanism_cache_range& _lmc) {
+        return finite_difference_Instance {
             _lmc.template fpfield_ptr<0>(),
             _lmc.template fpfield_ptr<1>(),
             _lmc.template fpfield_ptr<2>(),
@@ -507,8 +532,8 @@ namespace neuron {
     }
 
 
-    static derivimplicit_scalar_NodeData make_node_data_derivimplicit_scalar(NrnThread& nt, Memb_list& _ml_arg) {
-        return derivimplicit_scalar_NodeData {
+    static finite_difference_NodeData make_node_data_finite_difference(NrnThread& nt, Memb_list& _ml_arg) {
+        return finite_difference_NodeData {
             _ml_arg.nodeindices,
             nt.node_voltage_storage(),
             nt.node_d_storage(),
@@ -516,10 +541,10 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
-    static derivimplicit_scalar_NodeData make_node_data_derivimplicit_scalar(Prop * _prop) {
+    static finite_difference_NodeData make_node_data_finite_difference(Prop * _prop) {
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
-        return derivimplicit_scalar_NodeData {
+        return finite_difference_NodeData {
             node_index.data(),
             &_nrn_mechanism_access_voltage(_node),
             &_nrn_mechanism_access_d(_node),
@@ -528,10 +553,10 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_derivimplicit_scalar(Prop* prop);
+    void nrn_destructor_finite_difference(Prop* prop);
 
 
-    static void nrn_alloc_derivimplicit_scalar(Prop* _prop) {
+    static void nrn_alloc_finite_difference(Prop* _prop) {
         Datum *_ppvar = nullptr;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const _iml = 0;
@@ -552,15 +577,17 @@ namespace neuron {
         hoc_retpushx(1.);
     }
     /* Mechanism procedures and functions */
+    inline double f_finite_difference(_nrn_mechanism_cache_range& _lmc, finite_difference_Instance& inst, finite_difference_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, finite_difference_ThreadVariables& _thread_vars, NrnThread* nt, double _lx);
 
 
-    struct functor_derivimplicit_scalar_0 {
+    struct functor_finite_difference_0 {
         _nrn_mechanism_cache_range& _lmc;
-        derivimplicit_scalar_Instance& inst;
-        derivimplicit_scalar_NodeData& node_data;
+        finite_difference_Instance& inst;
+        finite_difference_NodeData& node_data;
         size_t id;
         Datum* _ppvar;
         Datum* _thread;
+        finite_difference_ThreadVariables& _thread_vars;
         NrnThread* nt;
         double v;
         double old_x;
@@ -569,8 +596,8 @@ namespace neuron {
             old_x = inst.x[id];
         }
 
-        functor_derivimplicit_scalar_0(_nrn_mechanism_cache_range& _lmc, derivimplicit_scalar_Instance& inst, derivimplicit_scalar_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v)
-            : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt), v(v)
+        functor_finite_difference_0(_nrn_mechanism_cache_range& _lmc, finite_difference_Instance& inst, finite_difference_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, finite_difference_ThreadVariables& _thread_vars, NrnThread* nt, double v)
+            : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), _thread_vars(_thread_vars), nt(nt), v(v)
         {}
         void operator()(const Eigen::Matrix<double, 1, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_dxm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
@@ -578,8 +605,8 @@ namespace neuron {
             double* nmodl_eigen_j = nmodl_eigen_jm.data();
             double* nmodl_eigen_f = nmodl_eigen_fm.data();
             nmodl_eigen_dx[0] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[0]));
-            nmodl_eigen_f[static_cast<int>(0)] = ( -nmodl_eigen_x[static_cast<int>(0)] * nt->_dt - nmodl_eigen_x[static_cast<int>(0)] + old_x) / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(0)] = ( -nt->_dt - 1.0) / nt->_dt;
+            nmodl_eigen_f[static_cast<int>(0)] = ( -nmodl_eigen_x[static_cast<int>(0)] - nt->_dt * f_finite_difference(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, nmodl_eigen_x[static_cast<int>(0)]) + old_x) / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(0)] = ( -nmodl_eigen_dx[static_cast<int>(0)] + nt->_dt * (f_finite_difference(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, nmodl_eigen_x[static_cast<int>(0)] - 1.0 / 2.0 * nmodl_eigen_dx[static_cast<int>(0)]) - f_finite_difference(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, nmodl_eigen_x[static_cast<int>(0)] + (1.0 / 2.0) * nmodl_eigen_dx[static_cast<int>(0)]))) / (nmodl_eigen_dx[static_cast<int>(0)] * nt->_dt);
         }
 
         void finalize() {
@@ -589,6 +616,7 @@ namespace neuron {
 
     /** connect global (scalar) variables to hoc -- */
     static DoubScal hoc_scalar_double[] = {
+        {"a_finite_difference", &finite_difference_global.thread_data[0]},
         {nullptr, nullptr}
     };
 
@@ -600,40 +628,106 @@ namespace neuron {
 
 
     /* declaration of user functions */
+    static void _hoc_f(void);
+    static double _npy_f(Prop*);
 
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
-        {"setdata_derivimplicit_scalar", _hoc_setdata},
+        {"setdata_finite_difference", _hoc_setdata},
+        {"f_finite_difference", _hoc_f},
         {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
+        {"f", _npy_f},
         {nullptr, nullptr}
     };
+    static void thread_mem_init(Datum* _thread)  {
+        if(finite_difference_global.thread_data_in_use) {
+            _thread[0] = {neuron::container::do_not_search, new double[1]{}};
+        }
+        else {
+            _thread[0] = {neuron::container::do_not_search, finite_difference_global.thread_data};
+            finite_difference_global.thread_data_in_use = 1;
+        }
+    }
+    static void thread_mem_cleanup(Datum* _thread)  {
+        double * _thread_data_ptr = _thread[0].get<double*>();
+        if(_thread_data_ptr == finite_difference_global.thread_data) {
+            finite_difference_global.thread_data_in_use = 0;
+        }
+        else {
+            delete[] _thread_data_ptr;
+        }
+    }
+    static void _hoc_f(void) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
+        _nrn_mechanism_cache_instance _lmc{_local_prop};
+        size_t const id{};
+        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
+        _thread = _extcall_thread.data();
+        nt = nrn_threads;
+        auto inst = make_instance_finite_difference(_lmc);
+        auto node_data = make_node_data_finite_difference(_local_prop);
+        auto _thread_vars = finite_difference_ThreadVariables(_thread[0].get<double*>());
+        _r = f_finite_difference(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
+        hoc_retpushx(_r);
+    }
+    static double _npy_f(Prop* _prop) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        _nrn_mechanism_cache_instance _lmc{_prop};
+        size_t const id = 0;
+        _ppvar = _nrn_mechanism_access_dparam(_prop);
+        _thread = _extcall_thread.data();
+        nt = nrn_threads;
+        auto inst = make_instance_finite_difference(_lmc);
+        auto node_data = make_node_data_finite_difference(_prop);
+        auto _thread_vars = finite_difference_ThreadVariables(_thread[0].get<double*>());
+        _r = f_finite_difference(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
+        return(_r);
+    }
 
 
-    void nrn_init_derivimplicit_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    inline double f_finite_difference(_nrn_mechanism_cache_range& _lmc, finite_difference_Instance& inst, finite_difference_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, finite_difference_ThreadVariables& _thread_vars, NrnThread* nt, double _lx) {
+        double ret_f = 0.0;
+        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        ret_f = _thread_vars.a(id) * _lx;
+        return ret_f;
+    }
+
+
+    void nrn_init_finite_difference(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_derivimplicit_scalar(_lmc);
-        auto node_data = make_node_data_derivimplicit_scalar(*nt, *_ml_arg);
+        auto inst = make_instance_finite_difference(_lmc);
+        auto node_data = make_node_data_finite_difference(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
+        auto _thread_vars = finite_difference_ThreadVariables(_thread[0].get<double*>());
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
             inst.x[id] = inst.global->x0;
             inst.x[id] = 42.0;
+            _thread_vars.a(id) = 0.1;
         }
     }
 
 
-    void nrn_state_derivimplicit_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    void nrn_state_finite_difference(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_derivimplicit_scalar(_lmc);
-        auto node_data = make_node_data_derivimplicit_scalar(*nt, *_ml_arg);
+        auto inst = make_instance_finite_difference(_lmc);
+        auto node_data = make_node_data_finite_difference(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
+        auto _thread_vars = finite_difference_ThreadVariables(_thread[0].get<double*>());
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
@@ -643,7 +737,7 @@ namespace neuron {
             double* nmodl_eigen_x = nmodl_eigen_xm.data();
             nmodl_eigen_x[static_cast<int>(0)] = inst.x[id];
             // call newton solver
-            functor_derivimplicit_scalar_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, nt, v);
+            functor_finite_difference_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, v);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
@@ -655,22 +749,23 @@ namespace neuron {
     }
 
 
-    static void nrn_jacob_derivimplicit_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_finite_difference(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_derivimplicit_scalar(_lmc);
-        auto node_data = make_node_data_derivimplicit_scalar(*nt, *_ml_arg);
+        auto inst = make_instance_finite_difference(_lmc);
+        auto node_data = make_node_data_finite_difference(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
-    void nrn_destructor_derivimplicit_scalar(Prop* prop) {
+    void nrn_destructor_finite_difference(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_derivimplicit_scalar(_lmc);
-        auto node_data = make_node_data_derivimplicit_scalar(prop);
+        auto inst = make_instance_finite_difference(_lmc);
+        auto node_data = make_node_data_finite_difference(prop);
+        auto _thread_vars = finite_difference_ThreadVariables(finite_difference_global.thread_data);
 
     }
 
@@ -684,10 +779,13 @@ namespace neuron {
 
 
     /** register channel with the simulator */
-    extern "C" void _derivimplicit_scalar_reg() {
+    extern "C" void _finite_difference_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_derivimplicit_scalar, nullptr, nrn_jacob_derivimplicit_scalar, nrn_state_derivimplicit_scalar, nrn_init_derivimplicit_scalar, hoc_nrnpointerindex, 1);
+        register_mech(mechanism_info, nrn_alloc_finite_difference, nullptr, nrn_jacob_finite_difference, nrn_state_finite_difference, nrn_init_finite_difference, hoc_nrnpointerindex, 2);
+        _extcall_thread.resize(2);
+        thread_mem_init(_extcall_thread.data());
+        finite_difference_global.thread_data_in_use = 0;
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);
@@ -701,5 +799,7 @@ namespace neuron {
         hoc_register_prop_size(mech_type, 4, 0);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
+        _nrn_thread_reg(mech_type, 1, thread_mem_init);
+        _nrn_thread_reg(mech_type, 0, thread_mem_cleanup);
     }
 }
