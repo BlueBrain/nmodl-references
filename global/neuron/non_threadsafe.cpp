@@ -163,6 +163,10 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
+    inline double get_gbl_non_threadsafe(_nrn_mechanism_cache_range& _lmc, non_threadsafe_Instance& inst, non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline double get_top_local_non_threadsafe(_nrn_mechanism_cache_range& _lmc, non_threadsafe_Instance& inst, non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline double get_parameter_non_threadsafe(_nrn_mechanism_cache_range& _lmc, non_threadsafe_Instance& inst, non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {
@@ -174,10 +178,6 @@ namespace neuron {
         _setdata(_prop);
         hoc_retpushx(1.);
     }
-    /* Mechanism procedures and functions */
-    inline double get_gbl_non_threadsafe(_nrn_mechanism_cache_range& _lmc, non_threadsafe_Instance& inst, non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline double get_top_local_non_threadsafe(_nrn_mechanism_cache_range& _lmc, non_threadsafe_Instance& inst, non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline double get_parameter_non_threadsafe(_nrn_mechanism_cache_range& _lmc, non_threadsafe_Instance& inst, non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -196,10 +196,10 @@ namespace neuron {
 
     /* declaration of user functions */
     static void _hoc_get_gbl(void);
-    static void _hoc_get_top_local(void);
-    static void _hoc_get_parameter(void);
     static double _npy_get_gbl(Prop*);
+    static void _hoc_get_top_local(void);
     static double _npy_get_top_local(Prop*);
+    static void _hoc_get_parameter(void);
     static double _npy_get_parameter(Prop*);
 
 

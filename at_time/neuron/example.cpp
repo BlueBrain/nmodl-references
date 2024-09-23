@@ -143,6 +143,8 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
+    inline double f_example(_nrn_mechanism_cache_range& _lmc, example_Instance& inst, example_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {
@@ -154,8 +156,6 @@ namespace neuron {
         _setdata(_prop);
         hoc_retpushx(1.);
     }
-    /* Mechanism procedures and functions */
-    inline double f_example(_nrn_mechanism_cache_range& _lmc, example_Instance& inst, example_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
 
 
     /** connect global (scalar) variables to hoc -- */

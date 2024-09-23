@@ -221,6 +221,10 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
+    inline double quadratic_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, tbl_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
+    inline int sigmoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, tbl_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
+    inline int sinusoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, tbl_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {
@@ -232,10 +236,6 @@ namespace neuron {
         _setdata(_prop);
         hoc_retpushx(1.);
     }
-    /* Mechanism procedures and functions */
-    inline double quadratic_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, tbl_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
-    inline int sigmoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, tbl_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
-    inline int sinusoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, tbl_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
     void update_table_sigmoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, tbl_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     void update_table_quadratic_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, tbl_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     void update_table_sinusoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, tbl_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
@@ -268,12 +268,12 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_sigmoidal(void);
-    static void _hoc_sinusoidal(void);
     static void _hoc_quadratic(void);
-    static double _npy_sigmoidal(Prop*);
-    static double _npy_sinusoidal(Prop*);
     static double _npy_quadratic(Prop*);
+    static void _hoc_sigmoidal(void);
+    static double _npy_sigmoidal(Prop*);
+    static void _hoc_sinusoidal(void);
+    static double _npy_sinusoidal(Prop*);
 
 
     /* connect user functions to hoc names */
@@ -331,7 +331,7 @@ namespace neuron {
         Datum* _thread;
         NrnThread* nt;
         if (!_prop_id) {
-            hoc_execerror("No data for sinusoidal_tbl. Requires prior call to setdata_tbl and that the specified mechanism instance still be in existence.", NULL);
+            hoc_execerror("No data for sinusoidal_tbl. Requires prior call to setdata_tbl and that the specified mechanism instance still be in existence.", nullptr);
         }
         Prop* _local_prop = _extcall_prop;
         _nrn_mechanism_cache_instance _lmc{_local_prop};
