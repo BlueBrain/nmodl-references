@@ -295,6 +295,8 @@ EIGEN_DEVICE_FUNC int newton_solver(Eigen::Matrix<double, N, 1>& X,
                                     FUNC functor,
                                     double eps = EPS,
                                     int max_iter = MAX_ITER) {
+    // If finite differences are needed, this is stores the stepwidth.
+    Eigen::Matrix<double, N, 1> dX;
     // Vector to store result of function F(X):
     Eigen::Matrix<double, N, 1> F;
     // Matrix to store Jacobian of F(X):
@@ -303,7 +305,7 @@ EIGEN_DEVICE_FUNC int newton_solver(Eigen::Matrix<double, N, 1>& X,
     int iter = -1;
     while (++iter < max_iter) {
         // calculate F, J from X using user-supplied functor
-        functor(X, F, J);
+        functor(X, dX, F, J);
         if (is_converged(X, J, F, eps)) {
             return iter;
         }
@@ -341,10 +343,11 @@ EIGEN_DEVICE_FUNC int newton_solver_small_N(Eigen::Matrix<double, N, 1>& X,
                                             int max_iter) {
     bool invertible;
     Eigen::Matrix<double, N, 1> F;
+    Eigen::Matrix<double, N, 1> dX;
     Eigen::Matrix<double, N, N> J, J_inv;
     int iter = -1;
     while (++iter < max_iter) {
-        functor(X, F, J);
+        functor(X, dX, F, J);
         if (is_converged(X, J, F, eps)) {
             return iter;
         }
@@ -595,10 +598,13 @@ namespace neuron {
         functor_X2Y_0(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, X2Y_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v)
             : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt), v(v)
         {}
-        void operator()(const Eigen::Matrix<double, 2, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 2, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 2, 2>& nmodl_eigen_jm) const {
+        void operator()(const Eigen::Matrix<double, 2, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 2, 1>& nmodl_eigen_dxm, Eigen::Matrix<double, 2, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 2, 2>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
+            double* nmodl_eigen_dx = nmodl_eigen_dxm.data();
             double* nmodl_eigen_j = nmodl_eigen_jm.data();
             double* nmodl_eigen_f = nmodl_eigen_fm.data();
+            nmodl_eigen_dx[0] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[0]));
+            nmodl_eigen_dx[1] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[1]));
             nmodl_eigen_f[static_cast<int>(0)] = ( -nmodl_eigen_x[static_cast<int>(0)] + nt->_dt * ( -nmodl_eigen_x[static_cast<int>(0)] * kf0_ + nmodl_eigen_x[static_cast<int>(1)] * kb0_) + old_X) / nt->_dt;
             nmodl_eigen_j[static_cast<int>(0)] =  -kf0_ - 1.0 / nt->_dt;
             nmodl_eigen_j[static_cast<int>(2)] = kb0_;
