@@ -146,6 +146,9 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
+    inline double get_gbl_dst(_nrn_mechanism_cache_range& _lmc, dst_Instance& inst, dst_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline double get_param_dst(_nrn_mechanism_cache_range& _lmc, dst_Instance& inst, dst_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {
@@ -157,9 +160,6 @@ namespace neuron {
         _setdata(_prop);
         hoc_retpushx(1.);
     }
-    /* Mechanism procedures and functions */
-    inline double get_gbl_dst(_nrn_mechanism_cache_range& _lmc, dst_Instance& inst, dst_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline double get_param_dst(_nrn_mechanism_cache_range& _lmc, dst_Instance& inst, dst_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
 
 
     /** connect global (scalar) variables to hoc -- */

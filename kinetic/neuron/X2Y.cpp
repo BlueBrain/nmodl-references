@@ -557,6 +557,8 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
+    inline int rates_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, X2Y_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {
@@ -568,8 +570,6 @@ namespace neuron {
         _setdata(_prop);
         hoc_retpushx(1.);
     }
-    /* Mechanism procedures and functions */
-    inline int rates_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, X2Y_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
 
 
     struct functor_X2Y_0 {
@@ -645,7 +645,7 @@ namespace neuron {
         Datum* _thread;
         NrnThread* nt;
         if (!_prop_id) {
-            hoc_execerror("No data for rates_X2Y. Requires prior call to setdata_X2Y and that the specified mechanism instance still be in existence.", NULL);
+            hoc_execerror("No data for rates_X2Y. Requires prior call to setdata_X2Y and that the specified mechanism instance still be in existence.", nullptr);
         }
         Prop* _local_prop = _extcall_prop;
         _nrn_mechanism_cache_instance _lmc{_local_prop};

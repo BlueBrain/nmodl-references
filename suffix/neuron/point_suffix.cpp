@@ -156,6 +156,7 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
     /* Point Process specific functions */
     static void* _hoc_create_pnt(Object* _ho) {
         return create_point_process(_pointtype, _ho);
@@ -181,7 +182,6 @@ namespace neuron {
         _prop = ((Point_process*)_vptr)->prop;
         _setdata(_prop);
     }
-    /* Mechanism procedures and functions */
 
 
     /** connect global (scalar) variables to hoc -- */
