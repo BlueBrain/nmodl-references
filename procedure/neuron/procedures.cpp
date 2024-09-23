@@ -224,7 +224,7 @@ namespace neuron {
         Datum* _thread;
         NrnThread* nt;
         if (!_prop_id) {
-            hoc_execerror("No data for set_x_42_procedures. Requires prior call to setdata_procedures and that the specified mechanism instance still be in existence.", NULL);
+            hoc_execerror("No data for set_x_42_procedures. Requires prior call to setdata_procedures and that the specified mechanism instance still be in existence.", nullptr);
         }
         Prop* _local_prop = _extcall_prop;
         _nrn_mechanism_cache_instance _lmc{_local_prop};
@@ -260,7 +260,7 @@ namespace neuron {
         Datum* _thread;
         NrnThread* nt;
         if (!_prop_id) {
-            hoc_execerror("No data for set_x_a_procedures. Requires prior call to setdata_procedures and that the specified mechanism instance still be in existence.", NULL);
+            hoc_execerror("No data for set_x_a_procedures. Requires prior call to setdata_procedures and that the specified mechanism instance still be in existence.", nullptr);
         }
         Prop* _local_prop = _extcall_prop;
         _nrn_mechanism_cache_instance _lmc{_local_prop};
@@ -296,7 +296,7 @@ namespace neuron {
         Datum* _thread;
         NrnThread* nt;
         if (!_prop_id) {
-            hoc_execerror("No data for set_a_x_procedures. Requires prior call to setdata_procedures and that the specified mechanism instance still be in existence.", NULL);
+            hoc_execerror("No data for set_a_x_procedures. Requires prior call to setdata_procedures and that the specified mechanism instance still be in existence.", nullptr);
         }
         Prop* _local_prop = _extcall_prop;
         _nrn_mechanism_cache_instance _lmc{_local_prop};
@@ -332,7 +332,7 @@ namespace neuron {
         Datum* _thread;
         NrnThread* nt;
         if (!_prop_id) {
-            hoc_execerror("No data for set_x_v_procedures. Requires prior call to setdata_procedures and that the specified mechanism instance still be in existence.", NULL);
+            hoc_execerror("No data for set_x_v_procedures. Requires prior call to setdata_procedures and that the specified mechanism instance still be in existence.", nullptr);
         }
         Prop* _local_prop = _extcall_prop;
         _nrn_mechanism_cache_instance _lmc{_local_prop};
@@ -368,7 +368,7 @@ namespace neuron {
         Datum* _thread;
         NrnThread* nt;
         if (!_prop_id) {
-            hoc_execerror("No data for set_x_just_v_procedures. Requires prior call to setdata_procedures and that the specified mechanism instance still be in existence.", NULL);
+            hoc_execerror("No data for set_x_just_v_procedures. Requires prior call to setdata_procedures and that the specified mechanism instance still be in existence.", nullptr);
         }
         Prop* _local_prop = _extcall_prop;
         _nrn_mechanism_cache_instance _lmc{_local_prop};
@@ -404,7 +404,7 @@ namespace neuron {
         Datum* _thread;
         NrnThread* nt;
         if (!_prop_id) {
-            hoc_execerror("No data for set_x_just_vv_procedures. Requires prior call to setdata_procedures and that the specified mechanism instance still be in existence.", NULL);
+            hoc_execerror("No data for set_x_just_vv_procedures. Requires prior call to setdata_procedures and that the specified mechanism instance still be in existence.", nullptr);
         }
         Prop* _local_prop = _extcall_prop;
         _nrn_mechanism_cache_instance _lmc{_local_prop};

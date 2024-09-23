@@ -645,7 +645,7 @@ namespace neuron {
         Datum* _thread;
         NrnThread* nt;
         if (!_prop_id) {
-            hoc_execerror("No data for rates_X2Y. Requires prior call to setdata_X2Y and that the specified mechanism instance still be in existence.", NULL);
+            hoc_execerror("No data for rates_X2Y. Requires prior call to setdata_X2Y and that the specified mechanism instance still be in existence.", nullptr);
         }
         Prop* _local_prop = _extcall_prop;
         _nrn_mechanism_cache_instance _lmc{_local_prop};

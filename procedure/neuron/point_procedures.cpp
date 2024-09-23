@@ -238,7 +238,7 @@ namespace neuron {
         auto* const _pnt = static_cast<Point_process*>(_vptr);
         auto* const _p = _pnt->prop;
         if (!_p) {
-            hoc_execerror("POINT_PROCESS data instance not valid", NULL);
+            hoc_execerror("POINT_PROCESS data instance not valid", nullptr);
         }
         _nrn_mechanism_cache_instance _lmc{_p};
         size_t const id{};
@@ -259,7 +259,7 @@ namespace neuron {
         auto* const _pnt = static_cast<Point_process*>(_vptr);
         auto* const _p = _pnt->prop;
         if (!_p) {
-            hoc_execerror("POINT_PROCESS data instance not valid", NULL);
+            hoc_execerror("POINT_PROCESS data instance not valid", nullptr);
         }
         _nrn_mechanism_cache_instance _lmc{_p};
         size_t const id{};
@@ -280,7 +280,7 @@ namespace neuron {
         auto* const _pnt = static_cast<Point_process*>(_vptr);
         auto* const _p = _pnt->prop;
         if (!_p) {
-            hoc_execerror("POINT_PROCESS data instance not valid", NULL);
+            hoc_execerror("POINT_PROCESS data instance not valid", nullptr);
         }
         _nrn_mechanism_cache_instance _lmc{_p};
         size_t const id{};
@@ -301,7 +301,7 @@ namespace neuron {
         auto* const _pnt = static_cast<Point_process*>(_vptr);
         auto* const _p = _pnt->prop;
         if (!_p) {
-            hoc_execerror("POINT_PROCESS data instance not valid", NULL);
+            hoc_execerror("POINT_PROCESS data instance not valid", nullptr);
         }
         _nrn_mechanism_cache_instance _lmc{_p};
         size_t const id{};
@@ -322,7 +322,7 @@ namespace neuron {
         auto* const _pnt = static_cast<Point_process*>(_vptr);
         auto* const _p = _pnt->prop;
         if (!_p) {
-            hoc_execerror("POINT_PROCESS data instance not valid", NULL);
+            hoc_execerror("POINT_PROCESS data instance not valid", nullptr);
         }
         _nrn_mechanism_cache_instance _lmc{_p};
         size_t const id{};
@@ -343,7 +343,7 @@ namespace neuron {
         auto* const _pnt = static_cast<Point_process*>(_vptr);
         auto* const _p = _pnt->prop;
         if (!_p) {
-            hoc_execerror("POINT_PROCESS data instance not valid", NULL);
+            hoc_execerror("POINT_PROCESS data instance not valid", nullptr);
         }
         _nrn_mechanism_cache_instance _lmc{_p};
         size_t const id{};
@@ -364,7 +364,7 @@ namespace neuron {
         auto* const _pnt = static_cast<Point_process*>(_vptr);
         auto* const _p = _pnt->prop;
         if (!_p) {
-            hoc_execerror("POINT_PROCESS data instance not valid", NULL);
+            hoc_execerror("POINT_PROCESS data instance not valid", nullptr);
         }
         _nrn_mechanism_cache_instance _lmc{_p};
         size_t const id{};
