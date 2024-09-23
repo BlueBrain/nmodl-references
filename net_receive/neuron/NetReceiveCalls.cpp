@@ -161,6 +161,9 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
+    inline double one_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, NetReceiveCalls_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline int increment_c2_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, NetReceiveCalls_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     /* Point Process specific functions */
     static void* _hoc_create_pnt(Object* _ho) {
         return create_point_process(_pointtype, _ho);
@@ -186,9 +189,6 @@ namespace neuron {
         _prop = ((Point_process*)_vptr)->prop;
         _setdata(_prop);
     }
-    /* Mechanism procedures and functions */
-    inline double one_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, NetReceiveCalls_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline int increment_c2_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, NetReceiveCalls_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
 
 
     /** connect global (scalar) variables to hoc -- */

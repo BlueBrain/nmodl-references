@@ -221,6 +221,10 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
+    inline double quadratic_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, tbl_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
+    inline int sigmoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, tbl_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
+    inline int sinusoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, tbl_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {
@@ -232,10 +236,6 @@ namespace neuron {
         _setdata(_prop);
         hoc_retpushx(1.);
     }
-    /* Mechanism procedures and functions */
-    inline double quadratic_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, tbl_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
-    inline int sigmoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, tbl_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
-    inline int sinusoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, tbl_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
     void update_table_sigmoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, tbl_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     void update_table_quadratic_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, tbl_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     void update_table_sinusoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, tbl_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);

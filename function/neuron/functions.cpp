@@ -146,6 +146,10 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
+    inline double x_plus_a_functions(_nrn_mechanism_cache_range& _lmc, functions_Instance& inst, functions_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
+    inline double v_plus_a_functions(_nrn_mechanism_cache_range& _lmc, functions_Instance& inst, functions_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
+    inline double identity_functions(_nrn_mechanism_cache_range& _lmc, functions_Instance& inst, functions_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {
@@ -157,10 +161,6 @@ namespace neuron {
         _setdata(_prop);
         hoc_retpushx(1.);
     }
-    /* Mechanism procedures and functions */
-    inline double x_plus_a_functions(_nrn_mechanism_cache_range& _lmc, functions_Instance& inst, functions_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
-    inline double v_plus_a_functions(_nrn_mechanism_cache_range& _lmc, functions_Instance& inst, functions_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
-    inline double identity_functions(_nrn_mechanism_cache_range& _lmc, functions_Instance& inst, functions_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
 
 
     /** connect global (scalar) variables to hoc -- */

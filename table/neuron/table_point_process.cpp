@@ -231,6 +231,10 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
+    inline double quadratic_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
+    inline int sigmoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
+    inline int sinusoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
     /* Point Process specific functions */
     static void* _hoc_create_pnt(Object* _ho) {
         return create_point_process(_pointtype, _ho);
@@ -256,10 +260,6 @@ namespace neuron {
         _prop = ((Point_process*)_vptr)->prop;
         _setdata(_prop);
     }
-    /* Mechanism procedures and functions */
-    inline double quadratic_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
-    inline int sigmoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
-    inline int sinusoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
     void update_table_sigmoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     void update_table_quadratic_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     void update_table_sinusoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);

@@ -156,6 +156,14 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
+    inline double identity_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
+    inline int set_x_42_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline int set_x_a_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
+    inline int set_a_x_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline int set_x_v_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline int set_x_just_v_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline int set_x_just_vv_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
     /* Point Process specific functions */
     static void* _hoc_create_pnt(Object* _ho) {
         return create_point_process(_pointtype, _ho);
@@ -181,14 +189,6 @@ namespace neuron {
         _prop = ((Point_process*)_vptr)->prop;
         _setdata(_prop);
     }
-    /* Mechanism procedures and functions */
-    inline double identity_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
-    inline int set_x_42_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline int set_x_a_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
-    inline int set_a_x_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline int set_x_v_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline int set_x_just_v_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline int set_x_just_vv_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
 
 
     /** connect global (scalar) variables to hoc -- */

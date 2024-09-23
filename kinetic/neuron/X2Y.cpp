@@ -557,6 +557,8 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
+    inline int rates_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, X2Y_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {
@@ -568,8 +570,6 @@ namespace neuron {
         _setdata(_prop);
         hoc_retpushx(1.);
     }
-    /* Mechanism procedures and functions */
-    inline int rates_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, X2Y_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
 
 
     struct functor_X2Y_0 {
