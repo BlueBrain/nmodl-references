@@ -268,12 +268,12 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_sigmoidal(void);
-    static void _hoc_sinusoidal(void);
     static void _hoc_quadratic(void);
-    static double _npy_sigmoidal(Prop*);
-    static double _npy_sinusoidal(Prop*);
     static double _npy_quadratic(Prop*);
+    static void _hoc_sigmoidal(void);
+    static double _npy_sigmoidal(Prop*);
+    static void _hoc_sinusoidal(void);
+    static double _npy_sinusoidal(Prop*);
 
 
     /* connect user functions to hoc names */

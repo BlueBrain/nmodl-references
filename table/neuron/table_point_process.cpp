@@ -292,9 +292,9 @@ namespace neuron {
 
 
     /* declaration of user functions */
+    static double _hoc_quadratic(void*);
     static double _hoc_sigmoidal(void*);
     static double _hoc_sinusoidal(void*);
-    static double _hoc_quadratic(void*);
 
 
     /* connect user functions to hoc names */

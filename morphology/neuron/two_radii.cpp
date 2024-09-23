@@ -192,8 +192,8 @@ namespace neuron {
 
     /* declaration of user functions */
     static void _hoc_square_diam(void);
-    static void _hoc_square_area(void);
     static double _npy_square_diam(Prop*);
+    static void _hoc_square_area(void);
     static double _npy_square_area(Prop*);
 
 

@@ -180,20 +180,20 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_set_x_42(void);
-    static void _hoc_set_x_a(void);
-    static void _hoc_set_a_x(void);
-    static void _hoc_set_x_v(void);
-    static void _hoc_set_x_just_v(void);
-    static void _hoc_set_x_just_vv(void);
     static void _hoc_identity(void);
-    static double _npy_set_x_42(Prop*);
-    static double _npy_set_x_a(Prop*);
-    static double _npy_set_a_x(Prop*);
-    static double _npy_set_x_v(Prop*);
-    static double _npy_set_x_just_v(Prop*);
-    static double _npy_set_x_just_vv(Prop*);
     static double _npy_identity(Prop*);
+    static void _hoc_set_x_42(void);
+    static double _npy_set_x_42(Prop*);
+    static void _hoc_set_x_a(void);
+    static double _npy_set_x_a(Prop*);
+    static void _hoc_set_a_x(void);
+    static double _npy_set_a_x(Prop*);
+    static void _hoc_set_x_v(void);
+    static double _npy_set_x_v(Prop*);
+    static void _hoc_set_x_just_v(void);
+    static double _npy_set_x_just_v(Prop*);
+    static void _hoc_set_x_just_vv(void);
+    static double _npy_set_x_just_vv(Prop*);
 
 
     /* connect user functions to hoc names */

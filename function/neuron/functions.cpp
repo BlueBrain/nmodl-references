@@ -177,10 +177,10 @@ namespace neuron {
 
     /* declaration of user functions */
     static void _hoc_x_plus_a(void);
-    static void _hoc_v_plus_a(void);
-    static void _hoc_identity(void);
     static double _npy_x_plus_a(Prop*);
+    static void _hoc_v_plus_a(void);
     static double _npy_v_plus_a(Prop*);
+    static void _hoc_identity(void);
     static double _npy_identity(Prop*);
 
 

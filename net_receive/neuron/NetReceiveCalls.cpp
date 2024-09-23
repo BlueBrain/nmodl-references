@@ -204,8 +204,8 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static double _hoc_increment_c2(void*);
     static double _hoc_one(void*);
+    static double _hoc_increment_c2(void*);
 
 
     /* connect user functions to hoc names */

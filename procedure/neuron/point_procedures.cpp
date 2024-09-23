@@ -204,13 +204,13 @@ namespace neuron {
 
 
     /* declaration of user functions */
+    static double _hoc_identity(void*);
     static double _hoc_set_x_42(void*);
     static double _hoc_set_x_a(void*);
     static double _hoc_set_a_x(void*);
     static double _hoc_set_x_v(void*);
     static double _hoc_set_x_just_v(void*);
     static double _hoc_set_x_just_vv(void*);
-    static double _hoc_identity(void*);
 
 
     /* connect user functions to hoc names */

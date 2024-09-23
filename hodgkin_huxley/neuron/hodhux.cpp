@@ -284,12 +284,12 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_states(void);
-    static void _hoc_rates(void);
     static void _hoc_vtrap(void);
-    static double _npy_states(Prop*);
-    static double _npy_rates(Prop*);
     static double _npy_vtrap(Prop*);
+    static void _hoc_states(void);
+    static double _npy_states(Prop*);
+    static void _hoc_rates(void);
+    static double _npy_rates(Prop*);
 
 
     /* connect user functions to hoc names */

@@ -221,18 +221,18 @@ namespace neuron {
 
     /* declaration of user functions */
     static void _hoc_id_v(void);
-    static void _hoc_id_nai(void);
-    static void _hoc_id_ina(void);
-    static void _hoc_id_x(void);
-    static void _hoc_id_g(void);
-    static void _hoc_id_s(void);
-    static void _hoc_id_p(void);
     static double _npy_id_v(Prop*);
+    static void _hoc_id_nai(void);
     static double _npy_id_nai(Prop*);
+    static void _hoc_id_ina(void);
     static double _npy_id_ina(Prop*);
+    static void _hoc_id_x(void);
     static double _npy_id_x(Prop*);
+    static void _hoc_id_g(void);
     static double _npy_id_g(Prop*);
+    static void _hoc_id_s(void);
     static double _npy_id_s(Prop*);
+    static void _hoc_id_p(void);
     static double _npy_id_p(Prop*);
 
 

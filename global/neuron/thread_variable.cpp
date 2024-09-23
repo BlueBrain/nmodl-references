@@ -252,12 +252,12 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_set_g_w(void);
-    static void _hoc_compute_g_v1(void);
     static void _hoc_sum_arr(void);
-    static double _npy_set_g_w(Prop*);
-    static double _npy_compute_g_v1(Prop*);
     static double _npy_sum_arr(Prop*);
+    static void _hoc_set_g_w(void);
+    static double _npy_set_g_w(Prop*);
+    static void _hoc_compute_g_v1(void);
+    static double _npy_compute_g_v1(Prop*);
 
 
     /* connect user functions to hoc names */

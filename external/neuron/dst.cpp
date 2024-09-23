@@ -176,8 +176,8 @@ namespace neuron {
 
     /* declaration of user functions */
     static void _hoc_get_gbl(void);
-    static void _hoc_get_param(void);
     static double _npy_get_gbl(Prop*);
+    static void _hoc_get_param(void);
     static double _npy_get_param(Prop*);
 
 
