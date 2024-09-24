@@ -782,7 +782,7 @@ namespace neuron {
     extern "C" void _finite_difference_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_finite_difference, nullptr, nrn_jacob_finite_difference, nrn_state_finite_difference, nrn_init_finite_difference, hoc_nrnpointerindex, 2);
+        register_mech(mechanism_info, nrn_alloc_finite_difference, nullptr, nrn_jacob_finite_difference, nrn_state_finite_difference, nrn_init_finite_difference, -1, 2);
         _extcall_thread.resize(2);
         thread_mem_init(_extcall_thread.data());
         finite_difference_global.thread_data_in_use = 0;

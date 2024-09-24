@@ -271,7 +271,7 @@ namespace neuron {
     extern "C" void _constant_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_constant_mod, nullptr, nullptr, nullptr, nrn_init_constant_mod, hoc_nrnpointerindex, 1);
+        register_mech(mechanism_info, nrn_alloc_constant_mod, nullptr, nullptr, nullptr, nrn_init_constant_mod, -1, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);

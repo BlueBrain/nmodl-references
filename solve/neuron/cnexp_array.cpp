@@ -277,7 +277,7 @@ namespace neuron {
     extern "C" void _cnexp_array_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_cnexp_array, nullptr, nrn_jacob_cnexp_array, nrn_state_cnexp_array, nrn_init_cnexp_array, hoc_nrnpointerindex, 1);
+        register_mech(mechanism_info, nrn_alloc_cnexp_array, nullptr, nrn_jacob_cnexp_array, nrn_state_cnexp_array, nrn_init_cnexp_array, -1, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);

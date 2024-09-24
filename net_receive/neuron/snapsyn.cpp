@@ -326,7 +326,7 @@ namespace neuron {
     extern "C" void _snapsyn_reg() {
         _initlists();
 
-        _pointtype = point_register_mech(mechanism_info, nrn_alloc_SnapSyn, nrn_cur_SnapSyn, nrn_jacob_SnapSyn, nrn_state_SnapSyn, nrn_init_SnapSyn, hoc_nrnpointerindex, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
+        _pointtype = point_register_mech(mechanism_info, nrn_alloc_SnapSyn, nrn_cur_SnapSyn, nrn_jacob_SnapSyn, nrn_state_SnapSyn, nrn_init_SnapSyn, -1, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);

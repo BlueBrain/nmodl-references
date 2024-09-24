@@ -251,7 +251,7 @@ namespace neuron {
 
         _ca_sym = hoc_lookup("ca_ion");
 
-        register_mech(mechanism_info, nrn_alloc_write_cao, nullptr, nullptr, nullptr, nrn_init_write_cao, hoc_nrnpointerindex, 1);
+        register_mech(mechanism_info, nrn_alloc_write_cao, nullptr, nullptr, nullptr, nrn_init_write_cao, -1, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);
