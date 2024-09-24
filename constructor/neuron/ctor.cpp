@@ -69,7 +69,6 @@ namespace neuron {
     /* NEURON global variables */
     static int mech_type;
     static int _pointtype;
-    static int hoc_nrnpointerindex = -1;
     static _nrn_mechanism_std_vector<Datum> _extcall_thread;
 
 
@@ -315,7 +314,7 @@ namespace neuron {
     extern "C" void _ctor_reg() {
         _initlists();
 
-        _pointtype = point_register_mech(mechanism_info, nrn_alloc_ctor, nullptr, nullptr, nullptr, nrn_init_ctor, hoc_nrnpointerindex, 2, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
+        _pointtype = point_register_mech(mechanism_info, nrn_alloc_ctor, nullptr, nullptr, nullptr, nrn_init_ctor, -1, 2, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
         register_destructor(nrn_destructor_ctor);
         _extcall_thread.resize(2);
         thread_mem_init(_extcall_thread.data());
