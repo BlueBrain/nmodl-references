@@ -415,7 +415,7 @@ namespace neuron {
     extern "C" void _compile_only_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_func_in_breakpoint, nrn_cur_func_in_breakpoint, nrn_jacob_func_in_breakpoint, nrn_state_func_in_breakpoint, nrn_init_func_in_breakpoint, hoc_nrnpointerindex, 1);
+        register_mech(mechanism_info, nrn_alloc_func_in_breakpoint, nrn_cur_func_in_breakpoint, nrn_jacob_func_in_breakpoint, nrn_state_func_in_breakpoint, nrn_init_func_in_breakpoint, -1, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);

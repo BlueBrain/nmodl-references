@@ -282,7 +282,7 @@ namespace neuron {
     extern "C" void _default_values_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_default_values, nullptr, nullptr, nullptr, nrn_init_default_values, hoc_nrnpointerindex, 1);
+        register_mech(mechanism_info, nrn_alloc_default_values, nullptr, nullptr, nullptr, nrn_init_default_values, -1, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);

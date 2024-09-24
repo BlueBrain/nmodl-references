@@ -266,7 +266,7 @@ namespace neuron {
     extern "C" void _example_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_example, nullptr, nullptr, nullptr, nrn_init_example, hoc_nrnpointerindex, 1);
+        register_mech(mechanism_info, nrn_alloc_example, nullptr, nullptr, nullptr, nrn_init_example, -1, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);
