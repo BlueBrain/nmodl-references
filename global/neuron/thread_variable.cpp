@@ -94,6 +94,25 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<shared_global_Store>);
     static_assert(std::is_trivially_destructible_v<shared_global_Store>);
     shared_global_Store shared_global_global;
+    auto thread_data_in_use_shared_global() -> std::decay<decltype(shared_global_global.thread_data_in_use)>::type  {
+        return shared_global_global.thread_data_in_use;
+    }
+    auto thread_data_shared_global() -> std::decay<decltype(shared_global_global.thread_data)>::type  {
+        return shared_global_global.thread_data;
+    }
+    auto usetable_shared_global() -> std::decay<decltype(shared_global_global.usetable)>::type  {
+        return shared_global_global.usetable;
+    }
+    auto tmin_compute_g_v1_shared_global() -> std::decay<decltype(shared_global_global.tmin_compute_g_v1)>::type  {
+        return shared_global_global.tmin_compute_g_v1;
+    }
+    auto mfac_compute_g_v1_shared_global() -> std::decay<decltype(shared_global_global.mfac_compute_g_v1)>::type  {
+        return shared_global_global.mfac_compute_g_v1;
+    }
+    auto t_g_v1_shared_global() -> std::decay<decltype(shared_global_global.t_g_v1)>::type  {
+        return shared_global_global.t_g_v1;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -190,6 +209,10 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
+    inline double sum_arr_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, shared_global_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* nt);
+    inline int set_g_w_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, shared_global_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* nt, double _lzz);
+    inline int compute_g_v1_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, shared_global_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* nt, double _lzz);
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {
@@ -201,10 +224,6 @@ namespace neuron {
         _setdata(_prop);
         hoc_retpushx(1.);
     }
-    /* Mechanism procedures and functions */
-    inline double sum_arr_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, shared_global_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* nt);
-    inline int set_g_w_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, shared_global_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* nt, double _lzz);
-    inline int compute_g_v1_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, shared_global_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* nt, double _lzz);
     void update_table_compute_g_v1_shared_global(_nrn_mechanism_cache_range& _lmc, shared_global_Instance& inst, shared_global_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, shared_global_ThreadVariables& _thread_vars, NrnThread* nt);
     static void _check_table_thread(Memb_list* _ml, size_t id, Datum* _ppvar, Datum* _thread, double* _globals, NrnThread* nt, int _type, const _nrn_model_sorted_token& _sorted_token)
 {
@@ -233,12 +252,12 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_set_g_w(void);
-    static void _hoc_compute_g_v1(void);
     static void _hoc_sum_arr(void);
-    static double _npy_set_g_w(Prop*);
-    static double _npy_compute_g_v1(Prop*);
     static double _npy_sum_arr(Prop*);
+    static void _hoc_set_g_w(void);
+    static double _npy_set_g_w(Prop*);
+    static void _hoc_compute_g_v1(void);
+    static double _npy_compute_g_v1(Prop*);
 
 
     /* connect user functions to hoc names */

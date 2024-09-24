@@ -89,6 +89,25 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<limits_mod_Store>);
     static_assert(std::is_trivially_destructible_v<limits_mod_Store>);
     limits_mod_Store limits_mod_global;
+    auto a_limits_mod() -> std::decay<decltype(limits_mod_global.a)>::type  {
+        return limits_mod_global.a;
+    }
+    auto b_limits_mod() -> std::decay<decltype(limits_mod_global.b)>::type  {
+        return limits_mod_global.b;
+    }
+    auto c_limits_mod() -> std::decay<decltype(limits_mod_global.c)>::type  {
+        return limits_mod_global.c;
+    }
+    auto x_limits_mod() -> std::decay<decltype(limits_mod_global.x)>::type  {
+        return limits_mod_global.x;
+    }
+    auto y_limits_mod() -> std::decay<decltype(limits_mod_global.y)>::type  {
+        return limits_mod_global.y;
+    }
+    auto z_limits_mod() -> std::decay<decltype(limits_mod_global.z)>::type  {
+        return limits_mod_global.z;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -149,6 +168,7 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {
@@ -160,7 +180,6 @@ namespace neuron {
         _setdata(_prop);
         hoc_retpushx(1.);
     }
-    /* Mechanism procedures and functions */
 
 
     /** connect global (scalar) variables to hoc -- */

@@ -161,6 +161,9 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
+    inline double one_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, NetReceiveCalls_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline int increment_c2_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, NetReceiveCalls_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     /* Point Process specific functions */
     static void* _hoc_create_pnt(Object* _ho) {
         return create_point_process(_pointtype, _ho);
@@ -186,9 +189,6 @@ namespace neuron {
         _prop = ((Point_process*)_vptr)->prop;
         _setdata(_prop);
     }
-    /* Mechanism procedures and functions */
-    inline double one_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, NetReceiveCalls_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline int increment_c2_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, NetReceiveCalls_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -204,8 +204,8 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static double _hoc_increment_c2(void*);
     static double _hoc_one(void*);
+    static double _hoc_increment_c2(void*);
 
 
     /* connect user functions to hoc names */
@@ -228,7 +228,7 @@ namespace neuron {
         auto* const _pnt = static_cast<Point_process*>(_vptr);
         auto* const _p = _pnt->prop;
         if (!_p) {
-            hoc_execerror("POINT_PROCESS data instance not valid", NULL);
+            hoc_execerror("POINT_PROCESS data instance not valid", nullptr);
         }
         _nrn_mechanism_cache_instance _lmc{_p};
         size_t const id{};
@@ -249,7 +249,7 @@ namespace neuron {
         auto* const _pnt = static_cast<Point_process*>(_vptr);
         auto* const _p = _pnt->prop;
         if (!_p) {
-            hoc_execerror("POINT_PROCESS data instance not valid", NULL);
+            hoc_execerror("POINT_PROCESS data instance not valid", nullptr);
         }
         _nrn_mechanism_cache_instance _lmc{_p};
         size_t const id{};

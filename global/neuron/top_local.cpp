@@ -88,6 +88,13 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<top_local_Store>);
     static_assert(std::is_trivially_destructible_v<top_local_Store>);
     top_local_Store top_local_global;
+    auto thread_data_in_use_top_local() -> std::decay<decltype(top_local_global.thread_data_in_use)>::type  {
+        return top_local_global.thread_data_in_use;
+    }
+    auto thread_data_top_local() -> std::decay<decltype(top_local_global.thread_data)>::type  {
+        return top_local_global.thread_data;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -170,6 +177,7 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {
@@ -181,7 +189,6 @@ namespace neuron {
         _setdata(_prop);
         hoc_retpushx(1.);
     }
-    /* Mechanism procedures and functions */
 
 
     /** connect global (scalar) variables to hoc -- */

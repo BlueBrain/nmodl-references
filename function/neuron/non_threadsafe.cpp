@@ -87,6 +87,13 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<non_threadsafe_Store>);
     static_assert(std::is_trivially_destructible_v<non_threadsafe_Store>);
     non_threadsafe_Store non_threadsafe_global;
+    auto gbl_non_threadsafe() -> std::decay<decltype(non_threadsafe_global.gbl)>::type  {
+        return non_threadsafe_global.gbl;
+    }
+    auto z0_non_threadsafe() -> std::decay<decltype(non_threadsafe_global.z0)>::type  {
+        return non_threadsafe_global.z0;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -151,6 +158,10 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
+    inline double x_plus_a_non_threadsafe(_nrn_mechanism_cache_range& _lmc, non_threadsafe_Instance& inst, non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
+    inline double v_plus_a_non_threadsafe(_nrn_mechanism_cache_range& _lmc, non_threadsafe_Instance& inst, non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
+    inline double identity_non_threadsafe(_nrn_mechanism_cache_range& _lmc, non_threadsafe_Instance& inst, non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {
@@ -162,10 +173,6 @@ namespace neuron {
         _setdata(_prop);
         hoc_retpushx(1.);
     }
-    /* Mechanism procedures and functions */
-    inline double x_plus_a_non_threadsafe(_nrn_mechanism_cache_range& _lmc, non_threadsafe_Instance& inst, non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
-    inline double v_plus_a_non_threadsafe(_nrn_mechanism_cache_range& _lmc, non_threadsafe_Instance& inst, non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
-    inline double identity_non_threadsafe(_nrn_mechanism_cache_range& _lmc, non_threadsafe_Instance& inst, non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -183,10 +190,10 @@ namespace neuron {
 
     /* declaration of user functions */
     static void _hoc_x_plus_a(void);
-    static void _hoc_v_plus_a(void);
-    static void _hoc_identity(void);
     static double _npy_x_plus_a(Prop*);
+    static void _hoc_v_plus_a(void);
     static double _npy_v_plus_a(Prop*);
+    static void _hoc_identity(void);
     static double _npy_identity(Prop*);
 
 
@@ -210,7 +217,7 @@ namespace neuron {
         Datum* _thread;
         NrnThread* nt;
         if (!_prop_id) {
-            hoc_execerror("No data for x_plus_a_non_threadsafe. Requires prior call to setdata_non_threadsafe and that the specified mechanism instance still be in existence.", NULL);
+            hoc_execerror("No data for x_plus_a_non_threadsafe. Requires prior call to setdata_non_threadsafe and that the specified mechanism instance still be in existence.", nullptr);
         }
         Prop* _local_prop = _extcall_prop;
         _nrn_mechanism_cache_instance _lmc{_local_prop};

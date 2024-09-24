@@ -143,6 +143,9 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
+    inline double f_internal_function(_nrn_mechanism_cache_range& _lmc, internal_function_Instance& inst, internal_function_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline double g_internal_function(_nrn_mechanism_cache_range& _lmc, internal_function_Instance& inst, internal_function_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {
@@ -154,9 +157,6 @@ namespace neuron {
         _setdata(_prop);
         hoc_retpushx(1.);
     }
-    /* Mechanism procedures and functions */
-    inline double f_internal_function(_nrn_mechanism_cache_range& _lmc, internal_function_Instance& inst, internal_function_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline double g_internal_function(_nrn_mechanism_cache_range& _lmc, internal_function_Instance& inst, internal_function_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -173,8 +173,8 @@ namespace neuron {
 
     /* declaration of user functions */
     static void _hoc_f(void);
-    static void _hoc_g(void);
     static double _npy_f(Prop*);
+    static void _hoc_g(void);
     static double _npy_g(Prop*);
 
 

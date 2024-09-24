@@ -85,6 +85,13 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<point_non_threadsafe_Store>);
     static_assert(std::is_trivially_destructible_v<point_non_threadsafe_Store>);
     point_non_threadsafe_Store point_non_threadsafe_global;
+    auto gbl_point_non_threadsafe() -> std::decay<decltype(point_non_threadsafe_global.gbl)>::type  {
+        return point_non_threadsafe_global.gbl;
+    }
+    auto z0_point_non_threadsafe() -> std::decay<decltype(point_non_threadsafe_global.z0)>::type  {
+        return point_non_threadsafe_global.z0;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -161,6 +168,10 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
+    inline double x_plus_a_point_non_threadsafe(_nrn_mechanism_cache_range& _lmc, point_non_threadsafe_Instance& inst, point_non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
+    inline double v_plus_a_point_non_threadsafe(_nrn_mechanism_cache_range& _lmc, point_non_threadsafe_Instance& inst, point_non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
+    inline double identity_point_non_threadsafe(_nrn_mechanism_cache_range& _lmc, point_non_threadsafe_Instance& inst, point_non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
     /* Point Process specific functions */
     static void* _hoc_create_pnt(Object* _ho) {
         return create_point_process(_pointtype, _ho);
@@ -186,10 +197,6 @@ namespace neuron {
         _prop = ((Point_process*)_vptr)->prop;
         _setdata(_prop);
     }
-    /* Mechanism procedures and functions */
-    inline double x_plus_a_point_non_threadsafe(_nrn_mechanism_cache_range& _lmc, point_non_threadsafe_Instance& inst, point_non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
-    inline double v_plus_a_point_non_threadsafe(_nrn_mechanism_cache_range& _lmc, point_non_threadsafe_Instance& inst, point_non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
-    inline double identity_point_non_threadsafe(_nrn_mechanism_cache_range& _lmc, point_non_threadsafe_Instance& inst, point_non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -232,7 +239,7 @@ namespace neuron {
         auto* const _pnt = static_cast<Point_process*>(_vptr);
         auto* const _p = _pnt->prop;
         if (!_p) {
-            hoc_execerror("POINT_PROCESS data instance not valid", NULL);
+            hoc_execerror("POINT_PROCESS data instance not valid", nullptr);
         }
         _nrn_mechanism_cache_instance _lmc{_p};
         size_t const id{};
@@ -252,7 +259,7 @@ namespace neuron {
         auto* const _pnt = static_cast<Point_process*>(_vptr);
         auto* const _p = _pnt->prop;
         if (!_p) {
-            hoc_execerror("POINT_PROCESS data instance not valid", NULL);
+            hoc_execerror("POINT_PROCESS data instance not valid", nullptr);
         }
         _nrn_mechanism_cache_instance _lmc{_p};
         size_t const id{};
@@ -272,7 +279,7 @@ namespace neuron {
         auto* const _pnt = static_cast<Point_process*>(_vptr);
         auto* const _p = _pnt->prop;
         if (!_p) {
-            hoc_execerror("POINT_PROCESS data instance not valid", NULL);
+            hoc_execerror("POINT_PROCESS data instance not valid", nullptr);
         }
         _nrn_mechanism_cache_instance _lmc{_p};
         size_t const id{};

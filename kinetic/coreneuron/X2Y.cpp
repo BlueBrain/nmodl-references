@@ -257,8 +257,33 @@ namespace newton {
  * @{
  */
 
-static constexpr int MAX_ITER = 1e3;
-static constexpr double EPS = 1e-12;
+static constexpr int MAX_ITER = 50;
+static constexpr double EPS = 1e-13;
+
+template <int N>
+EIGEN_DEVICE_FUNC bool is_converged(const Eigen::Matrix<double, N, 1>& X,
+                                    const Eigen::Matrix<double, N, N>& J,
+                                    const Eigen::Matrix<double, N, 1>& F,
+                                    double eps) {
+    bool converged = true;
+    double square_eps = eps * eps;
+    for (Eigen::Index i = 0; i < N; ++i) {
+        double square_error = 0.0;
+        for (Eigen::Index j = 0; j < N; ++j) {
+            double JX = J(i, j) * X(j);
+            square_error += JX * JX;
+        }
+
+        if (F(i) * F(i) > square_eps * square_error) {
+            converged = false;
+// The NVHPC is buggy and wont allow us to short-circuit.
+#ifndef __NVCOMPILER
+            return converged;
+#endif
+        }
+    }
+    return converged;
+}
 
 /**
  * \brief Newton method with user-provided Jacobian
@@ -279,19 +304,18 @@ EIGEN_DEVICE_FUNC int newton_solver(Eigen::Matrix<double, N, 1>& X,
                                     FUNC functor,
                                     double eps = EPS,
                                     int max_iter = MAX_ITER) {
+    // If finite differences are needed, this is stores the stepwidth.
+    Eigen::Matrix<double, N, 1> dX;
     // Vector to store result of function F(X):
     Eigen::Matrix<double, N, 1> F;
-    // Matrix to store jacobian of F(X):
+    // Matrix to store Jacobian of F(X):
     Eigen::Matrix<double, N, N> J;
     // Solver iteration count:
     int iter = -1;
     while (++iter < max_iter) {
         // calculate F, J from X using user-supplied functor
-        functor(X, F, J);
-        // get error norm: here we use sqrt(|F|^2)
-        double error = F.norm();
-        if (error < eps) {
-            // we have converged: return iteration count
+        functor(X, dX, F, J);
+        if (is_converged(X, J, F, eps)) {
             return iter;
         }
         // In Eigen the default storage order is ColMajor.
@@ -328,12 +352,12 @@ EIGEN_DEVICE_FUNC int newton_solver_small_N(Eigen::Matrix<double, N, 1>& X,
                                             int max_iter) {
     bool invertible;
     Eigen::Matrix<double, N, 1> F;
+    Eigen::Matrix<double, N, 1> dX;
     Eigen::Matrix<double, N, N> J, J_inv;
     int iter = -1;
     while (++iter < max_iter) {
-        functor(X, F, J);
-        double error = F.norm();
-        if (error < eps) {
+        functor(X, dX, F, J);
+        if (is_converged(X, J, F, eps)) {
             return iter;
         }
         // The inverse can be called from within OpenACC regions without any issue, as opposed to
@@ -615,16 +639,19 @@ namespace coreneuron {
         functor_X2Y_0(NrnThread* nt, X2Y_Instance* inst, int id, int pnodecount, double v, const Datum* indexes, double* data, ThreadDatum* thread)
             : nt(nt), inst(inst), id(id), pnodecount(pnodecount), v(v), indexes(indexes), data(data), thread(thread)
         {}
-        void operator()(const Eigen::Matrix<double, 2, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 2, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 2, 2>& nmodl_eigen_jm) const {
+        void operator()(const Eigen::Matrix<double, 2, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 2, 1>& nmodl_eigen_dxm, Eigen::Matrix<double, 2, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 2, 2>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
+            double* nmodl_eigen_dx = nmodl_eigen_dxm.data();
             double* nmodl_eigen_j = nmodl_eigen_jm.data();
             double* nmodl_eigen_f = nmodl_eigen_fm.data();
-            nmodl_eigen_f[static_cast<int>(0)] =  -nmodl_eigen_x[static_cast<int>(0)] * nt->_dt * kf0_ - nmodl_eigen_x[static_cast<int>(0)] + nmodl_eigen_x[static_cast<int>(1)] * nt->_dt * kb0_ + old_X;
-            nmodl_eigen_j[static_cast<int>(0)] =  -nt->_dt * kf0_ - 1.0;
-            nmodl_eigen_j[static_cast<int>(2)] = nt->_dt * kb0_;
-            nmodl_eigen_f[static_cast<int>(1)] = nmodl_eigen_x[static_cast<int>(0)] * nt->_dt * kf0_ - nmodl_eigen_x[static_cast<int>(1)] * nt->_dt * kb0_ - nmodl_eigen_x[static_cast<int>(1)] + old_Y;
-            nmodl_eigen_j[static_cast<int>(1)] = nt->_dt * kf0_;
-            nmodl_eigen_j[static_cast<int>(3)] =  -nt->_dt * kb0_ - 1.0;
+            nmodl_eigen_dx[0] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[0]));
+            nmodl_eigen_dx[1] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[1]));
+            nmodl_eigen_f[static_cast<int>(0)] = ( -nmodl_eigen_x[static_cast<int>(0)] + nt->_dt * ( -nmodl_eigen_x[static_cast<int>(0)] * kf0_ + nmodl_eigen_x[static_cast<int>(1)] * kb0_) + old_X) / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(0)] =  -kf0_ - 1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(2)] = kb0_;
+            nmodl_eigen_f[static_cast<int>(1)] = ( -nmodl_eigen_x[static_cast<int>(1)] + nt->_dt * (nmodl_eigen_x[static_cast<int>(0)] * kf0_ - nmodl_eigen_x[static_cast<int>(1)] * kb0_) + old_Y) / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(1)] = kf0_;
+            nmodl_eigen_j[static_cast<int>(3)] =  -kb0_ - 1.0 / nt->_dt;
         }
 
         void finalize() {

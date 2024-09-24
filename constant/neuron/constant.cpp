@@ -84,6 +84,10 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<constant_mod_Store>);
     static_assert(std::is_trivially_destructible_v<constant_mod_Store>);
     constant_mod_Store constant_mod_global;
+    auto a_constant_mod() -> std::decay<decltype(constant_mod_global.a)>::type  {
+        return constant_mod_global.a;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -144,6 +148,8 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
+    inline double foo_constant_mod(_nrn_mechanism_cache_range& _lmc, constant_mod_Instance& inst, constant_mod_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {
@@ -155,8 +161,6 @@ namespace neuron {
         _setdata(_prop);
         hoc_retpushx(1.);
     }
-    /* Mechanism procedures and functions */
-    inline double foo_constant_mod(_nrn_mechanism_cache_range& _lmc, constant_mod_Instance& inst, constant_mod_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
 
 
     /** connect global (scalar) variables to hoc -- */

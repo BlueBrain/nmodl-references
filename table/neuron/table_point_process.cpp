@@ -101,6 +101,52 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<tbl_point_process_Store>);
     static_assert(std::is_trivially_destructible_v<tbl_point_process_Store>);
     tbl_point_process_Store tbl_point_process_global;
+    auto k_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.k)>::type  {
+        return tbl_point_process_global.k;
+    }
+    auto d_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.d)>::type  {
+        return tbl_point_process_global.d;
+    }
+    auto c1_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.c1)>::type  {
+        return tbl_point_process_global.c1;
+    }
+    auto c2_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.c2)>::type  {
+        return tbl_point_process_global.c2;
+    }
+    auto usetable_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.usetable)>::type  {
+        return tbl_point_process_global.usetable;
+    }
+    auto tmin_sigmoidal_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.tmin_sigmoidal)>::type  {
+        return tbl_point_process_global.tmin_sigmoidal;
+    }
+    auto mfac_sigmoidal_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.mfac_sigmoidal)>::type  {
+        return tbl_point_process_global.mfac_sigmoidal;
+    }
+    auto tmin_quadratic_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.tmin_quadratic)>::type  {
+        return tbl_point_process_global.tmin_quadratic;
+    }
+    auto mfac_quadratic_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.mfac_quadratic)>::type  {
+        return tbl_point_process_global.mfac_quadratic;
+    }
+    auto tmin_sinusoidal_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.tmin_sinusoidal)>::type  {
+        return tbl_point_process_global.tmin_sinusoidal;
+    }
+    auto mfac_sinusoidal_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.mfac_sinusoidal)>::type  {
+        return tbl_point_process_global.mfac_sinusoidal;
+    }
+    auto t_v1_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.t_v1)>::type  {
+        return tbl_point_process_global.t_v1;
+    }
+    auto t_v2_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.t_v2)>::type  {
+        return tbl_point_process_global.t_v2;
+    }
+    auto t_sig_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.t_sig)>::type  {
+        return tbl_point_process_global.t_sig;
+    }
+    auto t_quadratic_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.t_quadratic)>::type  {
+        return tbl_point_process_global.t_quadratic;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -185,6 +231,10 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
+    inline double quadratic_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
+    inline int sigmoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
+    inline int sinusoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
     /* Point Process specific functions */
     static void* _hoc_create_pnt(Object* _ho) {
         return create_point_process(_pointtype, _ho);
@@ -210,10 +260,6 @@ namespace neuron {
         _prop = ((Point_process*)_vptr)->prop;
         _setdata(_prop);
     }
-    /* Mechanism procedures and functions */
-    inline double quadratic_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
-    inline int sigmoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
-    inline int sinusoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
     void update_table_sigmoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     void update_table_quadratic_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     void update_table_sinusoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
@@ -246,9 +292,9 @@ namespace neuron {
 
 
     /* declaration of user functions */
+    static double _hoc_quadratic(void*);
     static double _hoc_sigmoidal(void*);
     static double _hoc_sinusoidal(void*);
-    static double _hoc_quadratic(void*);
 
 
     /* connect user functions to hoc names */
@@ -272,7 +318,7 @@ namespace neuron {
         auto* const _pnt = static_cast<Point_process*>(_vptr);
         auto* const _p = _pnt->prop;
         if (!_p) {
-            hoc_execerror("POINT_PROCESS data instance not valid", NULL);
+            hoc_execerror("POINT_PROCESS data instance not valid", nullptr);
         }
         _nrn_mechanism_cache_instance _lmc{_p};
         size_t const id{};
@@ -294,7 +340,7 @@ namespace neuron {
         auto* const _pnt = static_cast<Point_process*>(_vptr);
         auto* const _p = _pnt->prop;
         if (!_p) {
-            hoc_execerror("POINT_PROCESS data instance not valid", NULL);
+            hoc_execerror("POINT_PROCESS data instance not valid", nullptr);
         }
         _nrn_mechanism_cache_instance _lmc{_p};
         size_t const id{};
@@ -316,7 +362,7 @@ namespace neuron {
         auto* const _pnt = static_cast<Point_process*>(_vptr);
         auto* const _p = _pnt->prop;
         if (!_p) {
-            hoc_execerror("POINT_PROCESS data instance not valid", NULL);
+            hoc_execerror("POINT_PROCESS data instance not valid", nullptr);
         }
         _nrn_mechanism_cache_instance _lmc{_p};
         size_t const id{};

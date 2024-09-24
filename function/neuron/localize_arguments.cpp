@@ -89,6 +89,16 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<localize_arguments_Store>);
     static_assert(std::is_trivially_destructible_v<localize_arguments_Store>);
     localize_arguments_Store localize_arguments_global;
+    auto g_localize_arguments() -> std::decay<decltype(localize_arguments_global.g)>::type  {
+        return localize_arguments_global.g;
+    }
+    auto p_localize_arguments() -> std::decay<decltype(localize_arguments_global.p)>::type  {
+        return localize_arguments_global.p;
+    }
+    auto s0_localize_arguments() -> std::decay<decltype(localize_arguments_global.s0)>::type  {
+        return localize_arguments_global.s0;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -174,6 +184,14 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
+    inline double id_v_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
+    inline double id_nai_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lnai);
+    inline double id_ina_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lina);
+    inline double id_x_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
+    inline double id_g_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lg);
+    inline double id_s_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _ls);
+    inline double id_p_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lp);
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {
@@ -185,14 +203,6 @@ namespace neuron {
         _setdata(_prop);
         hoc_retpushx(1.);
     }
-    /* Mechanism procedures and functions */
-    inline double id_v_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
-    inline double id_nai_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lnai);
-    inline double id_ina_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lina);
-    inline double id_x_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
-    inline double id_g_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lg);
-    inline double id_s_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _ls);
-    inline double id_p_localize_arguments(_nrn_mechanism_cache_range& _lmc, localize_arguments_Instance& inst, localize_arguments_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lp);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -211,18 +221,18 @@ namespace neuron {
 
     /* declaration of user functions */
     static void _hoc_id_v(void);
-    static void _hoc_id_nai(void);
-    static void _hoc_id_ina(void);
-    static void _hoc_id_x(void);
-    static void _hoc_id_g(void);
-    static void _hoc_id_s(void);
-    static void _hoc_id_p(void);
     static double _npy_id_v(Prop*);
+    static void _hoc_id_nai(void);
     static double _npy_id_nai(Prop*);
+    static void _hoc_id_ina(void);
     static double _npy_id_ina(Prop*);
+    static void _hoc_id_x(void);
     static double _npy_id_x(Prop*);
+    static void _hoc_id_g(void);
     static double _npy_id_g(Prop*);
+    static void _hoc_id_s(void);
     static double _npy_id_s(Prop*);
+    static void _hoc_id_p(void);
     static double _npy_id_p(Prop*);
 
 

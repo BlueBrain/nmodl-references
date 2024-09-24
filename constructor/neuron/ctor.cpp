@@ -84,6 +84,13 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<ctor_Store>);
     static_assert(std::is_trivially_destructible_v<ctor_Store>);
     ctor_Store ctor_global;
+    auto thread_data_in_use_ctor() -> std::decay<decltype(ctor_global.thread_data_in_use)>::type  {
+        return ctor_global.thread_data_in_use;
+    }
+    auto thread_data_ctor() -> std::decay<decltype(ctor_global.thread_data)>::type  {
+        return ctor_global.thread_data;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -180,6 +187,7 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
     /* Point Process specific functions */
     static void* _hoc_create_pnt(Object* _ho) {
         return create_point_process(_pointtype, _ho);
@@ -205,7 +213,6 @@ namespace neuron {
         _prop = ((Point_process*)_vptr)->prop;
         _setdata(_prop);
     }
-    /* Mechanism procedures and functions */
 
 
     /** connect global (scalar) variables to hoc -- */

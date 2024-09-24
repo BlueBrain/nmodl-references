@@ -161,6 +161,7 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {
@@ -172,7 +173,6 @@ namespace neuron {
         _setdata(_prop);
         hoc_retpushx(1.);
     }
-    /* Mechanism procedures and functions */
 
 
     /** connect global (scalar) variables to hoc -- */

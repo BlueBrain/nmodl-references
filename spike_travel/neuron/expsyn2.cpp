@@ -87,6 +87,10 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<ExpSyn2_Store>);
     static_assert(std::is_trivially_destructible_v<ExpSyn2_Store>);
     ExpSyn2_Store ExpSyn2_global;
+    auto g0_ExpSyn2() -> std::decay<decltype(ExpSyn2_global.g0)>::type  {
+        return ExpSyn2_global.g0;
+    }
+
     static std::vector<double> _parameter_defaults = {
         0.1 /* tau */,
         0 /* e */
@@ -177,6 +181,7 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
     /* Point Process specific functions */
     static void* _hoc_create_pnt(Object* _ho) {
         return create_point_process(_pointtype, _ho);
@@ -202,7 +207,6 @@ namespace neuron {
         _prop = ((Point_process*)_vptr)->prop;
         _setdata(_prop);
     }
-    /* Mechanism procedures and functions */
 
 
     /** connect global (scalar) variables to hoc -- */
