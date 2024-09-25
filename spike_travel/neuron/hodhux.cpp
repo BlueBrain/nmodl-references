@@ -577,7 +577,7 @@ namespace neuron {
         _na_sym = hoc_lookup("na_ion");
         _k_sym = hoc_lookup("k_ion");
 
-        register_mech(mechanism_info, nrn_alloc_hodhux, nrn_cur_hodhux, nrn_jacob_hodhux, nrn_state_hodhux, nrn_init_hodhux, hoc_nrnpointerindex, 1);
+        register_mech(mechanism_info, nrn_alloc_hodhux, nrn_cur_hodhux, nrn_jacob_hodhux, nrn_state_hodhux, nrn_init_hodhux, -1, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);

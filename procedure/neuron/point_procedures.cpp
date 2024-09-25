@@ -476,7 +476,7 @@ namespace neuron {
     extern "C" void _point_procedures_reg() {
         _initlists();
 
-        _pointtype = point_register_mech(mechanism_info, nrn_alloc_point_procedures, nullptr, nullptr, nullptr, nrn_init_point_procedures, hoc_nrnpointerindex, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
+        _pointtype = point_register_mech(mechanism_info, nrn_alloc_point_procedures, nullptr, nullptr, nullptr, nrn_init_point_procedures, -1, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);

@@ -346,7 +346,7 @@ namespace neuron {
     extern "C" void _expsyn2_reg() {
         _initlists();
 
-        _pointtype = point_register_mech(mechanism_info, nrn_alloc_ExpSyn2, nrn_cur_ExpSyn2, nrn_jacob_ExpSyn2, nrn_state_ExpSyn2, nrn_init_ExpSyn2, hoc_nrnpointerindex, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
+        _pointtype = point_register_mech(mechanism_info, nrn_alloc_ExpSyn2, nrn_cur_ExpSyn2, nrn_jacob_ExpSyn2, nrn_state_ExpSyn2, nrn_init_ExpSyn2, -1, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);
