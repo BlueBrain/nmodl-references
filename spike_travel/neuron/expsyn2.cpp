@@ -73,7 +73,6 @@ namespace neuron {
     static neuron::container::field_index _slist1[1], _dlist1[1];
     static int mech_type;
     static int _pointtype;
-    static int hoc_nrnpointerindex = -1;
     static _nrn_mechanism_std_vector<Datum> _extcall_thread;
 
 

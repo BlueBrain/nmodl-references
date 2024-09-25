@@ -74,7 +74,6 @@ namespace neuron {
     static Symbol* _ca_sym;
     static int mech_type;
     static int _pointtype;
-    static int hoc_nrnpointerindex = 2;
     static _nrn_mechanism_std_vector<Datum> _extcall_thread;
 
 

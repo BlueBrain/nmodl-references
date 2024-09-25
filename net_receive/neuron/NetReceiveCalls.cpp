@@ -70,7 +70,6 @@ namespace neuron {
     /* NEURON global variables */
     static int mech_type;
     static int _pointtype;
-    static int hoc_nrnpointerindex = -1;
     static _nrn_mechanism_std_vector<Datum> _extcall_thread;
 
 
