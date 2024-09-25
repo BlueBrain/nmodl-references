@@ -457,7 +457,6 @@ namespace neuron {
     static Prop* _extcall_prop;
     /* _prop_id kind of shadows _extcall_prop to allow validity checking. */
     static _nrn_non_owning_id_without_container _prop_id{};
-    static int hoc_nrnpointerindex = -1;
     static _nrn_mechanism_std_vector<Datum> _extcall_thread;
 
 
@@ -782,7 +781,7 @@ namespace neuron {
     extern "C" void _finite_difference_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_finite_difference, nullptr, nrn_jacob_finite_difference, nrn_state_finite_difference, nrn_init_finite_difference, hoc_nrnpointerindex, 2);
+        register_mech(mechanism_info, nrn_alloc_finite_difference, nullptr, nrn_jacob_finite_difference, nrn_state_finite_difference, nrn_init_finite_difference, -1, 2);
         _extcall_thread.resize(2);
         thread_mem_init(_extcall_thread.data());
         finite_difference_global.thread_data_in_use = 0;

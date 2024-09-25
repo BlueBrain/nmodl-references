@@ -72,7 +72,6 @@ namespace neuron {
     static Prop* _extcall_prop;
     /* _prop_id kind of shadows _extcall_prop to allow validity checking. */
     static _nrn_non_owning_id_without_container _prop_id{};
-    static int hoc_nrnpointerindex = -1;
     static _nrn_mechanism_std_vector<Datum> _extcall_thread;
 
 
@@ -246,7 +245,7 @@ namespace neuron {
 
         _K_sym = hoc_lookup("K_ion");
 
-        register_mech(mechanism_info, nrn_alloc_valence_mod, nullptr, nullptr, nullptr, nrn_init_valence_mod, hoc_nrnpointerindex, 1);
+        register_mech(mechanism_info, nrn_alloc_valence_mod, nullptr, nullptr, nullptr, nrn_init_valence_mod, -1, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);

@@ -458,7 +458,6 @@ namespace neuron {
     static Prop* _extcall_prop;
     /* _prop_id kind of shadows _extcall_prop to allow validity checking. */
     static _nrn_non_owning_id_without_container _prop_id{};
-    static int hoc_nrnpointerindex = -1;
     static _nrn_mechanism_std_vector<Datum> _extcall_thread;
 
 
@@ -742,7 +741,7 @@ namespace neuron {
     extern "C" void _thread_newton_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_thread_newton, nullptr, nrn_jacob_thread_newton, nrn_state_thread_newton, nrn_init_thread_newton, hoc_nrnpointerindex, 2);
+        register_mech(mechanism_info, nrn_alloc_thread_newton, nullptr, nrn_jacob_thread_newton, nrn_state_thread_newton, nrn_init_thread_newton, -1, 2);
         _extcall_thread.resize(2);
         thread_mem_init(_extcall_thread.data());
         thread_newton_global.thread_data_in_use = 0;

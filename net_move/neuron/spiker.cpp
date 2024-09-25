@@ -70,7 +70,6 @@ namespace neuron {
     /* NEURON global variables */
     static int mech_type;
     static int _pointtype;
-    static int hoc_nrnpointerindex = -1;
     static _nrn_mechanism_std_vector<Datum> _extcall_thread;
 
 
@@ -280,7 +279,7 @@ namespace neuron {
     extern "C" void _spiker_reg() {
         _initlists();
 
-        _pointtype = point_register_mech(mechanism_info, nrn_alloc_spiker, nullptr, nullptr, nullptr, nrn_init_spiker, hoc_nrnpointerindex, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
+        _pointtype = point_register_mech(mechanism_info, nrn_alloc_spiker, nullptr, nullptr, nullptr, nrn_init_spiker, -1, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);
