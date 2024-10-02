@@ -45,6 +45,7 @@ void _nrn_mechanism_register_data_fields(Args&&... args) {
 }  // namespace
 
 extern Prop* nrn_point_prop_;
+extern void _cvode_abstol(Symbol**, double*, int);
 int _nrn_netcon_args(void*, double***);
 extern Node* nrn_alloc_node_;
 

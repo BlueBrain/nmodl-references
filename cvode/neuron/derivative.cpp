@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : X2Y
-Filename        : X2Y.mod
+Model Name      : scalar
+Filename        : derivative.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -411,7 +411,7 @@ EIGEN_DEVICE_FUNC int newton_solver(Eigen::Matrix<double, 4, 1>& X,
 #define NRN_VECTORIZED 1
 
 static constexpr auto number_of_datum_variables = 0;
-static constexpr auto number_of_floating_point_variables = 10;
+static constexpr auto number_of_floating_point_variables = 12;
 
 namespace {
 template <typename T>
@@ -442,21 +442,21 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "X2Y",
+        "scalar",
         0,
-        "il_X2Y",
-        "c1_X2Y",
-        "c2_X2Y",
         0,
-        "X_X2Y",
-        "Y_X2Y",
+        "var1_scalar",
+        "var2_scalar",
+        "var3_scalar",
+        "var4_scalar",
+        "var5_scalar",
         0,
         0
     };
 
 
     /* NEURON global variables */
-    static neuron::container::field_index _slist1[2], _dlist1[2];
+    static neuron::container::field_index _slist1[5], _dlist1[5];
     static Symbol** _atollist;
     static HocStateTolerance _hoc_state_tol[] = {
         {0, 0}
@@ -469,21 +469,85 @@ namespace neuron {
 
 
     /** all global variables */
-    struct X2Y_Store {
-        double X0{0};
-        double Y0{0};
+    struct scalar_Store {
+        double freq{10};
+        double a{5};
+        double v1{-1};
+        double v2{5};
+        double v3{15};
+        double v4{0.8};
+        double v5{0.3};
+        double r{3};
+        double k{0.2};
+        double nmodl_alpha{1.2};
+        double nmodl_beta{4.5};
+        double nmodl_gamma{2.4};
+        double nmodl_delta{7.5};
+        double var10{0};
+        double var20{0};
+        double var30{0};
+        double var40{0};
+        double var50{0};
     };
-    static_assert(std::is_trivially_copy_constructible_v<X2Y_Store>);
-    static_assert(std::is_trivially_move_constructible_v<X2Y_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<X2Y_Store>);
-    static_assert(std::is_trivially_move_assignable_v<X2Y_Store>);
-    static_assert(std::is_trivially_destructible_v<X2Y_Store>);
-    X2Y_Store X2Y_global;
-    auto X0_X2Y() -> std::decay<decltype(X2Y_global.X0)>::type  {
-        return X2Y_global.X0;
+    static_assert(std::is_trivially_copy_constructible_v<scalar_Store>);
+    static_assert(std::is_trivially_move_constructible_v<scalar_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<scalar_Store>);
+    static_assert(std::is_trivially_move_assignable_v<scalar_Store>);
+    static_assert(std::is_trivially_destructible_v<scalar_Store>);
+    scalar_Store scalar_global;
+    auto freq_scalar() -> std::decay<decltype(scalar_global.freq)>::type  {
+        return scalar_global.freq;
     }
-    auto Y0_X2Y() -> std::decay<decltype(X2Y_global.Y0)>::type  {
-        return X2Y_global.Y0;
+    auto a_scalar() -> std::decay<decltype(scalar_global.a)>::type  {
+        return scalar_global.a;
+    }
+    auto v1_scalar() -> std::decay<decltype(scalar_global.v1)>::type  {
+        return scalar_global.v1;
+    }
+    auto v2_scalar() -> std::decay<decltype(scalar_global.v2)>::type  {
+        return scalar_global.v2;
+    }
+    auto v3_scalar() -> std::decay<decltype(scalar_global.v3)>::type  {
+        return scalar_global.v3;
+    }
+    auto v4_scalar() -> std::decay<decltype(scalar_global.v4)>::type  {
+        return scalar_global.v4;
+    }
+    auto v5_scalar() -> std::decay<decltype(scalar_global.v5)>::type  {
+        return scalar_global.v5;
+    }
+    auto r_scalar() -> std::decay<decltype(scalar_global.r)>::type  {
+        return scalar_global.r;
+    }
+    auto k_scalar() -> std::decay<decltype(scalar_global.k)>::type  {
+        return scalar_global.k;
+    }
+    auto nmodl_alpha_scalar() -> std::decay<decltype(scalar_global.nmodl_alpha)>::type  {
+        return scalar_global.nmodl_alpha;
+    }
+    auto nmodl_beta_scalar() -> std::decay<decltype(scalar_global.nmodl_beta)>::type  {
+        return scalar_global.nmodl_beta;
+    }
+    auto nmodl_gamma_scalar() -> std::decay<decltype(scalar_global.nmodl_gamma)>::type  {
+        return scalar_global.nmodl_gamma;
+    }
+    auto nmodl_delta_scalar() -> std::decay<decltype(scalar_global.nmodl_delta)>::type  {
+        return scalar_global.nmodl_delta;
+    }
+    auto var10_scalar() -> std::decay<decltype(scalar_global.var10)>::type  {
+        return scalar_global.var10;
+    }
+    auto var20_scalar() -> std::decay<decltype(scalar_global.var20)>::type  {
+        return scalar_global.var20;
+    }
+    auto var30_scalar() -> std::decay<decltype(scalar_global.var30)>::type  {
+        return scalar_global.var30;
+    }
+    auto var40_scalar() -> std::decay<decltype(scalar_global.var40)>::type  {
+        return scalar_global.var40;
+    }
+    auto var50_scalar() -> std::decay<decltype(scalar_global.var50)>::type  {
+        return scalar_global.var50;
     }
 
     static std::vector<double> _parameter_defaults = {
@@ -491,22 +555,24 @@ namespace neuron {
 
 
     /** all mechanism instance variables and global variables */
-    struct X2Y_Instance  {
-        double* il{};
-        double* c1{};
-        double* c2{};
-        double* X{};
-        double* Y{};
-        double* DX{};
-        double* DY{};
-        double* i{};
+    struct scalar_Instance  {
+        double* var1{};
+        double* var2{};
+        double* var3{};
+        double* var4{};
+        double* var5{};
+        double* Dvar1{};
+        double* Dvar2{};
+        double* Dvar3{};
+        double* Dvar4{};
+        double* Dvar5{};
         double* v_unused{};
         double* g_unused{};
-        X2Y_Store* global{&X2Y_global};
+        scalar_Store* global{&scalar_global};
     };
 
 
-    struct X2Y_NodeData  {
+    struct scalar_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -515,8 +581,8 @@ namespace neuron {
     };
 
 
-    static X2Y_Instance make_instance_X2Y(_nrn_mechanism_cache_range& _lmc) {
-        return X2Y_Instance {
+    static scalar_Instance make_instance_scalar(_nrn_mechanism_cache_range& _lmc) {
+        return scalar_Instance {
             _lmc.template fpfield_ptr<0>(),
             _lmc.template fpfield_ptr<1>(),
             _lmc.template fpfield_ptr<2>(),
@@ -526,13 +592,15 @@ namespace neuron {
             _lmc.template fpfield_ptr<6>(),
             _lmc.template fpfield_ptr<7>(),
             _lmc.template fpfield_ptr<8>(),
-            _lmc.template fpfield_ptr<9>()
+            _lmc.template fpfield_ptr<9>(),
+            _lmc.template fpfield_ptr<10>(),
+            _lmc.template fpfield_ptr<11>()
         };
     }
 
 
-    static X2Y_NodeData make_node_data_X2Y(NrnThread& nt, Memb_list& _ml_arg) {
-        return X2Y_NodeData {
+    static scalar_NodeData make_node_data_scalar(NrnThread& nt, Memb_list& _ml_arg) {
+        return scalar_NodeData {
             _ml_arg.nodeindices,
             nt.node_voltage_storage(),
             nt.node_d_storage(),
@@ -540,10 +608,10 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
-    static X2Y_NodeData make_node_data_X2Y(Prop * _prop) {
+    static scalar_NodeData make_node_data_scalar(Prop * _prop) {
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
-        return X2Y_NodeData {
+        return scalar_NodeData {
             node_index.data(),
             &_nrn_mechanism_access_voltage(_node),
             &_nrn_mechanism_access_d(_node),
@@ -552,56 +620,60 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_X2Y(Prop* prop);
+    void nrn_destructor_scalar(Prop* prop);
 
 
-    static void nrn_alloc_X2Y(Prop* _prop) {
+    static void nrn_alloc_scalar(Prop* _prop) {
         Datum *_ppvar = nullptr;
         _ppvar = nrn_prop_datum_alloc(mech_type, 1, _prop);
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const _iml = 0;
-        assert(_nrn_mechanism_get_num_vars(_prop) == 10);
+        assert(_nrn_mechanism_get_num_vars(_prop) == 12);
         /*initialize range parameters*/
     }
 
 
     /* Mechanism procedures and functions */
-    inline int rates_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, X2Y_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
 
 
     /* Functions related to CVODE codegen */
-    static constexpr int ode_count_X2Y(int _type) {
-        return 2;
+    static constexpr int ode_count_scalar(int _type) {
+        return 5;
     }
 
 
-    static int ode_spec1_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, X2Y_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+    static int ode_spec1_scalar(_nrn_mechanism_cache_range& _lmc, scalar_Instance& inst, scalar_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         int node_id = node_data.nodeindices[id];
         auto v = node_data.node_voltages[node_id];
+        inst.Dvar1[id] =  -sin(inst.global->freq * nt->_t);
+        inst.Dvar2[id] =  -inst.var2[id] * inst.global->a;
+        inst.Dvar3[id] = inst.global->r * inst.var3[id] * (1.0 - inst.var3[id] / inst.global->k);
+        inst.Dvar4[id] = inst.global->nmodl_alpha * inst.var4[id] - inst.global->nmodl_beta * inst.var4[id] * inst.var5[id];
+        inst.Dvar5[id] = inst.global->nmodl_delta * inst.var4[id] * inst.var5[id] - inst.global->nmodl_gamma * inst.var5[id];
         return 0;
     }
 
 
-    static void ode_spec_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void ode_spec_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_X2Y(_lmc);
+        auto inst = make_instance_scalar(_lmc);
         auto nodecount = _ml_arg->nodecount;
-        auto node_data = make_node_data_X2Y(*nt, *_ml_arg);
+        auto node_data = make_node_data_scalar(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
-            ode_spec1_X2Y(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+            ode_spec1_scalar(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         }
     }
 
 
-    static void ode_map_X2Y(Prop* _prop, int equation_index, neuron::container::data_handle<double>* _pv, neuron::container::data_handle<double>* _pvdot, double* _atol, int _type) {
+    static void ode_map_scalar(Prop* _prop, int equation_index, neuron::container::data_handle<double>* _pv, neuron::container::data_handle<double>* _pvdot, double* _atol, int _type) {
         auto* _ppvar = _nrn_mechanism_access_dparam(_prop);
         _ppvar[0].literal_value<int>() = equation_index;
-        for (int i = 0; i < ode_count_X2Y(0); i++) {
+        for (int i = 0; i < ode_count_scalar(0); i++) {
             _pv[i] = _nrn_mechanism_get_param_handle(_prop, _slist1[i]);
             _pvdot[i] = _nrn_mechanism_get_param_handle(_prop, _dlist1[i]);
             _cvode_abstol(_atollist, _atol, i);
@@ -609,21 +681,26 @@ namespace neuron {
     }
 
 
-    static void ode_matsol_instance1_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, X2Y_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+    static void ode_matsol_instance1_scalar(_nrn_mechanism_cache_range& _lmc, scalar_Instance& inst, scalar_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+        inst.Dvar1[id] = inst.Dvar1[id] / (1.0 - nt->_dt * (0.0));
+        inst.Dvar2[id] = inst.Dvar2[id] / (1.0 - nt->_dt * ( -inst.global->a));
+        inst.Dvar3[id] = inst.Dvar3[id] / (1.0 - nt->_dt * (inst.global->r * (inst.global->k - 2.0 * inst.var3[id]) / inst.global->k));
+        inst.Dvar4[id] = inst.Dvar4[id] / (1.0 - nt->_dt * (inst.global->nmodl_alpha - inst.global->nmodl_beta * inst.var5[id]));
+        inst.Dvar5[id] = inst.Dvar5[id] / (1.0 - nt->_dt * (inst.global->nmodl_delta * inst.var4[id] - inst.global->nmodl_gamma));
     }
 
 
-    static void ode_matsol_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void ode_matsol_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_X2Y(_lmc);
+        auto inst = make_instance_scalar(_lmc);
         auto nodecount = _ml_arg->nodecount;
-        auto node_data = make_node_data_X2Y(*nt, *_ml_arg);
+        auto node_data = make_node_data_scalar(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
-            ode_matsol_instance1_X2Y(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+            ode_matsol_instance1_scalar(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         }
     }
     /* Neuron setdata functions */
@@ -639,42 +716,68 @@ namespace neuron {
     }
 
 
-    struct functor_X2Y_0 {
+    struct functor_scalar_0 {
         _nrn_mechanism_cache_range& _lmc;
-        X2Y_Instance& inst;
-        X2Y_NodeData& node_data;
+        scalar_Instance& inst;
+        scalar_NodeData& node_data;
         size_t id;
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
         double v;
-        double kf0_, kb0_, old_X, old_Y;
+        double old_var1, old_var2, old_var3, old_var4, old_var5;
 
         void initialize() {
-            rates_X2Y(_lmc, inst, node_data, id, _ppvar, _thread, nt);
-            kf0_ = inst.c1[id];
-            kb0_ = inst.c2[id];
-            inst.i[id] = (kf0_ * inst.X[id] - kb0_ * inst.Y[id]);
-            old_X = inst.X[id];
-            old_Y = inst.Y[id];
+            old_var1 = inst.var1[id];
+            old_var2 = inst.var2[id];
+            old_var3 = inst.var3[id];
+            old_var4 = inst.var4[id];
+            old_var5 = inst.var5[id];
         }
 
-        functor_X2Y_0(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, X2Y_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v)
+        functor_scalar_0(_nrn_mechanism_cache_range& _lmc, scalar_Instance& inst, scalar_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v)
             : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt), v(v)
         {}
-        void operator()(const Eigen::Matrix<double, 2, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 2, 1>& nmodl_eigen_dxm, Eigen::Matrix<double, 2, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 2, 2>& nmodl_eigen_jm) const {
+        void operator()(const Eigen::Matrix<double, 5, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 5, 1>& nmodl_eigen_dxm, Eigen::Matrix<double, 5, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 5, 5>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
             double* nmodl_eigen_dx = nmodl_eigen_dxm.data();
             double* nmodl_eigen_j = nmodl_eigen_jm.data();
             double* nmodl_eigen_f = nmodl_eigen_fm.data();
             nmodl_eigen_dx[0] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[0]));
             nmodl_eigen_dx[1] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[1]));
-            nmodl_eigen_f[static_cast<int>(0)] = ( -nmodl_eigen_x[static_cast<int>(0)] + nt->_dt * ( -nmodl_eigen_x[static_cast<int>(0)] * kf0_ + nmodl_eigen_x[static_cast<int>(1)] * kb0_) + old_X) / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(0)] =  -kf0_ - 1.0 / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(2)] = kb0_;
-            nmodl_eigen_f[static_cast<int>(1)] = ( -nmodl_eigen_x[static_cast<int>(1)] + nt->_dt * (nmodl_eigen_x[static_cast<int>(0)] * kf0_ - nmodl_eigen_x[static_cast<int>(1)] * kb0_) + old_Y) / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(1)] = kf0_;
-            nmodl_eigen_j[static_cast<int>(3)] =  -kb0_ - 1.0 / nt->_dt;
+            nmodl_eigen_dx[2] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[2]));
+            nmodl_eigen_dx[3] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[3]));
+            nmodl_eigen_dx[4] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[4]));
+            nmodl_eigen_f[static_cast<int>(0)] = ( -nmodl_eigen_x[static_cast<int>(0)] - nt->_dt * sin(inst.global->freq * nt->_t) + old_var1) / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(0)] =  -1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(5)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(10)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(15)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(20)] = 0.0;
+            nmodl_eigen_f[static_cast<int>(1)] = ( -nmodl_eigen_x[static_cast<int>(1)] * inst.global->a * nt->_dt - nmodl_eigen_x[static_cast<int>(1)] + old_var2) / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(1)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(6)] =  -inst.global->a - 1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(11)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(16)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(21)] = 0.0;
+            nmodl_eigen_f[static_cast<int>(2)] =  -pow(nmodl_eigen_x[static_cast<int>(2)], 2.0) * inst.global->r / inst.global->k + nmodl_eigen_x[static_cast<int>(2)] * inst.global->r - nmodl_eigen_x[static_cast<int>(2)] / nt->_dt + old_var3 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(2)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(7)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(12)] =  -2.0 * nmodl_eigen_x[static_cast<int>(2)] * inst.global->r / inst.global->k + inst.global->r - 1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(17)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(22)] = 0.0;
+            nmodl_eigen_f[static_cast<int>(3)] = (nmodl_eigen_x[static_cast<int>(3)] * nt->_dt * ( -nmodl_eigen_x[static_cast<int>(4)] * inst.global->nmodl_beta + inst.global->nmodl_alpha) - nmodl_eigen_x[static_cast<int>(3)] + old_var4) / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(3)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(8)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(13)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(18)] =  -nmodl_eigen_x[static_cast<int>(4)] * inst.global->nmodl_beta + inst.global->nmodl_alpha - 1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(23)] =  -nmodl_eigen_x[static_cast<int>(3)] * inst.global->nmodl_beta;
+            nmodl_eigen_f[static_cast<int>(4)] = (nmodl_eigen_x[static_cast<int>(4)] * nt->_dt * (nmodl_eigen_x[static_cast<int>(3)] * inst.global->nmodl_delta - inst.global->nmodl_gamma) - nmodl_eigen_x[static_cast<int>(4)] + old_var5) / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(4)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(9)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(14)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(19)] = nmodl_eigen_x[static_cast<int>(4)] * inst.global->nmodl_delta;
+            nmodl_eigen_j[static_cast<int>(24)] = nmodl_eigen_x[static_cast<int>(3)] * inst.global->nmodl_delta - inst.global->nmodl_gamma - 1.0 / nt->_dt;
         }
 
         void finalize() {
@@ -684,6 +787,19 @@ namespace neuron {
 
     /** connect global (scalar) variables to hoc -- */
     static DoubScal hoc_scalar_double[] = {
+        {"freq_scalar", &scalar_global.freq},
+        {"a_scalar", &scalar_global.a},
+        {"v1_scalar", &scalar_global.v1},
+        {"v2_scalar", &scalar_global.v2},
+        {"v3_scalar", &scalar_global.v3},
+        {"v4_scalar", &scalar_global.v4},
+        {"v5_scalar", &scalar_global.v5},
+        {"r_scalar", &scalar_global.r},
+        {"k_scalar", &scalar_global.k},
+        {"nmodl_alpha_scalar", &scalar_global.nmodl_alpha},
+        {"nmodl_beta_scalar", &scalar_global.nmodl_beta},
+        {"nmodl_gamma_scalar", &scalar_global.nmodl_gamma},
+        {"nmodl_delta_scalar", &scalar_global.nmodl_delta},
         {nullptr, nullptr}
     };
 
@@ -695,120 +811,46 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_rates(void);
-    static double _npy_rates(Prop*);
 
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
-        {"setdata_X2Y", _hoc_setdata},
-        {"rates_X2Y", _hoc_rates},
+        {"setdata_scalar", _hoc_setdata},
         {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
-        {"rates", _npy_rates},
         {nullptr, nullptr}
     };
-    static void _hoc_rates(void) {
-        double _r{};
-        Datum* _ppvar;
-        Datum* _thread;
-        NrnThread* nt;
-        if (!_prop_id) {
-            hoc_execerror("No data for rates_X2Y. Requires prior call to setdata_X2Y and that the specified mechanism instance still be in existence.", nullptr);
-        }
-        Prop* _local_prop = _extcall_prop;
-        _nrn_mechanism_cache_instance _lmc{_local_prop};
-        size_t const id{};
-        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
-        _thread = _extcall_thread.data();
-        nt = nrn_threads;
-        auto inst = make_instance_X2Y(_lmc);
-        auto node_data = make_node_data_X2Y(_local_prop);
-        _r = 1.;
-        rates_X2Y(_lmc, inst, node_data, id, _ppvar, _thread, nt);
-        hoc_retpushx(_r);
-    }
-    static double _npy_rates(Prop* _prop) {
-        double _r{};
-        Datum* _ppvar;
-        Datum* _thread;
-        NrnThread* nt;
-        _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const id = 0;
-        _ppvar = _nrn_mechanism_access_dparam(_prop);
-        _thread = _extcall_thread.data();
-        nt = nrn_threads;
-        auto inst = make_instance_X2Y(_lmc);
-        auto node_data = make_node_data_X2Y(_prop);
-        _r = 1.;
-        rates_X2Y(_lmc, inst, node_data, id, _ppvar, _thread, nt);
-        return(_r);
-    }
 
 
-    inline int rates_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, X2Y_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
-        int ret_rates = 0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
-        inst.c1[id] = 0.4;
-        inst.c2[id] = 0.5;
-        return ret_rates;
-    }
-
-
-    void nrn_init_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    void nrn_init_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_X2Y(_lmc);
-        auto node_data = make_node_data_X2Y(*nt, *_ml_arg);
+        auto inst = make_instance_scalar(_lmc);
+        auto node_data = make_node_data_scalar(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
-            inst.X[id] = inst.global->X0;
-            inst.Y[id] = inst.global->Y0;
-            inst.X[id] = 0.0;
-            inst.Y[id] = 1.0;
-            inst.c1[id] = 0.0;
-            inst.c2[id] = 0.0;
+            inst.var1[id] = inst.global->var10;
+            inst.var2[id] = inst.global->var20;
+            inst.var3[id] = inst.global->var30;
+            inst.var4[id] = inst.global->var40;
+            inst.var5[id] = inst.global->var50;
+            inst.var1[id] = inst.global->v1;
+            inst.var2[id] = inst.global->v2;
+            inst.var3[id] = inst.global->v3;
+            inst.var4[id] = inst.global->v4;
+            inst.var5[id] = inst.global->v5;
         }
     }
 
 
-    inline double nrn_current_X2Y(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, X2Y_Instance& inst, X2Y_NodeData& node_data, double v) {
-        double current = 0.0;
-        inst.il[id] = inst.i[id];
-        current += inst.il[id];
-        return current;
-    }
-
-
-    /** update current */
-    void nrn_cur_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    void nrn_state_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_X2Y(_lmc);
-        auto node_data = make_node_data_X2Y(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
-        auto* _thread = _ml_arg->_thread;
-        for (int id = 0; id < nodecount; id++) {
-            int node_id = node_data.nodeindices[id];
-            double v = node_data.node_voltages[node_id];
-            auto* _ppvar = _ml_arg->pdata[id];
-            double I1 = nrn_current_X2Y(_lmc, nt, _ppvar, _thread, id, inst, node_data, v+0.001);
-            double I0 = nrn_current_X2Y(_lmc, nt, _ppvar, _thread, id, inst, node_data, v);
-            double rhs = I0;
-            double g = (I1-I0)/0.001;
-            node_data.node_rhs[node_id] -= rhs;
-            inst.g_unused[id] = g;
-        }
-    }
-
-
-    void nrn_state_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_X2Y(_lmc);
-        auto node_data = make_node_data_X2Y(*nt, *_ml_arg);
+        auto inst = make_instance_scalar(_lmc);
+        auto node_data = make_node_data_scalar(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
@@ -816,17 +858,23 @@ namespace neuron {
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
             
-            Eigen::Matrix<double, 2, 1> nmodl_eigen_xm;
+            Eigen::Matrix<double, 5, 1> nmodl_eigen_xm;
             double* nmodl_eigen_x = nmodl_eigen_xm.data();
-            nmodl_eigen_x[static_cast<int>(0)] = inst.X[id];
-            nmodl_eigen_x[static_cast<int>(1)] = inst.Y[id];
+            nmodl_eigen_x[static_cast<int>(0)] = inst.var1[id];
+            nmodl_eigen_x[static_cast<int>(1)] = inst.var2[id];
+            nmodl_eigen_x[static_cast<int>(2)] = inst.var3[id];
+            nmodl_eigen_x[static_cast<int>(3)] = inst.var4[id];
+            nmodl_eigen_x[static_cast<int>(4)] = inst.var5[id];
             // call newton solver
-            functor_X2Y_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, nt, v);
+            functor_scalar_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, nt, v);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
-            inst.X[id] = nmodl_eigen_x[static_cast<int>(0)];
-            inst.Y[id] = nmodl_eigen_x[static_cast<int>(1)];
+            inst.var1[id] = nmodl_eigen_x[static_cast<int>(0)];
+            inst.var2[id] = nmodl_eigen_x[static_cast<int>(1)];
+            inst.var3[id] = nmodl_eigen_x[static_cast<int>(2)];
+            inst.var4[id] = nmodl_eigen_x[static_cast<int>(3)];
+            inst.var5[id] = nmodl_eigen_x[static_cast<int>(4)];
             newton_functor.initialize(); // TODO mimic calling F again.
             newton_functor.finalize();
 
@@ -834,65 +882,79 @@ namespace neuron {
     }
 
 
-    static void nrn_jacob_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_X2Y(_lmc);
-        auto node_data = make_node_data_X2Y(*nt, *_ml_arg);
+        auto inst = make_instance_scalar(_lmc);
+        auto node_data = make_node_data_scalar(*nt, *_ml_arg);
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
-    void nrn_destructor_X2Y(Prop* prop) {
+    void nrn_destructor_scalar(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_X2Y(_lmc);
-        auto node_data = make_node_data_X2Y(prop);
+        auto inst = make_instance_scalar(_lmc);
+        auto node_data = make_node_data_scalar(prop);
 
     }
 
 
     static void _initlists() {
-        /* X */
-        _slist1[0] = {3, 0};
-        /* DX */
+        /* var1 */
+        _slist1[0] = {0, 0};
+        /* Dvar1 */
         _dlist1[0] = {5, 0};
-        /* Y */
-        _slist1[1] = {4, 0};
-        /* DY */
+        /* var2 */
+        _slist1[1] = {1, 0};
+        /* Dvar2 */
         _dlist1[1] = {6, 0};
+        /* var3 */
+        _slist1[2] = {2, 0};
+        /* Dvar3 */
+        _dlist1[2] = {7, 0};
+        /* var4 */
+        _slist1[3] = {3, 0};
+        /* Dvar4 */
+        _dlist1[3] = {8, 0};
+        /* var5 */
+        _slist1[4] = {4, 0};
+        /* Dvar5 */
+        _dlist1[4] = {9, 0};
     }
 
 
     /** register channel with the simulator */
-    extern "C" void _X2Y_reg() {
+    extern "C" void _derivative_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_X2Y, nrn_cur_X2Y, nrn_jacob_X2Y, nrn_state_X2Y, nrn_init_X2Y, -1, 1);
+        register_mech(mechanism_info, nrn_alloc_scalar, nullptr, nrn_jacob_scalar, nrn_state_scalar, nrn_init_scalar, -1, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
-            _nrn_mechanism_field<double>{"il"} /* 0 */,
-            _nrn_mechanism_field<double>{"c1"} /* 1 */,
-            _nrn_mechanism_field<double>{"c2"} /* 2 */,
-            _nrn_mechanism_field<double>{"X"} /* 3 */,
-            _nrn_mechanism_field<double>{"Y"} /* 4 */,
-            _nrn_mechanism_field<double>{"DX"} /* 5 */,
-            _nrn_mechanism_field<double>{"DY"} /* 6 */,
-            _nrn_mechanism_field<double>{"i"} /* 7 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 8 */,
-            _nrn_mechanism_field<double>{"g_unused"} /* 9 */,
+            _nrn_mechanism_field<double>{"var1"} /* 0 */,
+            _nrn_mechanism_field<double>{"var2"} /* 1 */,
+            _nrn_mechanism_field<double>{"var3"} /* 2 */,
+            _nrn_mechanism_field<double>{"var4"} /* 3 */,
+            _nrn_mechanism_field<double>{"var5"} /* 4 */,
+            _nrn_mechanism_field<double>{"Dvar1"} /* 5 */,
+            _nrn_mechanism_field<double>{"Dvar2"} /* 6 */,
+            _nrn_mechanism_field<double>{"Dvar3"} /* 7 */,
+            _nrn_mechanism_field<double>{"Dvar4"} /* 8 */,
+            _nrn_mechanism_field<double>{"Dvar5"} /* 9 */,
+            _nrn_mechanism_field<double>{"v_unused"} /* 10 */,
+            _nrn_mechanism_field<double>{"g_unused"} /* 11 */,
             _nrn_mechanism_field<int>{"_cvode_ieq", "cvodeieq"} /* 0 */
         );
 
-        hoc_register_prop_size(mech_type, 10, 1);
+        hoc_register_prop_size(mech_type, 12, 1);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
         hoc_register_dparam_semantics(mech_type, 0, "cvodeieq");
-        hoc_register_cvode(mech_type, ode_count_X2Y, ode_map_X2Y, ode_spec_X2Y, ode_matsol_X2Y);
+        hoc_register_cvode(mech_type, ode_count_scalar, ode_map_scalar, ode_spec_scalar, ode_matsol_scalar);
         hoc_register_tolerance(mech_type, _hoc_state_tol, &_atollist);
     }
 }
