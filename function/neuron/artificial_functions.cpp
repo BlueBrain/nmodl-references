@@ -170,6 +170,9 @@ namespace neuron {
     /* Mechanism procedures and functions */
     inline double x_plus_a_art_functions(_nrn_mechanism_cache_range& _lmc, art_functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
     inline double identity_art_functions(_nrn_mechanism_cache_range& _lmc, art_functions_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
+    static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
+    }
+
     /* Point Process specific functions */
     static void* _hoc_create_pnt(Object* _ho) {
         return create_point_process(_pointtype, _ho);
@@ -282,11 +285,10 @@ namespace neuron {
 
 
     void nrn_init_art_functions(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_art_functions(_lmc);
-        auto node_data = make_node_data_art_functions(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             inst.z[id] = inst.global->z0;
@@ -297,9 +299,9 @@ namespace neuron {
 
 
     static void nrn_jacob_art_functions(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_art_functions(_lmc);
-        auto node_data = make_node_data_art_functions(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }

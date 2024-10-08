@@ -145,6 +145,9 @@ namespace neuron {
     /* Mechanism procedures and functions */
     inline double f_internal_function(_nrn_mechanism_cache_range& _lmc, internal_function_Instance& inst, internal_function_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     inline double g_internal_function(_nrn_mechanism_cache_range& _lmc, internal_function_Instance& inst, internal_function_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
+    }
+
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {
@@ -282,11 +285,11 @@ namespace neuron {
 
 
     void nrn_init_internal_function(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_internal_function(_lmc);
         auto node_data = make_node_data_internal_function(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
@@ -296,9 +299,10 @@ namespace neuron {
 
 
     static void nrn_jacob_internal_function(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_internal_function(_lmc);
         auto node_data = make_node_data_internal_function(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
