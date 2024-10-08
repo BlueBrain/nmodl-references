@@ -156,6 +156,9 @@ namespace neuron {
     inline int func_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, func_in_breakpoint_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     inline int func_with_v_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, func_in_breakpoint_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
     inline int func_with_other_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, func_in_breakpoint_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lq);
+    static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
+    }
+
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {
@@ -328,11 +331,11 @@ namespace neuron {
 
 
     void nrn_init_func_in_breakpoint(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_func_in_breakpoint(_lmc);
         auto node_data = make_node_data_func_in_breakpoint(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
@@ -353,11 +356,11 @@ namespace neuron {
 
     /** update current */
     void nrn_cur_func_in_breakpoint(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_func_in_breakpoint(_lmc);
         auto node_data = make_node_data_func_in_breakpoint(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             double v = node_data.node_voltages[node_id];
@@ -373,11 +376,11 @@ namespace neuron {
 
 
     void nrn_state_func_in_breakpoint(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_func_in_breakpoint(_lmc);
         auto node_data = make_node_data_func_in_breakpoint(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
@@ -387,9 +390,10 @@ namespace neuron {
 
 
     static void nrn_jacob_func_in_breakpoint(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_func_in_breakpoint(_lmc);
         auto node_data = make_node_data_func_in_breakpoint(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
