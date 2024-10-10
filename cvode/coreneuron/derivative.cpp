@@ -42,8 +42,6 @@ namespace coreneuron {
         "var1_scalar",
         "var2_scalar",
         "var3_scalar",
-        "var4_scalar",
-        "var5_scalar",
         0,
         0
     };
@@ -54,8 +52,6 @@ namespace coreneuron {
         double var10{};
         double var20{};
         double var30{};
-        double var40{};
-        double var50{};
         int reset{};
         int mech_type{};
         double freq{10};
@@ -67,13 +63,9 @@ namespace coreneuron {
         double v5{0.3};
         double r{3};
         double k{0.2};
-        double nmodl_alpha{1.2};
-        double nmodl_beta{4.5};
-        double nmodl_gamma{2.4};
-        double nmodl_delta{7.5};
-        int slist1[5]{0, 1, 2, 3, 4};
-        int dlist1[5]{5, 6, 7, 8, 9};
-        int slist2[5]{0, 1, 2, 3, 4};
+        int slist1[3]{0, 1, 2};
+        int dlist1[3]{3, 4, 5};
+        int slist2[3]{0, 1, 2};
         ThreadDatum ext_call_thread[3]{};
     };
     static_assert(std::is_trivially_copy_constructible_v<scalar_Store>);
@@ -89,13 +81,9 @@ namespace coreneuron {
         double* var1{};
         double* var2{};
         double* var3{};
-        double* var4{};
-        double* var5{};
         double* Dvar1{};
         double* Dvar2{};
         double* Dvar3{};
-        double* Dvar4{};
-        double* Dvar5{};
         double* v_unused{};
         double* g_unused{};
         scalar_Store* global{&scalar_global};
@@ -113,10 +101,6 @@ namespace coreneuron {
         {"v5_scalar", &scalar_global.v5},
         {"r_scalar", &scalar_global.r},
         {"k_scalar", &scalar_global.k},
-        {"nmodl_alpha_scalar", &scalar_global.nmodl_alpha},
-        {"nmodl_beta_scalar", &scalar_global.nmodl_beta},
-        {"nmodl_gamma_scalar", &scalar_global.nmodl_gamma},
-        {"nmodl_delta_scalar", &scalar_global.nmodl_delta},
         {nullptr, nullptr}
     };
 
@@ -153,7 +137,7 @@ namespace coreneuron {
 
 
     static inline int float_variables_size() {
-        return 12;
+        return 8;
     }
 
 
@@ -244,15 +228,11 @@ namespace coreneuron {
         inst->var1 = ml->data+0*pnodecount;
         inst->var2 = ml->data+1*pnodecount;
         inst->var3 = ml->data+2*pnodecount;
-        inst->var4 = ml->data+3*pnodecount;
-        inst->var5 = ml->data+4*pnodecount;
-        inst->Dvar1 = ml->data+5*pnodecount;
-        inst->Dvar2 = ml->data+6*pnodecount;
-        inst->Dvar3 = ml->data+7*pnodecount;
-        inst->Dvar4 = ml->data+8*pnodecount;
-        inst->Dvar5 = ml->data+9*pnodecount;
-        inst->v_unused = ml->data+10*pnodecount;
-        inst->g_unused = ml->data+11*pnodecount;
+        inst->Dvar1 = ml->data+3*pnodecount;
+        inst->Dvar2 = ml->data+4*pnodecount;
+        inst->Dvar3 = ml->data+5*pnodecount;
+        inst->v_unused = ml->data+6*pnodecount;
+        inst->g_unused = ml->data+7*pnodecount;
     }
 
 
@@ -299,14 +279,12 @@ namespace coreneuron {
                 double* savstate1 = static_cast<double*>(thread[dith1()].pval);
                 auto const& slist1 = inst->global->slist1;
                 auto const& dlist1 = inst->global->dlist1;
-                double* dlist2 = static_cast<double*>(thread[dith1()].pval) + (5*pnodecount);
+                double* dlist2 = static_cast<double*>(thread[dith1()].pval) + (3*pnodecount);
                 inst->Dvar1[id] =  -sin(inst->global->freq * nt->_t);
                 inst->Dvar2[id] =  -inst->var2[id] * inst->global->a;
                 inst->Dvar3[id] = inst->global->r * inst->var3[id] * (1.0 - inst->var3[id] / inst->global->k);
-                inst->Dvar4[id] = inst->global->nmodl_alpha * inst->var4[id] - inst->global->nmodl_beta * inst->var4[id] * inst->var5[id];
-                inst->Dvar5[id] = inst->global->nmodl_delta * inst->var4[id] * inst->var5[id] - inst->global->nmodl_gamma * inst->var5[id];
                 int counter = -1;
-                for (int i=0; i<5; i++) {
+                for (int i=0; i<3; i++) {
                     if (*deriv1_advance(thread)) {
                         dlist2[(++counter)*pnodecount+id] = data[dlist1[i]*pnodecount+id]-(data[slist1[i]*pnodecount+id]-savstate1[i*pnodecount+id])/nt->_dt;
                     } else {
@@ -323,11 +301,11 @@ namespace coreneuron {
         double* savstate1 = (double*) thread[dith1()].pval;
         auto const& slist1 = inst->global->slist1;
         auto& slist2 = inst->global->slist2;
-        double* dlist2 = static_cast<double*>(thread[dith1()].pval) + (5*pnodecount);
-        for (int i=0; i<5; i++) {
+        double* dlist2 = static_cast<double*>(thread[dith1()].pval) + (3*pnodecount);
+        for (int i=0; i<3; i++) {
             savstate1[i*pnodecount+id] = data[slist1[i]*pnodecount+id];
         }
-        int reset = nrn_newton_thread(static_cast<NewtonSpace*>(*newtonspace1(thread)), 5, slist2, _newton_equation_scalar{}, dlist2, id, pnodecount, data, indexes, thread, nt, ml, v);
+        int reset = nrn_newton_thread(static_cast<NewtonSpace*>(*newtonspace1(thread)), 3, slist2, _newton_equation_scalar{}, dlist2, id, pnodecount, data, indexes, thread, nt, ml, v);
         return reset;
     }
 
@@ -353,10 +331,10 @@ namespace coreneuron {
         auto ns = newtonspace1(thread);
         auto& th = thread[dith1()];
         if (*ns == nullptr) {
-            int vec_size = 2*5*pnodecount*sizeof(double);
+            int vec_size = 2*3*pnodecount*sizeof(double);
             double* vec = makevector(vec_size);
             th.pval = vec;
-            *ns = nrn_cons_newtonspace(5, pnodecount);
+            *ns = nrn_cons_newtonspace(3, pnodecount);
         }
         if (_nrn_skip_initmodel == 0) {
             #pragma omp simd
@@ -370,13 +348,9 @@ namespace coreneuron {
                 inst->var1[id] = inst->global->var10;
                 inst->var2[id] = inst->global->var20;
                 inst->var3[id] = inst->global->var30;
-                inst->var4[id] = inst->global->var40;
-                inst->var5[id] = inst->global->var50;
                 inst->var1[id] = inst->global->v1;
                 inst->var2[id] = inst->global->v2;
                 inst->var3[id] = inst->global->v3;
-                inst->var4[id] = inst->global->v4;
-                inst->var5[id] = inst->global->v5;
             }
         }
         deriv_advance_flag = 1;

@@ -411,7 +411,7 @@ EIGEN_DEVICE_FUNC int newton_solver(Eigen::Matrix<double, 4, 1>& X,
 #define NRN_VECTORIZED 1
 
 static constexpr auto number_of_datum_variables = 0;
-static constexpr auto number_of_floating_point_variables = 12;
+static constexpr auto number_of_floating_point_variables = 8;
 
 namespace {
 template <typename T>
@@ -448,15 +448,13 @@ namespace neuron {
         "var1_scalar",
         "var2_scalar",
         "var3_scalar",
-        "var4_scalar",
-        "var5_scalar",
         0,
         0
     };
 
 
     /* NEURON global variables */
-    static neuron::container::field_index _slist1[5], _dlist1[5];
+    static neuron::container::field_index _slist1[3], _dlist1[3];
     static Symbol** _atollist;
     static HocStateTolerance _hoc_state_tol[] = {
         {0, 0}
@@ -479,15 +477,9 @@ namespace neuron {
         double v5{0.3};
         double r{3};
         double k{0.2};
-        double nmodl_alpha{1.2};
-        double nmodl_beta{4.5};
-        double nmodl_gamma{2.4};
-        double nmodl_delta{7.5};
         double var10{0};
         double var20{0};
         double var30{0};
-        double var40{0};
-        double var50{0};
     };
     static_assert(std::is_trivially_copy_constructible_v<scalar_Store>);
     static_assert(std::is_trivially_move_constructible_v<scalar_Store>);
@@ -522,18 +514,6 @@ namespace neuron {
     auto k_scalar() -> std::decay<decltype(scalar_global.k)>::type  {
         return scalar_global.k;
     }
-    auto nmodl_alpha_scalar() -> std::decay<decltype(scalar_global.nmodl_alpha)>::type  {
-        return scalar_global.nmodl_alpha;
-    }
-    auto nmodl_beta_scalar() -> std::decay<decltype(scalar_global.nmodl_beta)>::type  {
-        return scalar_global.nmodl_beta;
-    }
-    auto nmodl_gamma_scalar() -> std::decay<decltype(scalar_global.nmodl_gamma)>::type  {
-        return scalar_global.nmodl_gamma;
-    }
-    auto nmodl_delta_scalar() -> std::decay<decltype(scalar_global.nmodl_delta)>::type  {
-        return scalar_global.nmodl_delta;
-    }
     auto var10_scalar() -> std::decay<decltype(scalar_global.var10)>::type  {
         return scalar_global.var10;
     }
@@ -542,12 +522,6 @@ namespace neuron {
     }
     auto var30_scalar() -> std::decay<decltype(scalar_global.var30)>::type  {
         return scalar_global.var30;
-    }
-    auto var40_scalar() -> std::decay<decltype(scalar_global.var40)>::type  {
-        return scalar_global.var40;
-    }
-    auto var50_scalar() -> std::decay<decltype(scalar_global.var50)>::type  {
-        return scalar_global.var50;
     }
 
     static std::vector<double> _parameter_defaults = {
@@ -559,13 +533,9 @@ namespace neuron {
         double* var1{};
         double* var2{};
         double* var3{};
-        double* var4{};
-        double* var5{};
         double* Dvar1{};
         double* Dvar2{};
         double* Dvar3{};
-        double* Dvar4{};
-        double* Dvar5{};
         double* v_unused{};
         double* g_unused{};
         scalar_Store* global{&scalar_global};
@@ -590,11 +560,7 @@ namespace neuron {
             _lmc.template fpfield_ptr<4>(),
             _lmc.template fpfield_ptr<5>(),
             _lmc.template fpfield_ptr<6>(),
-            _lmc.template fpfield_ptr<7>(),
-            _lmc.template fpfield_ptr<8>(),
-            _lmc.template fpfield_ptr<9>(),
-            _lmc.template fpfield_ptr<10>(),
-            _lmc.template fpfield_ptr<11>()
+            _lmc.template fpfield_ptr<7>()
         };
     }
 
@@ -629,7 +595,7 @@ namespace neuron {
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const _iml = 0;
-        assert(_nrn_mechanism_get_num_vars(_prop) == 12);
+        assert(_nrn_mechanism_get_num_vars(_prop) == 8);
         /*initialize range parameters*/
     }
 
@@ -639,7 +605,7 @@ namespace neuron {
 
     /* Functions related to CVODE codegen */
     static constexpr int ode_count_scalar(int _type) {
-        return 5;
+        return 3;
     }
 
 
@@ -649,8 +615,6 @@ namespace neuron {
         inst.Dvar1[id] =  -sin(inst.global->freq * nt->_t);
         inst.Dvar2[id] =  -inst.var2[id] * inst.global->a;
         inst.Dvar3[id] = inst.global->r * inst.var3[id] * (1.0 - inst.var3[id] / inst.global->k);
-        inst.Dvar4[id] = inst.global->nmodl_alpha * inst.var4[id] - inst.global->nmodl_beta * inst.var4[id] * inst.var5[id];
-        inst.Dvar5[id] = inst.global->nmodl_delta * inst.var4[id] * inst.var5[id] - inst.global->nmodl_gamma * inst.var5[id];
         return 0;
     }
 
@@ -685,8 +649,6 @@ namespace neuron {
         inst.Dvar1[id] = inst.Dvar1[id] / (1.0 - nt->_dt * (0.0));
         inst.Dvar2[id] = inst.Dvar2[id] / (1.0 - nt->_dt * ( -inst.global->a));
         inst.Dvar3[id] = inst.Dvar3[id] / (1.0 - nt->_dt * (inst.global->r * (inst.global->k - 2.0 * inst.var3[id]) / inst.global->k));
-        inst.Dvar4[id] = inst.Dvar4[id] / (1.0 - nt->_dt * (inst.global->nmodl_alpha - inst.global->nmodl_beta * inst.var5[id]));
-        inst.Dvar5[id] = inst.Dvar5[id] / (1.0 - nt->_dt * (inst.global->nmodl_delta * inst.var4[id] - inst.global->nmodl_gamma));
     }
 
 
@@ -725,20 +687,18 @@ namespace neuron {
         Datum* _thread;
         NrnThread* nt;
         double v;
-        double old_var1, old_var2, old_var3, old_var4, old_var5;
+        double old_var1, old_var2, old_var3;
 
         void initialize() {
             old_var1 = inst.var1[id];
             old_var2 = inst.var2[id];
             old_var3 = inst.var3[id];
-            old_var4 = inst.var4[id];
-            old_var5 = inst.var5[id];
         }
 
         functor_scalar_0(_nrn_mechanism_cache_range& _lmc, scalar_Instance& inst, scalar_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v)
             : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt), v(v)
         {}
-        void operator()(const Eigen::Matrix<double, 5, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 5, 1>& nmodl_eigen_dxm, Eigen::Matrix<double, 5, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 5, 5>& nmodl_eigen_jm) const {
+        void operator()(const Eigen::Matrix<double, 3, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 3, 1>& nmodl_eigen_dxm, Eigen::Matrix<double, 3, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 3, 3>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
             double* nmodl_eigen_dx = nmodl_eigen_dxm.data();
             double* nmodl_eigen_j = nmodl_eigen_jm.data();
@@ -746,38 +706,18 @@ namespace neuron {
             nmodl_eigen_dx[0] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[0]));
             nmodl_eigen_dx[1] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[1]));
             nmodl_eigen_dx[2] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[2]));
-            nmodl_eigen_dx[3] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[3]));
-            nmodl_eigen_dx[4] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[4]));
             nmodl_eigen_f[static_cast<int>(0)] = ( -nmodl_eigen_x[static_cast<int>(0)] - nt->_dt * sin(inst.global->freq * nt->_t) + old_var1) / nt->_dt;
             nmodl_eigen_j[static_cast<int>(0)] =  -1.0 / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(5)] = 0.0;
-            nmodl_eigen_j[static_cast<int>(10)] = 0.0;
-            nmodl_eigen_j[static_cast<int>(15)] = 0.0;
-            nmodl_eigen_j[static_cast<int>(20)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(3)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(6)] = 0.0;
             nmodl_eigen_f[static_cast<int>(1)] = ( -nmodl_eigen_x[static_cast<int>(1)] * inst.global->a * nt->_dt - nmodl_eigen_x[static_cast<int>(1)] + old_var2) / nt->_dt;
             nmodl_eigen_j[static_cast<int>(1)] = 0.0;
-            nmodl_eigen_j[static_cast<int>(6)] =  -inst.global->a - 1.0 / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(11)] = 0.0;
-            nmodl_eigen_j[static_cast<int>(16)] = 0.0;
-            nmodl_eigen_j[static_cast<int>(21)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(4)] =  -inst.global->a - 1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(7)] = 0.0;
             nmodl_eigen_f[static_cast<int>(2)] =  -pow(nmodl_eigen_x[static_cast<int>(2)], 2.0) * inst.global->r / inst.global->k + nmodl_eigen_x[static_cast<int>(2)] * inst.global->r - nmodl_eigen_x[static_cast<int>(2)] / nt->_dt + old_var3 / nt->_dt;
             nmodl_eigen_j[static_cast<int>(2)] = 0.0;
-            nmodl_eigen_j[static_cast<int>(7)] = 0.0;
-            nmodl_eigen_j[static_cast<int>(12)] =  -2.0 * nmodl_eigen_x[static_cast<int>(2)] * inst.global->r / inst.global->k + inst.global->r - 1.0 / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(17)] = 0.0;
-            nmodl_eigen_j[static_cast<int>(22)] = 0.0;
-            nmodl_eigen_f[static_cast<int>(3)] = (nmodl_eigen_x[static_cast<int>(3)] * nt->_dt * ( -nmodl_eigen_x[static_cast<int>(4)] * inst.global->nmodl_beta + inst.global->nmodl_alpha) - nmodl_eigen_x[static_cast<int>(3)] + old_var4) / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(3)] = 0.0;
-            nmodl_eigen_j[static_cast<int>(8)] = 0.0;
-            nmodl_eigen_j[static_cast<int>(13)] = 0.0;
-            nmodl_eigen_j[static_cast<int>(18)] =  -nmodl_eigen_x[static_cast<int>(4)] * inst.global->nmodl_beta + inst.global->nmodl_alpha - 1.0 / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(23)] =  -nmodl_eigen_x[static_cast<int>(3)] * inst.global->nmodl_beta;
-            nmodl_eigen_f[static_cast<int>(4)] = (nmodl_eigen_x[static_cast<int>(4)] * nt->_dt * (nmodl_eigen_x[static_cast<int>(3)] * inst.global->nmodl_delta - inst.global->nmodl_gamma) - nmodl_eigen_x[static_cast<int>(4)] + old_var5) / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(4)] = 0.0;
-            nmodl_eigen_j[static_cast<int>(9)] = 0.0;
-            nmodl_eigen_j[static_cast<int>(14)] = 0.0;
-            nmodl_eigen_j[static_cast<int>(19)] = nmodl_eigen_x[static_cast<int>(4)] * inst.global->nmodl_delta;
-            nmodl_eigen_j[static_cast<int>(24)] = nmodl_eigen_x[static_cast<int>(3)] * inst.global->nmodl_delta - inst.global->nmodl_gamma - 1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(5)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(8)] =  -2.0 * nmodl_eigen_x[static_cast<int>(2)] * inst.global->r / inst.global->k + inst.global->r - 1.0 / nt->_dt;
         }
 
         void finalize() {
@@ -796,10 +736,6 @@ namespace neuron {
         {"v5_scalar", &scalar_global.v5},
         {"r_scalar", &scalar_global.r},
         {"k_scalar", &scalar_global.k},
-        {"nmodl_alpha_scalar", &scalar_global.nmodl_alpha},
-        {"nmodl_beta_scalar", &scalar_global.nmodl_beta},
-        {"nmodl_gamma_scalar", &scalar_global.nmodl_gamma},
-        {"nmodl_delta_scalar", &scalar_global.nmodl_delta},
         {nullptr, nullptr}
     };
 
@@ -836,13 +772,9 @@ namespace neuron {
             inst.var1[id] = inst.global->var10;
             inst.var2[id] = inst.global->var20;
             inst.var3[id] = inst.global->var30;
-            inst.var4[id] = inst.global->var40;
-            inst.var5[id] = inst.global->var50;
             inst.var1[id] = inst.global->v1;
             inst.var2[id] = inst.global->v2;
             inst.var3[id] = inst.global->v3;
-            inst.var4[id] = inst.global->v4;
-            inst.var5[id] = inst.global->v5;
         }
     }
 
@@ -858,13 +790,11 @@ namespace neuron {
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
             
-            Eigen::Matrix<double, 5, 1> nmodl_eigen_xm;
+            Eigen::Matrix<double, 3, 1> nmodl_eigen_xm;
             double* nmodl_eigen_x = nmodl_eigen_xm.data();
             nmodl_eigen_x[static_cast<int>(0)] = inst.var1[id];
             nmodl_eigen_x[static_cast<int>(1)] = inst.var2[id];
             nmodl_eigen_x[static_cast<int>(2)] = inst.var3[id];
-            nmodl_eigen_x[static_cast<int>(3)] = inst.var4[id];
-            nmodl_eigen_x[static_cast<int>(4)] = inst.var5[id];
             // call newton solver
             functor_scalar_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, nt, v);
             newton_functor.initialize();
@@ -873,8 +803,6 @@ namespace neuron {
             inst.var1[id] = nmodl_eigen_x[static_cast<int>(0)];
             inst.var2[id] = nmodl_eigen_x[static_cast<int>(1)];
             inst.var3[id] = nmodl_eigen_x[static_cast<int>(2)];
-            inst.var4[id] = nmodl_eigen_x[static_cast<int>(3)];
-            inst.var5[id] = nmodl_eigen_x[static_cast<int>(4)];
             newton_functor.initialize(); // TODO mimic calling F again.
             newton_functor.finalize();
 
@@ -907,23 +835,15 @@ namespace neuron {
         /* var1 */
         _slist1[0] = {0, 0};
         /* Dvar1 */
-        _dlist1[0] = {5, 0};
+        _dlist1[0] = {3, 0};
         /* var2 */
         _slist1[1] = {1, 0};
         /* Dvar2 */
-        _dlist1[1] = {6, 0};
+        _dlist1[1] = {4, 0};
         /* var3 */
         _slist1[2] = {2, 0};
         /* Dvar3 */
-        _dlist1[2] = {7, 0};
-        /* var4 */
-        _slist1[3] = {3, 0};
-        /* Dvar4 */
-        _dlist1[3] = {8, 0};
-        /* var5 */
-        _slist1[4] = {4, 0};
-        /* Dvar5 */
-        _dlist1[4] = {9, 0};
+        _dlist1[2] = {5, 0};
     }
 
 
@@ -939,19 +859,15 @@ namespace neuron {
             _nrn_mechanism_field<double>{"var1"} /* 0 */,
             _nrn_mechanism_field<double>{"var2"} /* 1 */,
             _nrn_mechanism_field<double>{"var3"} /* 2 */,
-            _nrn_mechanism_field<double>{"var4"} /* 3 */,
-            _nrn_mechanism_field<double>{"var5"} /* 4 */,
-            _nrn_mechanism_field<double>{"Dvar1"} /* 5 */,
-            _nrn_mechanism_field<double>{"Dvar2"} /* 6 */,
-            _nrn_mechanism_field<double>{"Dvar3"} /* 7 */,
-            _nrn_mechanism_field<double>{"Dvar4"} /* 8 */,
-            _nrn_mechanism_field<double>{"Dvar5"} /* 9 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 10 */,
-            _nrn_mechanism_field<double>{"g_unused"} /* 11 */,
+            _nrn_mechanism_field<double>{"Dvar1"} /* 3 */,
+            _nrn_mechanism_field<double>{"Dvar2"} /* 4 */,
+            _nrn_mechanism_field<double>{"Dvar3"} /* 5 */,
+            _nrn_mechanism_field<double>{"v_unused"} /* 6 */,
+            _nrn_mechanism_field<double>{"g_unused"} /* 7 */,
             _nrn_mechanism_field<int>{"_cvode_ieq", "cvodeieq"} /* 0 */
         );
 
-        hoc_register_prop_size(mech_type, 12, 1);
+        hoc_register_prop_size(mech_type, 8, 1);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
         hoc_register_dparam_semantics(mech_type, 0, "cvodeieq");
