@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : derivimplicit_scalar
-Filename        : derivimplicit_scalar.mod
+Model Name      : heat_eqn_thread_vars
+Filename        : heat_eqn_thread_vars.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -405,13 +405,14 @@ EIGEN_DEVICE_FUNC int newton_solver(Eigen::Matrix<double, 4, 1>& X,
 #include "neuron/cache/mechanism_range.hpp"
 #include "nrniv_mf.h"
 #include "section_fwd.hpp"
+extern void _nrn_thread_reg(int, int, void(*)(Datum*));
 
 /* NEURON global macro definitions */
 /* VECTORIZED */
 #define NRN_VECTORIZED 1
 
 static constexpr auto number_of_datum_variables = 0;
-static constexpr auto number_of_floating_point_variables = 4;
+static constexpr auto number_of_floating_point_variables = 5;
 
 namespace {
 template <typename T>
@@ -441,10 +442,11 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "derivimplicit_scalar",
+        "heat_eqn_thread_vars",
         0,
+        "x_heat_eqn_thread_vars",
         0,
-        "x_derivimplicit_scalar",
+        "X_heat_eqn_thread_vars",
         0,
         0
     };
@@ -460,17 +462,25 @@ namespace neuron {
 
 
     /** all global variables */
-    struct derivimplicit_scalar_Store {
-        double x0{0};
+    struct heat_eqn_thread_vars_Store {
+        double thread_data_in_use{0};
+        double thread_data[2] /* TODO init const-array */;
+        double X0{0};
     };
-    static_assert(std::is_trivially_copy_constructible_v<derivimplicit_scalar_Store>);
-    static_assert(std::is_trivially_move_constructible_v<derivimplicit_scalar_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<derivimplicit_scalar_Store>);
-    static_assert(std::is_trivially_move_assignable_v<derivimplicit_scalar_Store>);
-    static_assert(std::is_trivially_destructible_v<derivimplicit_scalar_Store>);
-    derivimplicit_scalar_Store derivimplicit_scalar_global;
-    auto x0_derivimplicit_scalar() -> std::decay<decltype(derivimplicit_scalar_global.x0)>::type  {
-        return derivimplicit_scalar_global.x0;
+    static_assert(std::is_trivially_copy_constructible_v<heat_eqn_thread_vars_Store>);
+    static_assert(std::is_trivially_move_constructible_v<heat_eqn_thread_vars_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<heat_eqn_thread_vars_Store>);
+    static_assert(std::is_trivially_move_assignable_v<heat_eqn_thread_vars_Store>);
+    static_assert(std::is_trivially_destructible_v<heat_eqn_thread_vars_Store>);
+    heat_eqn_thread_vars_Store heat_eqn_thread_vars_global;
+    auto thread_data_in_use_heat_eqn_thread_vars() -> std::decay<decltype(heat_eqn_thread_vars_global.thread_data_in_use)>::type  {
+        return heat_eqn_thread_vars_global.thread_data_in_use;
+    }
+    auto thread_data_heat_eqn_thread_vars() -> std::decay<decltype(heat_eqn_thread_vars_global.thread_data)>::type  {
+        return heat_eqn_thread_vars_global.thread_data;
+    }
+    auto X0_heat_eqn_thread_vars() -> std::decay<decltype(heat_eqn_thread_vars_global.X0)>::type  {
+        return heat_eqn_thread_vars_global.X0;
     }
 
     static std::vector<double> _parameter_defaults = {
@@ -478,16 +488,17 @@ namespace neuron {
 
 
     /** all mechanism instance variables and global variables */
-    struct derivimplicit_scalar_Instance  {
+    struct heat_eqn_thread_vars_Instance  {
         double* x{};
-        double* Dx{};
+        double* X{};
+        double* DX{};
         double* v_unused{};
         double* g_unused{};
-        derivimplicit_scalar_Store* global{&derivimplicit_scalar_global};
+        heat_eqn_thread_vars_Store* global{&heat_eqn_thread_vars_global};
     };
 
 
-    struct derivimplicit_scalar_NodeData  {
+    struct heat_eqn_thread_vars_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -496,18 +507,41 @@ namespace neuron {
     };
 
 
-    static derivimplicit_scalar_Instance make_instance_derivimplicit_scalar(_nrn_mechanism_cache_range& _lmc) {
-        return derivimplicit_scalar_Instance {
+    struct heat_eqn_thread_vars_ThreadVariables  {
+        double * thread_data;
+
+        double * mu_ptr(size_t id) {
+            return thread_data + 0 + (id % 1);
+        }
+        double & mu(size_t id) {
+            return thread_data[0 + (id % 1)];
+        }
+        double * vol_ptr(size_t id) {
+            return thread_data + 1 + (id % 1);
+        }
+        double & vol(size_t id) {
+            return thread_data[1 + (id % 1)];
+        }
+
+        heat_eqn_thread_vars_ThreadVariables(double * const thread_data) {
+            this->thread_data = thread_data;
+        }
+    };
+
+
+    static heat_eqn_thread_vars_Instance make_instance_heat_eqn_thread_vars(_nrn_mechanism_cache_range& _lmc) {
+        return heat_eqn_thread_vars_Instance {
             _lmc.template fpfield_ptr<0>(),
             _lmc.template fpfield_ptr<1>(),
             _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>()
+            _lmc.template fpfield_ptr<3>(),
+            _lmc.template fpfield_ptr<4>()
         };
     }
 
 
-    static derivimplicit_scalar_NodeData make_node_data_derivimplicit_scalar(NrnThread& nt, Memb_list& _ml_arg) {
-        return derivimplicit_scalar_NodeData {
+    static heat_eqn_thread_vars_NodeData make_node_data_heat_eqn_thread_vars(NrnThread& nt, Memb_list& _ml_arg) {
+        return heat_eqn_thread_vars_NodeData {
             _ml_arg.nodeindices,
             nt.node_voltage_storage(),
             nt.node_d_storage(),
@@ -515,10 +549,10 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
-    static derivimplicit_scalar_NodeData make_node_data_derivimplicit_scalar(Prop * _prop) {
+    static heat_eqn_thread_vars_NodeData make_node_data_heat_eqn_thread_vars(Prop * _prop) {
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
-        return derivimplicit_scalar_NodeData {
+        return heat_eqn_thread_vars_NodeData {
             node_index.data(),
             &_nrn_mechanism_access_voltage(_node),
             &_nrn_mechanism_access_d(_node),
@@ -527,20 +561,34 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_derivimplicit_scalar(Prop* prop);
+    void nrn_destructor_heat_eqn_thread_vars(Prop* prop);
 
 
-    static void nrn_alloc_derivimplicit_scalar(Prop* _prop) {
+    static void nrn_alloc_heat_eqn_thread_vars(Prop* _prop) {
         Datum *_ppvar = nullptr;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const _iml = 0;
-        assert(_nrn_mechanism_get_num_vars(_prop) == 4);
+        assert(_nrn_mechanism_get_num_vars(_prop) == 5);
         /*initialize range parameters*/
     }
 
 
     /* Mechanism procedures and functions */
+    static void* _diffusion_space_X;
+    static double _diffusion_coefficient_X(int _i, Memb_list* _ml_arg, size_t id, Datum* _ppvar, double* _pdvol, double* _pdfcdc, Datum* /* _thread */, NrnThread* nt, const _nrn_model_sorted_token& _sorted_token) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_heat_eqn_thread_vars(_lmc);
+        auto node_data = make_node_data_heat_eqn_thread_vars(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
+        auto _thread_vars = heat_eqn_thread_vars_ThreadVariables(_thread[0].get<double*>());
+        *_pdvol= _thread_vars.vol(id);
+        *_pdfcdc = 0.0;
+        return _thread_vars.mu(id);
+    }
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
+        for(size_t _i = 0; _i < 1; ++_i) {
+            (*_f)(mech_type, _diffusion_coefficient_X, &_diffusion_space_X, _i, /* x pos */ 1, /* Dx pos */ 2, _sorted_token, _nt);
+        }
     }
 
     /* Neuron setdata functions */
@@ -556,23 +604,26 @@ namespace neuron {
     }
 
 
-    struct functor_derivimplicit_scalar_0 {
+    struct functor_heat_eqn_thread_vars_0 {
         _nrn_mechanism_cache_range& _lmc;
-        derivimplicit_scalar_Instance& inst;
-        derivimplicit_scalar_NodeData& node_data;
+        heat_eqn_thread_vars_Instance& inst;
+        heat_eqn_thread_vars_NodeData& node_data;
         size_t id;
         Datum* _ppvar;
         Datum* _thread;
+        heat_eqn_thread_vars_ThreadVariables& _thread_vars;
         NrnThread* nt;
         double v;
-        double old_x;
+        double source0_, old_X;
 
         void initialize() {
-            old_x = inst.x[id];
+            ;
+            source0_ = 0.0;
+            old_X = inst.X[id];
         }
 
-        functor_derivimplicit_scalar_0(_nrn_mechanism_cache_range& _lmc, derivimplicit_scalar_Instance& inst, derivimplicit_scalar_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v)
-            : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt), v(v)
+        functor_heat_eqn_thread_vars_0(_nrn_mechanism_cache_range& _lmc, heat_eqn_thread_vars_Instance& inst, heat_eqn_thread_vars_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, heat_eqn_thread_vars_ThreadVariables& _thread_vars, NrnThread* nt, double v)
+            : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), _thread_vars(_thread_vars), nt(nt), v(v)
         {}
         void operator()(const Eigen::Matrix<double, 1, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_dxm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
@@ -580,8 +631,8 @@ namespace neuron {
             double* nmodl_eigen_j = nmodl_eigen_jm.data();
             double* nmodl_eigen_f = nmodl_eigen_fm.data();
             nmodl_eigen_dx[0] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[0]));
-            nmodl_eigen_f[static_cast<int>(0)] = ( -nmodl_eigen_x[static_cast<int>(0)] * nt->_dt - nmodl_eigen_x[static_cast<int>(0)] + old_x) / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(0)] = ( -nt->_dt - 1.0) / nt->_dt;
+            nmodl_eigen_f[static_cast<int>(0)] =  -nmodl_eigen_x[static_cast<int>(0)] / nt->_dt + source0_ / _thread_vars.vol(id) + old_X / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(0)] =  -1.0 / nt->_dt;
         }
 
         void finalize() {
@@ -591,6 +642,8 @@ namespace neuron {
 
     /** connect global (scalar) variables to hoc -- */
     static DoubScal hoc_scalar_double[] = {
+        {"mu_heat_eqn_thread_vars", &heat_eqn_thread_vars_global.thread_data[0]},
+        {"vol_heat_eqn_thread_vars", &heat_eqn_thread_vars_global.thread_data[1]},
         {nullptr, nullptr}
     };
 
@@ -606,35 +659,61 @@ namespace neuron {
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
-        {"setdata_derivimplicit_scalar", _hoc_setdata},
+        {"setdata_heat_eqn_thread_vars", _hoc_setdata},
         {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
         {nullptr, nullptr}
     };
+    static void thread_mem_init(Datum* _thread)  {
+        if(heat_eqn_thread_vars_global.thread_data_in_use) {
+            _thread[0] = {neuron::container::do_not_search, new double[2]{}};
+        }
+        else {
+            _thread[0] = {neuron::container::do_not_search, heat_eqn_thread_vars_global.thread_data};
+            heat_eqn_thread_vars_global.thread_data_in_use = 1;
+        }
+    }
+    static void thread_mem_cleanup(Datum* _thread)  {
+        double * _thread_data_ptr = _thread[0].get<double*>();
+        if(_thread_data_ptr == heat_eqn_thread_vars_global.thread_data) {
+            heat_eqn_thread_vars_global.thread_data_in_use = 0;
+        }
+        else {
+            delete[] _thread_data_ptr;
+        }
+    }
 
 
-    void nrn_init_derivimplicit_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    void nrn_init_heat_eqn_thread_vars(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_derivimplicit_scalar(_lmc);
-        auto node_data = make_node_data_derivimplicit_scalar(*nt, *_ml_arg);
+        auto inst = make_instance_heat_eqn_thread_vars(_lmc);
+        auto node_data = make_node_data_heat_eqn_thread_vars(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
+        auto _thread_vars = heat_eqn_thread_vars_ThreadVariables(_thread[0].get<double*>());
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             auto v = node_data.node_voltages[node_id];
-            inst.x[id] = inst.global->x0;
-            inst.x[id] = 42.0;
+            inst.X[id] = inst.global->X0;
+            _thread_vars.mu(id) = 1.1;
+            _thread_vars.vol(id) = 0.01;
+            if (inst.x[id] < 0.5) {
+                inst.X[id] = 1.0;
+            } else {
+                inst.X[id] = 0.0;
+            }
         }
     }
 
 
-    void nrn_state_derivimplicit_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    void nrn_state_heat_eqn_thread_vars(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_derivimplicit_scalar(_lmc);
-        auto node_data = make_node_data_derivimplicit_scalar(*nt, *_ml_arg);
+        auto inst = make_instance_heat_eqn_thread_vars(_lmc);
+        auto node_data = make_node_data_heat_eqn_thread_vars(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
+        auto _thread_vars = heat_eqn_thread_vars_ThreadVariables(_thread[0].get<double*>());
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
@@ -643,13 +722,13 @@ namespace neuron {
             
             Eigen::Matrix<double, 1, 1> nmodl_eigen_xm;
             double* nmodl_eigen_x = nmodl_eigen_xm.data();
-            nmodl_eigen_x[static_cast<int>(0)] = inst.x[id];
+            nmodl_eigen_x[static_cast<int>(0)] = inst.X[id];
             // call newton solver
-            functor_derivimplicit_scalar_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, nt, v);
+            functor_heat_eqn_thread_vars_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, v);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
-            inst.x[id] = nmodl_eigen_x[static_cast<int>(0)];
+            inst.X[id] = nmodl_eigen_x[static_cast<int>(0)];
             newton_functor.initialize(); // TODO mimic calling F again.
             newton_functor.finalize();
 
@@ -657,52 +736,61 @@ namespace neuron {
     }
 
 
-    static void nrn_jacob_derivimplicit_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_heat_eqn_thread_vars(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_derivimplicit_scalar(_lmc);
-        auto node_data = make_node_data_derivimplicit_scalar(*nt, *_ml_arg);
+        auto inst = make_instance_heat_eqn_thread_vars(_lmc);
+        auto node_data = make_node_data_heat_eqn_thread_vars(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
+        auto _thread_vars = heat_eqn_thread_vars_ThreadVariables(_thread[0].get<double*>());
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
-    void nrn_destructor_derivimplicit_scalar(Prop* prop) {
+    void nrn_destructor_heat_eqn_thread_vars(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_derivimplicit_scalar(_lmc);
-        auto node_data = make_node_data_derivimplicit_scalar(prop);
+        auto inst = make_instance_heat_eqn_thread_vars(_lmc);
+        auto node_data = make_node_data_heat_eqn_thread_vars(prop);
+        auto _thread_vars = heat_eqn_thread_vars_ThreadVariables(heat_eqn_thread_vars_global.thread_data);
 
     }
 
 
     static void _initlists() {
-        /* x */
-        _slist1[0] = {0, 0};
-        /* Dx */
-        _dlist1[0] = {1, 0};
+        /* X */
+        _slist1[0] = {1, 0};
+        /* DX */
+        _dlist1[0] = {2, 0};
     }
 
 
     /** register channel with the simulator */
-    extern "C" void _derivimplicit_scalar_reg() {
+    extern "C" void _heat_eqn_thread_vars_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_derivimplicit_scalar, nullptr, nrn_jacob_derivimplicit_scalar, nrn_state_derivimplicit_scalar, nrn_init_derivimplicit_scalar, -1, 1);
+        register_mech(mechanism_info, nrn_alloc_heat_eqn_thread_vars, nullptr, nrn_jacob_heat_eqn_thread_vars, nrn_state_heat_eqn_thread_vars, nrn_init_heat_eqn_thread_vars, -1, 2);
+        _extcall_thread.resize(2);
+        thread_mem_init(_extcall_thread.data());
+        heat_eqn_thread_vars_global.thread_data_in_use = 0;
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
             _nrn_mechanism_field<double>{"x"} /* 0 */,
-            _nrn_mechanism_field<double>{"Dx"} /* 1 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 2 */,
-            _nrn_mechanism_field<double>{"g_unused"} /* 3 */
+            _nrn_mechanism_field<double>{"X"} /* 1 */,
+            _nrn_mechanism_field<double>{"DX"} /* 2 */,
+            _nrn_mechanism_field<double>{"v_unused"} /* 3 */,
+            _nrn_mechanism_field<double>{"g_unused"} /* 4 */
         );
 
-        hoc_register_prop_size(mech_type, 4, 0);
+        hoc_register_prop_size(mech_type, 5, 0);
+        hoc_register_ldifus1(_apply_diffusion_function);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
+        _nrn_thread_reg(mech_type, 1, thread_mem_init);
+        _nrn_thread_reg(mech_type, 0, thread_mem_cleanup);
     }
 }
