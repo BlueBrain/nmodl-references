@@ -583,7 +583,7 @@ namespace neuron {
     }
 
 
-    static int ode_spec1_thread_newton(_nrn_mechanism_cache_range& _lmc, thread_newton_Instance& inst, thread_newton_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, thread_newton_ThreadVariables& _thread_vars) {
+    static int ode_update_nonstiff_thread_newton(_nrn_mechanism_cache_range& _lmc, thread_newton_Instance& inst, thread_newton_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, thread_newton_ThreadVariables& _thread_vars) {
         int node_id = node_data.nodeindices[id];
         auto v = node_data.node_voltages[node_id];
         double source0_;
@@ -593,7 +593,7 @@ namespace neuron {
     }
 
 
-    static void ode_spec_thread_newton(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void ode_setup_nonstiff_thread_newton(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_thread_newton(_lmc);
         auto nodecount = _ml_arg->nodecount;
@@ -604,12 +604,12 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
-            ode_spec1_thread_newton(_lmc, inst, node_data, id, _ppvar, _thread, nt, _thread_vars);
+            ode_update_nonstiff_thread_newton(_lmc, inst, node_data, id, _ppvar, _thread, nt, _thread_vars);
         }
     }
 
 
-    static void ode_map_thread_newton(Prop* _prop, int equation_index, neuron::container::data_handle<double>* _pv, neuron::container::data_handle<double>* _pvdot, double* _atol, int _type) {
+    static void ode_setup_tolerance_thread_newton(Prop* _prop, int equation_index, neuron::container::data_handle<double>* _pv, neuron::container::data_handle<double>* _pvdot, double* _atol, int _type) {
         auto* _ppvar = _nrn_mechanism_access_dparam(_prop);
         _ppvar[0].literal_value<int>() = equation_index;
         for (int i = 0; i < ode_count_thread_newton(0); i++) {
@@ -620,14 +620,14 @@ namespace neuron {
     }
 
 
-    static void ode_matsol_instance1_thread_newton(_nrn_mechanism_cache_range& _lmc, thread_newton_Instance& inst, thread_newton_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, thread_newton_ThreadVariables& _thread_vars) {
+    static void ode_update_stiff_thread_newton(_nrn_mechanism_cache_range& _lmc, thread_newton_Instance& inst, thread_newton_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, thread_newton_ThreadVariables& _thread_vars) {
         double source0_;
         source0_ = _thread_vars.c(id);
         inst.DX[id] = inst.DX[id] / (1.0 - nt->_dt * (0.0));
     }
 
 
-    static void ode_matsol_thread_newton(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void ode_setup_stiff_thread_newton(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_thread_newton(_lmc);
         auto nodecount = _ml_arg->nodecount;
@@ -638,7 +638,7 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
-            ode_matsol_instance1_thread_newton(_lmc, inst, node_data, id, _ppvar, _thread, nt, _thread_vars);
+            ode_update_stiff_thread_newton(_lmc, inst, node_data, id, _ppvar, _thread, nt, _thread_vars);
         }
     }
     /* Neuron setdata functions */
@@ -838,7 +838,7 @@ namespace neuron {
         _nrn_thread_reg(mech_type, 1, thread_mem_init);
         _nrn_thread_reg(mech_type, 0, thread_mem_cleanup);
         hoc_register_dparam_semantics(mech_type, 0, "cvodeieq");
-        hoc_register_cvode(mech_type, ode_count_thread_newton, ode_map_thread_newton, ode_spec_thread_newton, ode_matsol_thread_newton);
+        hoc_register_cvode(mech_type, ode_count_thread_newton, ode_setup_tolerance_thread_newton, ode_setup_nonstiff_thread_newton, ode_setup_stiff_thread_newton);
         hoc_register_tolerance(mech_type, _hoc_state_tol, &_atollist);
     }
 }

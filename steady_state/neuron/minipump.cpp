@@ -597,7 +597,7 @@ namespace neuron {
     }
 
 
-    static int ode_spec1_minipump(_nrn_mechanism_cache_range& _lmc, minipump_Instance& inst, minipump_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+    static int ode_update_nonstiff_minipump(_nrn_mechanism_cache_range& _lmc, minipump_Instance& inst, minipump_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         int node_id = node_data.nodeindices[id];
         auto v = node_data.node_voltages[node_id];
         ;
@@ -611,7 +611,7 @@ namespace neuron {
     }
 
 
-    static void ode_spec_minipump(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void ode_setup_nonstiff_minipump(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_minipump(_lmc);
         auto nodecount = _ml_arg->nodecount;
@@ -621,12 +621,12 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
-            ode_spec1_minipump(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+            ode_update_nonstiff_minipump(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         }
     }
 
 
-    static void ode_map_minipump(Prop* _prop, int equation_index, neuron::container::data_handle<double>* _pv, neuron::container::data_handle<double>* _pvdot, double* _atol, int _type) {
+    static void ode_setup_tolerance_minipump(Prop* _prop, int equation_index, neuron::container::data_handle<double>* _pv, neuron::container::data_handle<double>* _pvdot, double* _atol, int _type) {
         auto* _ppvar = _nrn_mechanism_access_dparam(_prop);
         _ppvar[0].literal_value<int>() = equation_index;
         for (int i = 0; i < ode_count_minipump(0); i++) {
@@ -637,7 +637,7 @@ namespace neuron {
     }
 
 
-    static void ode_matsol_instance1_minipump(_nrn_mechanism_cache_range& _lmc, minipump_Instance& inst, minipump_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+    static void ode_update_stiff_minipump(_nrn_mechanism_cache_range& _lmc, minipump_Instance& inst, minipump_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         ;
         double kf0_, kb0_;
         kf0_ = inst.global->kf;
@@ -648,7 +648,7 @@ namespace neuron {
     }
 
 
-    static void ode_matsol_minipump(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void ode_setup_stiff_minipump(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_minipump(_lmc);
         auto nodecount = _ml_arg->nodecount;
@@ -658,7 +658,7 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
-            ode_matsol_instance1_minipump(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+            ode_update_stiff_minipump(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         }
     }
     /* Neuron setdata functions */
@@ -937,7 +937,7 @@ namespace neuron {
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
         hoc_register_dparam_semantics(mech_type, 0, "cvodeieq");
-        hoc_register_cvode(mech_type, ode_count_minipump, ode_map_minipump, ode_spec_minipump, ode_matsol_minipump);
+        hoc_register_cvode(mech_type, ode_count_minipump, ode_setup_tolerance_minipump, ode_setup_nonstiff_minipump, ode_setup_stiff_minipump);
         hoc_register_tolerance(mech_type, _hoc_state_tol, &_atollist);
     }
 }

@@ -581,7 +581,7 @@ namespace neuron {
     }
 
 
-    static int ode_spec1_finite_difference(_nrn_mechanism_cache_range& _lmc, finite_difference_Instance& inst, finite_difference_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, finite_difference_ThreadVariables& _thread_vars) {
+    static int ode_update_nonstiff_finite_difference(_nrn_mechanism_cache_range& _lmc, finite_difference_Instance& inst, finite_difference_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, finite_difference_ThreadVariables& _thread_vars) {
         int node_id = node_data.nodeindices[id];
         auto v = node_data.node_voltages[node_id];
         inst.Dx[id] =  -f_finite_difference(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, inst.x[id]);
@@ -589,7 +589,7 @@ namespace neuron {
     }
 
 
-    static void ode_spec_finite_difference(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void ode_setup_nonstiff_finite_difference(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_finite_difference(_lmc);
         auto nodecount = _ml_arg->nodecount;
@@ -600,12 +600,12 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
-            ode_spec1_finite_difference(_lmc, inst, node_data, id, _ppvar, _thread, nt, _thread_vars);
+            ode_update_nonstiff_finite_difference(_lmc, inst, node_data, id, _ppvar, _thread, nt, _thread_vars);
         }
     }
 
 
-    static void ode_map_finite_difference(Prop* _prop, int equation_index, neuron::container::data_handle<double>* _pv, neuron::container::data_handle<double>* _pvdot, double* _atol, int _type) {
+    static void ode_setup_tolerance_finite_difference(Prop* _prop, int equation_index, neuron::container::data_handle<double>* _pv, neuron::container::data_handle<double>* _pvdot, double* _atol, int _type) {
         auto* _ppvar = _nrn_mechanism_access_dparam(_prop);
         _ppvar[0].literal_value<int>() = equation_index;
         for (int i = 0; i < ode_count_finite_difference(0); i++) {
@@ -616,12 +616,12 @@ namespace neuron {
     }
 
 
-    static void ode_matsol_instance1_finite_difference(_nrn_mechanism_cache_range& _lmc, finite_difference_Instance& inst, finite_difference_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, finite_difference_ThreadVariables& _thread_vars) {
+    static void ode_update_stiff_finite_difference(_nrn_mechanism_cache_range& _lmc, finite_difference_Instance& inst, finite_difference_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, finite_difference_ThreadVariables& _thread_vars) {
         inst.Dx[id] = inst.Dx[id] / (1.0 - nt->_dt * (1000.0 * f_finite_difference(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, inst.x[id] - 0.00050000000000000001) - 1000.0 * f_finite_difference(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, inst.x[id] + 0.00050000000000000001)));
     }
 
 
-    static void ode_matsol_finite_difference(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void ode_setup_stiff_finite_difference(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_finite_difference(_lmc);
         auto nodecount = _ml_arg->nodecount;
@@ -632,7 +632,7 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
-            ode_matsol_instance1_finite_difference(_lmc, inst, node_data, id, _ppvar, _thread, nt, _thread_vars);
+            ode_update_stiff_finite_difference(_lmc, inst, node_data, id, _ppvar, _thread, nt, _thread_vars);
         }
     }
     /* Neuron setdata functions */
@@ -873,7 +873,7 @@ namespace neuron {
         _nrn_thread_reg(mech_type, 1, thread_mem_init);
         _nrn_thread_reg(mech_type, 0, thread_mem_cleanup);
         hoc_register_dparam_semantics(mech_type, 0, "cvodeieq");
-        hoc_register_cvode(mech_type, ode_count_finite_difference, ode_map_finite_difference, ode_spec_finite_difference, ode_matsol_finite_difference);
+        hoc_register_cvode(mech_type, ode_count_finite_difference, ode_setup_tolerance_finite_difference, ode_setup_nonstiff_finite_difference, ode_setup_stiff_finite_difference);
         hoc_register_tolerance(mech_type, _hoc_state_tol, &_atollist);
     }
 }

@@ -643,7 +643,7 @@ namespace neuron {
     }
 
 
-    static int ode_spec1_scalar(_nrn_mechanism_cache_range& _lmc, scalar_Instance& inst, scalar_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+    static int ode_update_nonstiff_scalar(_nrn_mechanism_cache_range& _lmc, scalar_Instance& inst, scalar_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         int node_id = node_data.nodeindices[id];
         auto v = node_data.node_voltages[node_id];
         inst.Dvar1[id] =  -sin(inst.global->freq * nt->_t);
@@ -655,7 +655,7 @@ namespace neuron {
     }
 
 
-    static void ode_spec_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void ode_setup_nonstiff_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_scalar(_lmc);
         auto nodecount = _ml_arg->nodecount;
@@ -665,12 +665,12 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
-            ode_spec1_scalar(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+            ode_update_nonstiff_scalar(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         }
     }
 
 
-    static void ode_map_scalar(Prop* _prop, int equation_index, neuron::container::data_handle<double>* _pv, neuron::container::data_handle<double>* _pvdot, double* _atol, int _type) {
+    static void ode_setup_tolerance_scalar(Prop* _prop, int equation_index, neuron::container::data_handle<double>* _pv, neuron::container::data_handle<double>* _pvdot, double* _atol, int _type) {
         auto* _ppvar = _nrn_mechanism_access_dparam(_prop);
         _ppvar[0].literal_value<int>() = equation_index;
         for (int i = 0; i < ode_count_scalar(0); i++) {
@@ -681,7 +681,7 @@ namespace neuron {
     }
 
 
-    static void ode_matsol_instance1_scalar(_nrn_mechanism_cache_range& _lmc, scalar_Instance& inst, scalar_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+    static void ode_update_stiff_scalar(_nrn_mechanism_cache_range& _lmc, scalar_Instance& inst, scalar_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         inst.Dvar1[id] = inst.Dvar1[id] / (1.0 - nt->_dt * (0.0));
         inst.Dvar2[id] = inst.Dvar2[id] / (1.0 - nt->_dt * ( -inst.global->a));
         inst.Dvar3[id] = inst.Dvar3[id] / (1.0 - nt->_dt * (inst.global->r * (inst.global->k - 2.0 * inst.var3[id]) / inst.global->k));
@@ -690,7 +690,7 @@ namespace neuron {
     }
 
 
-    static void ode_matsol_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void ode_setup_stiff_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
         auto inst = make_instance_scalar(_lmc);
         auto nodecount = _ml_arg->nodecount;
@@ -700,7 +700,7 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
-            ode_matsol_instance1_scalar(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+            ode_update_stiff_scalar(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         }
     }
     /* Neuron setdata functions */
@@ -955,7 +955,7 @@ namespace neuron {
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
         hoc_register_dparam_semantics(mech_type, 0, "cvodeieq");
-        hoc_register_cvode(mech_type, ode_count_scalar, ode_map_scalar, ode_spec_scalar, ode_matsol_scalar);
+        hoc_register_cvode(mech_type, ode_count_scalar, ode_setup_tolerance_scalar, ode_setup_nonstiff_scalar, ode_setup_stiff_scalar);
         hoc_register_tolerance(mech_type, _hoc_state_tol, &_atollist);
     }
 }
