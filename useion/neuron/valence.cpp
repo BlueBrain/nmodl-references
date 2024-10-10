@@ -200,11 +200,11 @@ namespace neuron {
 
 
     void nrn_init_valence_mod(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_valence_mod(_lmc);
         auto node_data = make_node_data_valence_mod(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
@@ -216,9 +216,10 @@ namespace neuron {
 
 
     static void nrn_jacob_valence_mod(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_valence_mod(_lmc);
         auto node_data = make_node_data_valence_mod(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }

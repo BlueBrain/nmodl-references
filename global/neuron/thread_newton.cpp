@@ -661,12 +661,12 @@ namespace neuron {
 
 
     void nrn_init_thread_newton(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_thread_newton(_lmc);
         auto node_data = make_node_data_thread_newton(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         auto _thread_vars = thread_newton_ThreadVariables(_thread[0].get<double*>());
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
@@ -680,12 +680,12 @@ namespace neuron {
 
 
     void nrn_state_thread_newton(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_thread_newton(_lmc);
         auto node_data = make_node_data_thread_newton(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         auto _thread_vars = thread_newton_ThreadVariables(_thread[0].get<double*>());
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
@@ -709,9 +709,11 @@ namespace neuron {
 
 
     static void nrn_jacob_thread_newton(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_thread_newton(_lmc);
         auto node_data = make_node_data_thread_newton(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
+        auto _thread_vars = thread_newton_ThreadVariables(_thread[0].get<double*>());
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
