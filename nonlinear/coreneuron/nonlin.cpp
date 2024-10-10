@@ -1,8 +1,8 @@
 /*********************************************************
-Model Name      : derivimplicit_scalar
-Filename        : derivimplicit_scalar.mod
+Model Name      : nonlin
+Filename        : nonlin.mod
 NMODL Version   : 7.7.0
-Vectorized      : true
+Vectorized      : false
 Threadsafe      : true
 Created         : DATE
 Simulator       : CoreNEURON
@@ -420,38 +420,34 @@ namespace coreneuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "derivimplicit_scalar",
+        "nonlin",
         0,
         0,
-        "x_derivimplicit_scalar",
+        "x_nonlin",
         0,
         0
     };
 
 
     /** all global variables */
-    struct derivimplicit_scalar_Store {
+    struct nonlin_Store {
         double x0{};
         int reset{};
         int mech_type{};
-        int slist1[1]{0};
-        int dlist1[1]{1};
     };
-    static_assert(std::is_trivially_copy_constructible_v<derivimplicit_scalar_Store>);
-    static_assert(std::is_trivially_move_constructible_v<derivimplicit_scalar_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<derivimplicit_scalar_Store>);
-    static_assert(std::is_trivially_move_assignable_v<derivimplicit_scalar_Store>);
-    static_assert(std::is_trivially_destructible_v<derivimplicit_scalar_Store>);
-    derivimplicit_scalar_Store derivimplicit_scalar_global;
+    static_assert(std::is_trivially_copy_constructible_v<nonlin_Store>);
+    static_assert(std::is_trivially_move_constructible_v<nonlin_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<nonlin_Store>);
+    static_assert(std::is_trivially_move_assignable_v<nonlin_Store>);
+    static_assert(std::is_trivially_destructible_v<nonlin_Store>);
+    nonlin_Store nonlin_global;
 
 
     /** all mechanism instance variables and global variables */
-    struct derivimplicit_scalar_Instance  {
+    struct nonlin_Instance  {
         double* x{};
         double* Dx{};
-        double* v_unused{};
-        double* g_unused{};
-        derivimplicit_scalar_Store* global{&derivimplicit_scalar_global};
+        nonlin_Store* global{&nonlin_global};
     };
 
 
@@ -478,7 +474,7 @@ namespace coreneuron {
 
 
     static inline int float_variables_size() {
-        return 4;
+        return 2;
     }
 
 
@@ -488,7 +484,7 @@ namespace coreneuron {
 
 
     static inline int get_mech_type() {
-        return derivimplicit_scalar_global.mech_type;
+        return nonlin_global.mech_type;
     }
 
 
@@ -518,25 +514,25 @@ namespace coreneuron {
     }
 
     // Allocate instance structure
-    static void nrn_private_constructor_derivimplicit_scalar(NrnThread* nt, Memb_list* ml, int type) {
+    static void nrn_private_constructor_nonlin(NrnThread* nt, Memb_list* ml, int type) {
         assert(!ml->instance);
         assert(!ml->global_variables);
         assert(ml->global_variables_size == 0);
-        auto* const inst = new derivimplicit_scalar_Instance{};
-        assert(inst->global == &derivimplicit_scalar_global);
+        auto* const inst = new nonlin_Instance{};
+        assert(inst->global == &nonlin_global);
         ml->instance = inst;
         ml->global_variables = inst->global;
-        ml->global_variables_size = sizeof(derivimplicit_scalar_Store);
+        ml->global_variables_size = sizeof(nonlin_Store);
     }
 
     // Deallocate the instance structure
-    static void nrn_private_destructor_derivimplicit_scalar(NrnThread* nt, Memb_list* ml, int type) {
-        auto* const inst = static_cast<derivimplicit_scalar_Instance*>(ml->instance);
+    static void nrn_private_destructor_nonlin(NrnThread* nt, Memb_list* ml, int type) {
+        auto* const inst = static_cast<nonlin_Instance*>(ml->instance);
         assert(inst);
         assert(inst->global);
-        assert(inst->global == &derivimplicit_scalar_global);
+        assert(inst->global == &nonlin_global);
         assert(inst->global == ml->global_variables);
-        assert(ml->global_variables_size == sizeof(derivimplicit_scalar_Store));
+        assert(ml->global_variables_size == sizeof(nonlin_Store));
         delete inst;
         ml->instance = nullptr;
         ml->global_variables = nullptr;
@@ -545,28 +541,26 @@ namespace coreneuron {
 
     /** initialize mechanism instance variables */
     static inline void setup_instance(NrnThread* nt, Memb_list* ml) {
-        auto* const inst = static_cast<derivimplicit_scalar_Instance*>(ml->instance);
+        auto* const inst = static_cast<nonlin_Instance*>(ml->instance);
         assert(inst);
         assert(inst->global);
-        assert(inst->global == &derivimplicit_scalar_global);
+        assert(inst->global == &nonlin_global);
         assert(inst->global == ml->global_variables);
-        assert(ml->global_variables_size == sizeof(derivimplicit_scalar_Store));
+        assert(ml->global_variables_size == sizeof(nonlin_Store));
         int pnodecount = ml->_nodecount_padded;
         Datum* indexes = ml->pdata;
         inst->x = ml->data+0*pnodecount;
         inst->Dx = ml->data+1*pnodecount;
-        inst->v_unused = ml->data+2*pnodecount;
-        inst->g_unused = ml->data+3*pnodecount;
     }
 
 
 
-    static void nrn_alloc_derivimplicit_scalar(double* data, Datum* indexes, int type) {
+    static void nrn_alloc_nonlin(double* data, Datum* indexes, int type) {
         // do nothing
     }
 
 
-    void nrn_constructor_derivimplicit_scalar(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_constructor_nonlin(NrnThread* nt, Memb_list* ml, int type) {
         #ifndef CORENEURON_BUILD
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
@@ -575,13 +569,13 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<derivimplicit_scalar_Instance*>(ml->instance);
+        auto* const inst = static_cast<nonlin_Instance*>(ml->instance);
 
         #endif
     }
 
 
-    void nrn_destructor_derivimplicit_scalar(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_destructor_nonlin(NrnThread* nt, Memb_list* ml, int type) {
         #ifndef CORENEURON_BUILD
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
@@ -590,28 +584,30 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<derivimplicit_scalar_Instance*>(ml->instance);
+        auto* const inst = static_cast<nonlin_Instance*>(ml->instance);
 
         #endif
     }
 
 
-    struct functor_derivimplicit_scalar_0 {
+    inline double solve_nonlin(int id, int pnodecount, nonlin_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline double residual_nonlin(int id, int pnodecount, nonlin_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lx);
+
+
+    struct functor_nonlin_0 {
         NrnThread* nt;
-        derivimplicit_scalar_Instance* inst;
+        nonlin_Instance* inst;
         int id;
         int pnodecount;
         double v;
         const Datum* indexes;
         double* data;
         ThreadDatum* thread;
-        double old_x;
 
         void initialize() {
-            old_x = inst->x[id];
         }
 
-        functor_derivimplicit_scalar_0(NrnThread* nt, derivimplicit_scalar_Instance* inst, int id, int pnodecount, double v, const Datum* indexes, double* data, ThreadDatum* thread)
+        functor_nonlin_0(NrnThread* nt, nonlin_Instance* inst, int id, int pnodecount, double v, const Datum* indexes, double* data, ThreadDatum* thread)
             : nt(nt), inst(inst), id(id), pnodecount(pnodecount), v(v), indexes(indexes), data(data), thread(thread)
         {}
         void operator()(const Eigen::Matrix<double, 1, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_dxm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_jm) const {
@@ -620,8 +616,8 @@ namespace coreneuron {
             double* nmodl_eigen_j = nmodl_eigen_jm.data();
             double* nmodl_eigen_f = nmodl_eigen_fm.data();
             nmodl_eigen_dx[0] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[0]));
-            nmodl_eigen_f[static_cast<int>(0)] = ( -nmodl_eigen_x[static_cast<int>(0)] * nt->_dt - nmodl_eigen_x[static_cast<int>(0)] + old_x) / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(0)] = ( -nt->_dt - 1.0) / nt->_dt;
+            nmodl_eigen_f[static_cast<int>(0)] = 4.0 - pow(nmodl_eigen_x[static_cast<int>(0)], 2.0);
+            nmodl_eigen_j[static_cast<int>(0)] =  -2.0 * nmodl_eigen_x[static_cast<int>(0)];
         }
 
         void finalize() {
@@ -629,8 +625,37 @@ namespace coreneuron {
     };
 
 
+    inline double solve_nonlin(int id, int pnodecount, nonlin_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
+        double ret_solve = 0.0;
+        inst->x[id] = 1.0;
+                
+        Eigen::Matrix<double, 1, 1> nmodl_eigen_xm;
+        double* nmodl_eigen_x = nmodl_eigen_xm.data();
+        nmodl_eigen_x[static_cast<int>(0)] = inst->x[id];
+        // call newton solver
+        functor_nonlin_0 newton_functor(nt, inst, id, pnodecount, v, indexes, data, thread);
+        newton_functor.initialize();
+        int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
+        if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
+        inst->x[id] = nmodl_eigen_x[static_cast<int>(0)];
+        newton_functor.initialize(); // TODO mimic calling F again.
+        newton_functor.finalize();
+
+
+        ret_solve = inst->x[id];
+        return ret_solve;
+    }
+
+
+    inline double residual_nonlin(int id, int pnodecount, nonlin_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lx) {
+        double ret_residual = 0.0;
+        ret_residual = _lx - 2.0;
+        return ret_residual;
+    }
+
+
     /** initialize channel */
-    void nrn_init_derivimplicit_scalar(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_init_nonlin(NrnThread* nt, Memb_list* ml, int type) {
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
         const int* node_index = ml->nodeindices;
@@ -640,7 +665,7 @@ namespace coreneuron {
         ThreadDatum* thread = ml->_thread;
 
         setup_instance(nt, ml);
-        auto* const inst = static_cast<derivimplicit_scalar_Instance*>(ml->instance);
+        auto* const inst = static_cast<nonlin_Instance*>(ml->instance);
 
         if (_nrn_skip_initmodel == 0) {
             #pragma omp simd
@@ -648,63 +673,23 @@ namespace coreneuron {
             for (int id = 0; id < nodecount; id++) {
                 int node_id = node_index[id];
                 double v = voltage[node_id];
-                #if NRN_PRCELLSTATE
-                inst->v_unused[id] = v;
-                #endif
                 inst->x[id] = inst->global->x0;
-                inst->x[id] = 42.0;
             }
         }
     }
 
 
-    /** update state */
-    void nrn_state_derivimplicit_scalar(NrnThread* nt, Memb_list* ml, int type) {
-        int nodecount = ml->nodecount;
-        int pnodecount = ml->_nodecount_padded;
-        const int* node_index = ml->nodeindices;
-        double* data = ml->data;
-        const double* voltage = nt->_actual_v;
-        Datum* indexes = ml->pdata;
-        ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<derivimplicit_scalar_Instance*>(ml->instance);
-
-        #pragma omp simd
-        #pragma ivdep
-        for (int id = 0; id < nodecount; id++) {
-            int node_id = node_index[id];
-            double v = voltage[node_id];
-            #if NRN_PRCELLSTATE
-            inst->v_unused[id] = v;
-            #endif
-            
-            Eigen::Matrix<double, 1, 1> nmodl_eigen_xm;
-            double* nmodl_eigen_x = nmodl_eigen_xm.data();
-            nmodl_eigen_x[static_cast<int>(0)] = inst->x[id];
-            // call newton solver
-            functor_derivimplicit_scalar_0 newton_functor(nt, inst, id, pnodecount, v, indexes, data, thread);
-            newton_functor.initialize();
-            int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
-            if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
-            inst->x[id] = nmodl_eigen_x[static_cast<int>(0)];
-            newton_functor.initialize(); // TODO mimic calling F again.
-            newton_functor.finalize();
-
-        }
-    }
-
-
     /** register channel with the simulator */
-    void _derivimplicit_scalar_reg() {
+    void _nonlin_reg() {
 
-        int mech_type = nrn_get_mechtype("derivimplicit_scalar");
-        derivimplicit_scalar_global.mech_type = mech_type;
+        int mech_type = nrn_get_mechtype("nonlin");
+        nonlin_global.mech_type = mech_type;
         if (mech_type == -1) {
             return;
         }
 
         _nrn_layout_reg(mech_type, 0);
-        register_mech(mechanism_info, nrn_alloc_derivimplicit_scalar, nullptr, nullptr, nrn_state_derivimplicit_scalar, nrn_init_derivimplicit_scalar, nrn_private_constructor_derivimplicit_scalar, nrn_private_destructor_derivimplicit_scalar, first_pointer_var_index(), 1);
+        register_mech(mechanism_info, nrn_alloc_nonlin, nullptr, nullptr, nullptr, nrn_init_nonlin, nrn_private_constructor_nonlin, nrn_private_destructor_nonlin, first_pointer_var_index(), 0);
 
         hoc_register_prop_size(mech_type, float_variables_size(), int_variables_size());
         hoc_register_var(hoc_scalar_double, hoc_vector_double, NULL);
