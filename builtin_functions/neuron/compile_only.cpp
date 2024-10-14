@@ -144,6 +144,9 @@ namespace neuron {
 
     /* Mechanism procedures and functions */
     inline double call_nrn_ghk_compile_only(_nrn_mechanism_cache_range& _lmc, compile_only_Instance& inst, compile_only_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
+    }
+
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {

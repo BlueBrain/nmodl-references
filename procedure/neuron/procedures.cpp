@@ -153,6 +153,9 @@ namespace neuron {
     inline int set_x_v_procedures(_nrn_mechanism_cache_range& _lmc, procedures_Instance& inst, procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     inline int set_x_just_v_procedures(_nrn_mechanism_cache_range& _lmc, procedures_Instance& inst, procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     inline int set_x_just_vv_procedures(_nrn_mechanism_cache_range& _lmc, procedures_Instance& inst, procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
+    static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
+    }
+
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {

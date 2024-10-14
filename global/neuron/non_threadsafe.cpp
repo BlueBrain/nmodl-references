@@ -166,6 +166,9 @@ namespace neuron {
     inline double get_gbl_non_threadsafe(_nrn_mechanism_cache_range& _lmc, non_threadsafe_Instance& inst, non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     inline double get_top_local_non_threadsafe(_nrn_mechanism_cache_range& _lmc, non_threadsafe_Instance& inst, non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     inline double get_parameter_non_threadsafe(_nrn_mechanism_cache_range& _lmc, non_threadsafe_Instance& inst, non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
+    }
+
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {
