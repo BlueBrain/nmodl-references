@@ -254,12 +254,12 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_sum_arr(void);
-    static double _npy_sum_arr(Prop*);
-    static void _hoc_set_g_w(void);
-    static double _npy_set_g_w(Prop*);
-    static void _hoc_compute_g_v1(void);
-    static double _npy_compute_g_v1(Prop*);
+    static void _hoc_sum_arr();
+    static double _npy_sum_arr(Prop* _prop);
+    static void _hoc_set_g_w();
+    static double _npy_set_g_w(Prop* _prop);
+    static void _hoc_compute_g_v1();
+    static double _npy_compute_g_v1(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -294,7 +294,7 @@ namespace neuron {
             delete[] _thread_data_ptr;
         }
     }
-    static void _hoc_set_g_w(void) {
+    static void _hoc_set_g_w() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -329,7 +329,7 @@ namespace neuron {
         set_g_w_shared_global(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_compute_g_v1(void) {
+    static void _hoc_compute_g_v1() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -366,7 +366,7 @@ namespace neuron {
         compute_g_v1_shared_global(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_sum_arr(void) {
+    static void _hoc_sum_arr() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;

@@ -179,8 +179,8 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_negexp(void);
-    static double _npy_negexp(Prop*);
+    static void _hoc_negexp();
+    static double _npy_negexp(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -193,7 +193,7 @@ namespace neuron {
         {"negexp", _npy_negexp},
         {nullptr, nullptr}
     };
-    static void _hoc_negexp(void) {
+    static void _hoc_negexp() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;

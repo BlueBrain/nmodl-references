@@ -178,12 +178,12 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_x_plus_a(void);
-    static double _npy_x_plus_a(Prop*);
-    static void _hoc_v_plus_a(void);
-    static double _npy_v_plus_a(Prop*);
-    static void _hoc_identity(void);
-    static double _npy_identity(Prop*);
+    static void _hoc_x_plus_a();
+    static double _npy_x_plus_a(Prop* _prop);
+    static void _hoc_v_plus_a();
+    static double _npy_v_plus_a(Prop* _prop);
+    static void _hoc_identity();
+    static double _npy_identity(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -200,7 +200,7 @@ namespace neuron {
         {"identity", _npy_identity},
         {nullptr, nullptr}
     };
-    static void _hoc_x_plus_a(void) {
+    static void _hoc_x_plus_a() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -234,7 +234,7 @@ namespace neuron {
         _r = x_plus_a_functions(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_v_plus_a(void) {
+    static void _hoc_v_plus_a() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -265,7 +265,7 @@ namespace neuron {
         _r = v_plus_a_functions(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_identity(void) {
+    static void _hoc_identity() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;

@@ -173,8 +173,8 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_fibonacci(void);
-    static double _npy_fibonacci(Prop*);
+    static void _hoc_fibonacci();
+    static double _npy_fibonacci(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -187,7 +187,7 @@ namespace neuron {
         {"fibonacci", _npy_fibonacci},
         {nullptr, nullptr}
     };
-    static void _hoc_fibonacci(void) {
+    static void _hoc_fibonacci() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;

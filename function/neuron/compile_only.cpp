@@ -186,12 +186,12 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_func(void);
-    static double _npy_func(Prop*);
-    static void _hoc_func_with_v(void);
-    static double _npy_func_with_v(Prop*);
-    static void _hoc_func_with_other(void);
-    static double _npy_func_with_other(Prop*);
+    static void _hoc_func();
+    static double _npy_func(Prop* _prop);
+    static void _hoc_func_with_v();
+    static double _npy_func_with_v(Prop* _prop);
+    static void _hoc_func_with_other();
+    static double _npy_func_with_other(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -208,7 +208,7 @@ namespace neuron {
         {"func_with_other", _npy_func_with_other},
         {nullptr, nullptr}
     };
-    static void _hoc_func(void) {
+    static void _hoc_func() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -241,7 +241,7 @@ namespace neuron {
         func_func_in_breakpoint(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static void _hoc_func_with_v(void) {
+    static void _hoc_func_with_v() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -274,7 +274,7 @@ namespace neuron {
         func_with_v_func_in_breakpoint(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_func_with_other(void) {
+    static void _hoc_func_with_other() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;

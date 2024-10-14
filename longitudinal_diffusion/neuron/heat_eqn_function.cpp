@@ -658,12 +658,12 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_factor(void);
-    static double _npy_factor(Prop*);
-    static void _hoc_vol(void);
-    static double _npy_vol(Prop*);
-    static void _hoc_mu(void);
-    static double _npy_mu(Prop*);
+    static void _hoc_factor();
+    static double _npy_factor(Prop* _prop);
+    static void _hoc_vol();
+    static double _npy_vol(Prop* _prop);
+    static void _hoc_mu();
+    static double _npy_mu(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -698,7 +698,7 @@ namespace neuron {
             delete[] _thread_data_ptr;
         }
     }
-    static void _hoc_factor(void) {
+    static void _hoc_factor() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -731,7 +731,7 @@ namespace neuron {
         _r = factor_heat_eqn_function(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_vol(void) {
+    static void _hoc_vol() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -764,7 +764,7 @@ namespace neuron {
         _r = vol_heat_eqn_function(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_mu(void) {
+    static void _hoc_mu() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;

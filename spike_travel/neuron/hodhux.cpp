@@ -286,12 +286,12 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_vtrap(void);
-    static double _npy_vtrap(Prop*);
-    static void _hoc_states(void);
-    static double _npy_states(Prop*);
-    static void _hoc_rates(void);
-    static double _npy_rates(Prop*);
+    static void _hoc_vtrap();
+    static double _npy_vtrap(Prop* _prop);
+    static void _hoc_states();
+    static double _npy_states(Prop* _prop);
+    static void _hoc_rates();
+    static double _npy_rates(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -308,7 +308,7 @@ namespace neuron {
         {"vtrap", _npy_vtrap},
         {nullptr, nullptr}
     };
-    static void _hoc_states(void) {
+    static void _hoc_states() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -344,7 +344,7 @@ namespace neuron {
         states_hodhux(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static void _hoc_rates(void) {
+    static void _hoc_rates() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -380,7 +380,7 @@ namespace neuron {
         rates_hodhux(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_vtrap(void) {
+    static void _hoc_vtrap() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;

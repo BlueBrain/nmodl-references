@@ -193,10 +193,10 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_square_diam(void);
-    static double _npy_square_diam(Prop*);
-    static void _hoc_square_area(void);
-    static double _npy_square_area(Prop*);
+    static void _hoc_square_diam();
+    static double _npy_square_diam(Prop* _prop);
+    static void _hoc_square_area();
+    static double _npy_square_area(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -211,7 +211,7 @@ namespace neuron {
         {"square_area", _npy_square_area},
         {nullptr, nullptr}
     };
-    static void _hoc_square_diam(void) {
+    static void _hoc_square_diam() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -242,7 +242,7 @@ namespace neuron {
         _r = square_diam_two_radii(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static void _hoc_square_area(void) {
+    static void _hoc_square_area() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;

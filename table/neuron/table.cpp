@@ -270,12 +270,12 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_quadratic(void);
-    static double _npy_quadratic(Prop*);
-    static void _hoc_sigmoidal(void);
-    static double _npy_sigmoidal(Prop*);
-    static void _hoc_sinusoidal(void);
-    static double _npy_sinusoidal(Prop*);
+    static void _hoc_quadratic();
+    static double _npy_quadratic(Prop* _prop);
+    static void _hoc_sigmoidal();
+    static double _npy_sigmoidal(Prop* _prop);
+    static void _hoc_sinusoidal();
+    static double _npy_sinusoidal(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -292,7 +292,7 @@ namespace neuron {
         {"quadratic", _npy_quadratic},
         {nullptr, nullptr}
     };
-    static void _hoc_sigmoidal(void) {
+    static void _hoc_sigmoidal() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -327,7 +327,7 @@ namespace neuron {
         sigmoidal_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_sinusoidal(void) {
+    static void _hoc_sinusoidal() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -365,7 +365,7 @@ namespace neuron {
         sinusoidal_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_quadratic(void) {
+    static void _hoc_quadratic() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;

@@ -222,8 +222,8 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static double _hoc_read_p1(void*);
-    static double _hoc_read_p2(void*);
+    static double _hoc_read_p1(void * _vptr);
+    static double _hoc_read_p2(void * _vptr);
 
 
     /* connect user functions to hoc names */
@@ -238,7 +238,7 @@ namespace neuron {
         {"read_p2", _hoc_read_p2},
         {nullptr, nullptr}
     };
-    static double _hoc_read_p1(void* _vptr) {
+    static double _hoc_read_p1(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -258,7 +258,7 @@ namespace neuron {
         _r = read_p1_point_basic(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static double _hoc_read_p2(void* _vptr) {
+    static double _hoc_read_p2(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;

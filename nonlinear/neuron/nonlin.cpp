@@ -597,10 +597,10 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_solve(void);
-    static double _npy_solve(Prop*);
-    static void _hoc_residual(void);
-    static double _npy_residual(Prop*);
+    static void _hoc_solve();
+    static double _npy_solve(Prop* _prop);
+    static void _hoc_residual();
+    static double _npy_residual(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -615,7 +615,7 @@ namespace neuron {
         {"residual", _npy_residual},
         {nullptr, nullptr}
     };
-    static void _hoc_solve(void) {
+    static void _hoc_solve() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -646,7 +646,7 @@ namespace neuron {
         _r = solve_nonlin(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static void _hoc_residual(void) {
+    static void _hoc_residual() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;

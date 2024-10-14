@@ -206,8 +206,8 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static double _hoc_one(void*);
-    static double _hoc_increment_c2(void*);
+    static double _hoc_one(void * _vptr);
+    static double _hoc_increment_c2(void * _vptr);
 
 
     /* connect user functions to hoc names */
@@ -222,7 +222,7 @@ namespace neuron {
         {"one", _hoc_one},
         {nullptr, nullptr}
     };
-    static double _hoc_increment_c2(void* _vptr) {
+    static double _hoc_increment_c2(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -243,7 +243,7 @@ namespace neuron {
         increment_c2_NetReceiveCalls(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static double _hoc_one(void* _vptr) {
+    static double _hoc_one(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;

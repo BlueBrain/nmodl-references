@@ -173,8 +173,8 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_call_nrn_ghk(void);
-    static double _npy_call_nrn_ghk(Prop*);
+    static void _hoc_call_nrn_ghk();
+    static double _npy_call_nrn_ghk(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -187,7 +187,7 @@ namespace neuron {
         {"call_nrn_ghk", _npy_call_nrn_ghk},
         {nullptr, nullptr}
     };
-    static void _hoc_call_nrn_ghk(void) {
+    static void _hoc_call_nrn_ghk() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
