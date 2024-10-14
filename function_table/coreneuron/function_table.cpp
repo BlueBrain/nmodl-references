@@ -211,10 +211,6 @@ namespace coreneuron {
 
     inline double use_tau2_function_table(int id, int pnodecount, function_table_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv, double _lx) {
         double ret_use_tau2 = 0.0;
-        printf("0: use_tau2 v = %e, x = %e, tau2(v, x) = %e\n", _lv, _lx, tau2_function_table(id, pnodecount, inst, data, indexes, thread, nt, v, _lv, _lx));
-        printf("1: use_tau2 v = %e, x = %e, tau2(v, x) = %e\n", _lv, _lx, tau2_function_table(id, pnodecount, inst, data, indexes, thread, nt, v, _lv, _lx));
-        printf("2: use_tau2 v = %e, x = %e, tau2(v, x) = %e\n", _lv, _lx, tau2_function_table(id, pnodecount, inst, data, indexes, thread, nt, v, _lv, _lx));
-        printf("3: use_tau2 v = %e, x = %e, tau2(v, x) = %e\n", _lv, _lx, tau2_function_table(id, pnodecount, inst, data, indexes, thread, nt, v, _lv, _lx));
         ret_use_tau2 = tau2_function_table(id, pnodecount, inst, data, indexes, thread, nt, v, _lv, _lx);
         return ret_use_tau2;
     }
