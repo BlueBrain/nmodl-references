@@ -1,30 +1,21 @@
 /*********************************************************
-Model Name      : derivimplicit_scalar
-Filename        : derivimplicit_scalar.mod
+Model Name      : nonlin
+Filename        : nonlin.mod
 NMODL Version   : 7.7.0
-Vectorized      : true
+Vectorized      : false
 Threadsafe      : true
 Created         : DATE
-Simulator       : CoreNEURON
+Simulator       : NEURON
 Backend         : C++ (api-compatibility)
 NMODL Compiler  : VERSION
 *********************************************************/
 
+#include <Eigen/Dense>
+#include <Eigen/LU>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-
-#include <coreneuron/gpu/nrn_acc_manager.hpp>
-#include <coreneuron/mechanism/mech/mod2c_core_thread.hpp>
-#include <coreneuron/mechanism/register_mech.hpp>
-#include <coreneuron/nrnconf.h>
-#include <coreneuron/nrniv/nrniv_decl.h>
-#include <coreneuron/sim/multicore.hpp>
-#include <coreneuron/sim/scopmath/newton_thread.hpp>
-#include <coreneuron/utils/ivocvect.hpp>
-#include <coreneuron/utils/nrnoc_aux.hpp>
-#include <coreneuron/utils/randoms/nrnran123.h>
+#include <vector>
 
 /**
  * \dir
@@ -410,8 +401,38 @@ EIGEN_DEVICE_FUNC int newton_solver(Eigen::Matrix<double, 4, 1>& X,
 }  // namespace nmodl
 
 
+#include "mech_api.h"
+#include "neuron/cache/mechanism_range.hpp"
+#include "nrniv_mf.h"
+#include "section_fwd.hpp"
 
-namespace coreneuron {
+/* NEURON global macro definitions */
+/* NOT VECTORIZED */
+#define NRN_VECTORIZED 0
+
+static constexpr auto number_of_datum_variables = 0;
+static constexpr auto number_of_floating_point_variables = 2;
+
+namespace {
+template <typename T>
+using _nrn_mechanism_std_vector = std::vector<T>;
+using _nrn_model_sorted_token = neuron::model_sorted_token;
+using _nrn_mechanism_cache_range = neuron::cache::MechanismRange<number_of_floating_point_variables, number_of_datum_variables>;
+using _nrn_mechanism_cache_instance = neuron::cache::MechanismInstance<number_of_floating_point_variables, number_of_datum_variables>;
+using _nrn_non_owning_id_without_container = neuron::container::non_owning_identifier_without_container;
+template <typename T>
+using _nrn_mechanism_field = neuron::mechanism::field<T>;
+template <typename... Args>
+void _nrn_mechanism_register_data_fields(Args&&... args) {
+    neuron::mechanism::register_data_fields(std::forward<Args>(args)...);
+}
+}  // namespace
+
+Prop* hoc_getdata_range(int type);
+extern Node* nrn_alloc_node_;
+
+
+namespace neuron {
     #ifndef NRN_PRCELLSTATE
     #define NRN_PRCELLSTATE 0
     #endif
@@ -420,38 +441,146 @@ namespace coreneuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "derivimplicit_scalar",
+        "nonlin",
         0,
         0,
-        "x_derivimplicit_scalar",
+        "x_nonlin",
         0,
         0
     };
 
 
+    /* NEURON global variables */
+    static int mech_type;
+    static Prop* _extcall_prop;
+    /* _prop_id kind of shadows _extcall_prop to allow validity checking. */
+    static _nrn_non_owning_id_without_container _prop_id{};
+    static _nrn_mechanism_std_vector<Datum> _extcall_thread;
+
+
     /** all global variables */
-    struct derivimplicit_scalar_Store {
-        double x0{};
-        int reset{};
-        int mech_type{};
-        int slist1[1]{0};
-        int dlist1[1]{1};
+    struct nonlin_Store {
+        double x0{0};
     };
-    static_assert(std::is_trivially_copy_constructible_v<derivimplicit_scalar_Store>);
-    static_assert(std::is_trivially_move_constructible_v<derivimplicit_scalar_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<derivimplicit_scalar_Store>);
-    static_assert(std::is_trivially_move_assignable_v<derivimplicit_scalar_Store>);
-    static_assert(std::is_trivially_destructible_v<derivimplicit_scalar_Store>);
-    derivimplicit_scalar_Store derivimplicit_scalar_global;
+    static_assert(std::is_trivially_copy_constructible_v<nonlin_Store>);
+    static_assert(std::is_trivially_move_constructible_v<nonlin_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<nonlin_Store>);
+    static_assert(std::is_trivially_move_assignable_v<nonlin_Store>);
+    static_assert(std::is_trivially_destructible_v<nonlin_Store>);
+    nonlin_Store nonlin_global;
+    auto x0_nonlin() -> std::decay<decltype(nonlin_global.x0)>::type  {
+        return nonlin_global.x0;
+    }
+
+    static std::vector<double> _parameter_defaults = {
+    };
 
 
     /** all mechanism instance variables and global variables */
-    struct derivimplicit_scalar_Instance  {
+    struct nonlin_Instance  {
         double* x{};
         double* Dx{};
-        double* v_unused{};
-        double* g_unused{};
-        derivimplicit_scalar_Store* global{&derivimplicit_scalar_global};
+        nonlin_Store* global{&nonlin_global};
+    };
+
+
+    struct nonlin_NodeData  {
+        int const * nodeindices;
+        double const * node_voltages;
+        double * node_diagonal;
+        double * node_rhs;
+        int nodecount;
+    };
+
+
+    static nonlin_Instance make_instance_nonlin(_nrn_mechanism_cache_range& _lmc) {
+        return nonlin_Instance {
+            _lmc.template fpfield_ptr<0>(),
+            _lmc.template fpfield_ptr<1>()
+        };
+    }
+
+
+    static nonlin_NodeData make_node_data_nonlin(NrnThread& nt, Memb_list& _ml_arg) {
+        return nonlin_NodeData {
+            _ml_arg.nodeindices,
+            nt.node_voltage_storage(),
+            nt.node_d_storage(),
+            nt.node_rhs_storage(),
+            _ml_arg.nodecount
+        };
+    }
+    static nonlin_NodeData make_node_data_nonlin(Prop * _prop) {
+        static std::vector<int> node_index{0};
+        Node* _node = _nrn_mechanism_access_node(_prop);
+        return nonlin_NodeData {
+            node_index.data(),
+            &_nrn_mechanism_access_voltage(_node),
+            &_nrn_mechanism_access_d(_node),
+            &_nrn_mechanism_access_rhs(_node),
+            1
+        };
+    }
+
+    void nrn_destructor_nonlin(Prop* prop);
+
+
+    static void nrn_alloc_nonlin(Prop* _prop) {
+        Datum *_ppvar = nullptr;
+        _nrn_mechanism_cache_instance _lmc{_prop};
+        size_t const _iml = 0;
+        assert(_nrn_mechanism_get_num_vars(_prop) == 2);
+        /*initialize range parameters*/
+    }
+
+
+    /* Mechanism procedures and functions */
+    inline double solve_nonlin(_nrn_mechanism_cache_range& _lmc, nonlin_Instance& inst, nonlin_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline double residual_nonlin(_nrn_mechanism_cache_range& _lmc, nonlin_Instance& inst, nonlin_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
+    static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
+    }
+
+    /* Neuron setdata functions */
+    extern void _nrn_setdata_reg(int, void(*)(Prop*));
+    static void _setdata(Prop* _prop) {
+        _extcall_prop = _prop;
+        _prop_id = _nrn_get_prop_id(_prop);
+    }
+    static void _hoc_setdata() {
+        Prop *_prop = hoc_getdata_range(mech_type);
+        _setdata(_prop);
+        hoc_retpushx(1.);
+    }
+
+
+    struct functor_nonlin_0 {
+        _nrn_mechanism_cache_range& _lmc;
+        nonlin_Instance& inst;
+        nonlin_NodeData& node_data;
+        size_t id;
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        double v;
+
+        void initialize() {
+        }
+
+        functor_nonlin_0(_nrn_mechanism_cache_range& _lmc, nonlin_Instance& inst, nonlin_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v)
+            : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt), v(v)
+        {}
+        void operator()(const Eigen::Matrix<double, 1, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_dxm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_jm) const {
+            const double* nmodl_eigen_x = nmodl_eigen_xm.data();
+            double* nmodl_eigen_dx = nmodl_eigen_dxm.data();
+            double* nmodl_eigen_j = nmodl_eigen_jm.data();
+            double* nmodl_eigen_f = nmodl_eigen_fm.data();
+            nmodl_eigen_dx[0] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[0]));
+            nmodl_eigen_f[static_cast<int>(0)] = 4.0 - pow(nmodl_eigen_x[static_cast<int>(0)], 2.0);
+            nmodl_eigen_j[static_cast<int>(0)] =  -2.0 * nmodl_eigen_x[static_cast<int>(0)];
+        }
+
+        void finalize() {
+        }
     };
 
 
@@ -467,246 +596,173 @@ namespace coreneuron {
     };
 
 
-    static inline int first_pointer_var_index() {
-        return -1;
-    }
+    /* declaration of user functions */
+    static void _hoc_solve(void);
+    static double _npy_solve(Prop*);
+    static void _hoc_residual(void);
+    static double _npy_residual(Prop*);
 
 
-    static inline int first_random_var_index() {
-        return -1;
-    }
-
-
-    static inline int float_variables_size() {
-        return 4;
-    }
-
-
-    static inline int int_variables_size() {
-        return 0;
-    }
-
-
-    static inline int get_mech_type() {
-        return derivimplicit_scalar_global.mech_type;
-    }
-
-
-    static inline Memb_list* get_memb_list(NrnThread* nt) {
-        if (!nt->_ml_list) {
-            return nullptr;
-        }
-        return nt->_ml_list[get_mech_type()];
-    }
-
-
-    static inline void* mem_alloc(size_t num, size_t size, size_t alignment = 64) {
-        size_t aligned_size = ((num*size + alignment - 1) / alignment) * alignment;
-        void* ptr = aligned_alloc(alignment, aligned_size);
-        memset(ptr, 0, aligned_size);
-        return ptr;
-    }
-
-
-    static inline void mem_free(void* ptr) {
-        free(ptr);
-    }
-
-
-    static inline void coreneuron_abort() {
-        abort();
-    }
-
-    // Allocate instance structure
-    static void nrn_private_constructor_derivimplicit_scalar(NrnThread* nt, Memb_list* ml, int type) {
-        assert(!ml->instance);
-        assert(!ml->global_variables);
-        assert(ml->global_variables_size == 0);
-        auto* const inst = new derivimplicit_scalar_Instance{};
-        assert(inst->global == &derivimplicit_scalar_global);
-        ml->instance = inst;
-        ml->global_variables = inst->global;
-        ml->global_variables_size = sizeof(derivimplicit_scalar_Store);
-    }
-
-    // Deallocate the instance structure
-    static void nrn_private_destructor_derivimplicit_scalar(NrnThread* nt, Memb_list* ml, int type) {
-        auto* const inst = static_cast<derivimplicit_scalar_Instance*>(ml->instance);
-        assert(inst);
-        assert(inst->global);
-        assert(inst->global == &derivimplicit_scalar_global);
-        assert(inst->global == ml->global_variables);
-        assert(ml->global_variables_size == sizeof(derivimplicit_scalar_Store));
-        delete inst;
-        ml->instance = nullptr;
-        ml->global_variables = nullptr;
-        ml->global_variables_size = 0;
-    }
-
-    /** initialize mechanism instance variables */
-    static inline void setup_instance(NrnThread* nt, Memb_list* ml) {
-        auto* const inst = static_cast<derivimplicit_scalar_Instance*>(ml->instance);
-        assert(inst);
-        assert(inst->global);
-        assert(inst->global == &derivimplicit_scalar_global);
-        assert(inst->global == ml->global_variables);
-        assert(ml->global_variables_size == sizeof(derivimplicit_scalar_Store));
-        int pnodecount = ml->_nodecount_padded;
-        Datum* indexes = ml->pdata;
-        inst->x = ml->data+0*pnodecount;
-        inst->Dx = ml->data+1*pnodecount;
-        inst->v_unused = ml->data+2*pnodecount;
-        inst->g_unused = ml->data+3*pnodecount;
-    }
-
-
-
-    static void nrn_alloc_derivimplicit_scalar(double* data, Datum* indexes, int type) {
-        // do nothing
-    }
-
-
-    void nrn_constructor_derivimplicit_scalar(NrnThread* nt, Memb_list* ml, int type) {
-        #ifndef CORENEURON_BUILD
-        int nodecount = ml->nodecount;
-        int pnodecount = ml->_nodecount_padded;
-        const int* node_index = ml->nodeindices;
-        double* data = ml->data;
-        const double* voltage = nt->_actual_v;
-        Datum* indexes = ml->pdata;
-        ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<derivimplicit_scalar_Instance*>(ml->instance);
-
-        #endif
-    }
-
-
-    void nrn_destructor_derivimplicit_scalar(NrnThread* nt, Memb_list* ml, int type) {
-        #ifndef CORENEURON_BUILD
-        int nodecount = ml->nodecount;
-        int pnodecount = ml->_nodecount_padded;
-        const int* node_index = ml->nodeindices;
-        double* data = ml->data;
-        const double* voltage = nt->_actual_v;
-        Datum* indexes = ml->pdata;
-        ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<derivimplicit_scalar_Instance*>(ml->instance);
-
-        #endif
-    }
-
-
-    struct functor_derivimplicit_scalar_0 {
-        NrnThread* nt;
-        derivimplicit_scalar_Instance* inst;
-        int id;
-        int pnodecount;
-        double v;
-        const Datum* indexes;
-        double* data;
-        ThreadDatum* thread;
-        double old_x;
-
-        void initialize() {
-            old_x = inst->x[id];
-        }
-
-        functor_derivimplicit_scalar_0(NrnThread* nt, derivimplicit_scalar_Instance* inst, int id, int pnodecount, double v, const Datum* indexes, double* data, ThreadDatum* thread)
-            : nt(nt), inst(inst), id(id), pnodecount(pnodecount), v(v), indexes(indexes), data(data), thread(thread)
-        {}
-        void operator()(const Eigen::Matrix<double, 1, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_dxm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_jm) const {
-            const double* nmodl_eigen_x = nmodl_eigen_xm.data();
-            double* nmodl_eigen_dx = nmodl_eigen_dxm.data();
-            double* nmodl_eigen_j = nmodl_eigen_jm.data();
-            double* nmodl_eigen_f = nmodl_eigen_fm.data();
-            nmodl_eigen_dx[0] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[0]));
-            nmodl_eigen_f[static_cast<int>(0)] = ( -nmodl_eigen_x[static_cast<int>(0)] * nt->_dt - nmodl_eigen_x[static_cast<int>(0)] + old_x) / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(0)] = ( -nt->_dt - 1.0) / nt->_dt;
-        }
-
-        void finalize() {
-        }
+    /* connect user functions to hoc names */
+    static VoidFunc hoc_intfunc[] = {
+        {"setdata_nonlin", _hoc_setdata},
+        {"solve_nonlin", _hoc_solve},
+        {"residual_nonlin", _hoc_residual},
+        {nullptr, nullptr}
     };
+    static NPyDirectMechFunc npy_direct_func_proc[] = {
+        {"solve", _npy_solve},
+        {"residual", _npy_residual},
+        {nullptr, nullptr}
+    };
+    static void _hoc_solve(void) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
+        _nrn_mechanism_cache_instance _lmc{_local_prop};
+        size_t const id{};
+        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
+        _thread = _extcall_thread.data();
+        nt = nrn_threads;
+        auto inst = make_instance_nonlin(_lmc);
+        auto node_data = make_node_data_nonlin(_local_prop);
+        _r = solve_nonlin(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        hoc_retpushx(_r);
+    }
+    static double _npy_solve(Prop* _prop) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        _nrn_mechanism_cache_instance _lmc{_prop};
+        size_t const id = 0;
+        _ppvar = _nrn_mechanism_access_dparam(_prop);
+        _thread = _extcall_thread.data();
+        nt = nrn_threads;
+        auto inst = make_instance_nonlin(_lmc);
+        auto node_data = make_node_data_nonlin(_prop);
+        _r = solve_nonlin(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        return(_r);
+    }
+    static void _hoc_residual(void) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
+        _nrn_mechanism_cache_instance _lmc{_local_prop};
+        size_t const id{};
+        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
+        _thread = _extcall_thread.data();
+        nt = nrn_threads;
+        auto inst = make_instance_nonlin(_lmc);
+        auto node_data = make_node_data_nonlin(_local_prop);
+        _r = residual_nonlin(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
+        hoc_retpushx(_r);
+    }
+    static double _npy_residual(Prop* _prop) {
+        double _r{};
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        _nrn_mechanism_cache_instance _lmc{_prop};
+        size_t const id = 0;
+        _ppvar = _nrn_mechanism_access_dparam(_prop);
+        _thread = _extcall_thread.data();
+        nt = nrn_threads;
+        auto inst = make_instance_nonlin(_lmc);
+        auto node_data = make_node_data_nonlin(_prop);
+        _r = residual_nonlin(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
+        return(_r);
+    }
 
 
-    /** initialize channel */
-    void nrn_init_derivimplicit_scalar(NrnThread* nt, Memb_list* ml, int type) {
-        int nodecount = ml->nodecount;
-        int pnodecount = ml->_nodecount_padded;
-        const int* node_index = ml->nodeindices;
-        double* data = ml->data;
-        const double* voltage = nt->_actual_v;
-        Datum* indexes = ml->pdata;
-        ThreadDatum* thread = ml->_thread;
+    inline double solve_nonlin(_nrn_mechanism_cache_range& _lmc, nonlin_Instance& inst, nonlin_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+        double ret_solve = 0.0;
+        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        inst.x[id] = 1.0;
+                
+        Eigen::Matrix<double, 1, 1> nmodl_eigen_xm;
+        double* nmodl_eigen_x = nmodl_eigen_xm.data();
+        nmodl_eigen_x[static_cast<int>(0)] = inst.x[id];
+        // call newton solver
+        functor_nonlin_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, nt, v);
+        newton_functor.initialize();
+        int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
+        if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
+        inst.x[id] = nmodl_eigen_x[static_cast<int>(0)];
+        newton_functor.initialize(); // TODO mimic calling F again.
+        newton_functor.finalize();
 
-        setup_instance(nt, ml);
-        auto* const inst = static_cast<derivimplicit_scalar_Instance*>(ml->instance);
 
-        if (_nrn_skip_initmodel == 0) {
-            #pragma omp simd
-            #pragma ivdep
-            for (int id = 0; id < nodecount; id++) {
-                int node_id = node_index[id];
-                double v = voltage[node_id];
-                #if NRN_PRCELLSTATE
-                inst->v_unused[id] = v;
-                #endif
-                inst->x[id] = inst->global->x0;
-                inst->x[id] = 42.0;
-            }
+        ret_solve = inst.x[id];
+        return ret_solve;
+    }
+
+
+    inline double residual_nonlin(_nrn_mechanism_cache_range& _lmc, nonlin_Instance& inst, nonlin_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx) {
+        double ret_residual = 0.0;
+        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        ret_residual = _lx - 2.0;
+        return ret_residual;
+    }
+
+
+    void nrn_init_nonlin(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_nonlin(_lmc);
+        auto node_data = make_node_data_nonlin(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
+        for (int id = 0; id < nodecount; id++) {
+            auto* _ppvar = _ml_arg->pdata[id];
+            int node_id = node_data.nodeindices[id];
+            auto v = node_data.node_voltages[node_id];
+            inst.x[id] = inst.global->x0;
         }
     }
 
 
-    /** update state */
-    void nrn_state_derivimplicit_scalar(NrnThread* nt, Memb_list* ml, int type) {
-        int nodecount = ml->nodecount;
-        int pnodecount = ml->_nodecount_padded;
-        const int* node_index = ml->nodeindices;
-        double* data = ml->data;
-        const double* voltage = nt->_actual_v;
-        Datum* indexes = ml->pdata;
-        ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<derivimplicit_scalar_Instance*>(ml->instance);
-
-        #pragma omp simd
-        #pragma ivdep
+    static void nrn_jacob_nonlin(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_nonlin(_lmc);
+        auto node_data = make_node_data_nonlin(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
-            int node_id = node_index[id];
-            double v = voltage[node_id];
-            #if NRN_PRCELLSTATE
-            inst->v_unused[id] = v;
-            #endif
-            
-            Eigen::Matrix<double, 1, 1> nmodl_eigen_xm;
-            double* nmodl_eigen_x = nmodl_eigen_xm.data();
-            nmodl_eigen_x[static_cast<int>(0)] = inst->x[id];
-            // call newton solver
-            functor_derivimplicit_scalar_0 newton_functor(nt, inst, id, pnodecount, v, indexes, data, thread);
-            newton_functor.initialize();
-            int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
-            if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
-            inst->x[id] = nmodl_eigen_x[static_cast<int>(0)];
-            newton_functor.initialize(); // TODO mimic calling F again.
-            newton_functor.finalize();
-
         }
+    }
+    void nrn_destructor_nonlin(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_nonlin(_lmc);
+        auto node_data = make_node_data_nonlin(prop);
+
+    }
+
+
+    static void _initlists() {
     }
 
 
     /** register channel with the simulator */
-    void _derivimplicit_scalar_reg() {
+    extern "C" void _nonlin_reg() {
+        _initlists();
 
-        int mech_type = nrn_get_mechtype("derivimplicit_scalar");
-        derivimplicit_scalar_global.mech_type = mech_type;
-        if (mech_type == -1) {
-            return;
-        }
+        register_mech(mechanism_info, nrn_alloc_nonlin, nullptr, nullptr, nullptr, nrn_init_nonlin, -1, 1);
 
-        _nrn_layout_reg(mech_type, 0);
-        register_mech(mechanism_info, nrn_alloc_derivimplicit_scalar, nullptr, nullptr, nrn_state_derivimplicit_scalar, nrn_init_derivimplicit_scalar, nrn_private_constructor_derivimplicit_scalar, nrn_private_destructor_derivimplicit_scalar, first_pointer_var_index(), 1);
+        mech_type = nrn_get_mechtype(mechanism_info[1]);
+        hoc_register_parm_default(mech_type, &_parameter_defaults);
+        _nrn_mechanism_register_data_fields(mech_type,
+            _nrn_mechanism_field<double>{"x"} /* 0 */,
+            _nrn_mechanism_field<double>{"Dx"} /* 1 */
+        );
 
-        hoc_register_prop_size(mech_type, float_variables_size(), int_variables_size());
-        hoc_register_var(hoc_scalar_double, hoc_vector_double, NULL);
+        hoc_register_prop_size(mech_type, 2, 0);
+        hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
+        hoc_register_npy_direct(mech_type, npy_direct_func_proc);
     }
 }
