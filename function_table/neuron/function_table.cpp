@@ -170,6 +170,9 @@ namespace neuron {
     double table_tau1_function_table();
     double tau2_function_table(double v, double x);
     double table_tau2_function_table();
+    static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
+    }
+
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {
