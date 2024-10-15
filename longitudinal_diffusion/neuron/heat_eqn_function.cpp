@@ -574,9 +574,9 @@ namespace neuron {
 
 
     /* Mechanism procedures and functions */
-    inline double factor_heat_eqn_function(_nrn_mechanism_cache_range& _lmc, heat_eqn_function_Instance& inst, heat_eqn_function_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, heat_eqn_function_ThreadVariables& _thread_vars, NrnThread* nt, double _lx);
-    inline double vol_heat_eqn_function(_nrn_mechanism_cache_range& _lmc, heat_eqn_function_Instance& inst, heat_eqn_function_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, heat_eqn_function_ThreadVariables& _thread_vars, NrnThread* nt, double _lx);
-    inline double mu_heat_eqn_function(_nrn_mechanism_cache_range& _lmc, heat_eqn_function_Instance& inst, heat_eqn_function_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, heat_eqn_function_ThreadVariables& _thread_vars, NrnThread* nt, double _lx);
+    inline static double factor_heat_eqn_function(_nrn_mechanism_cache_range& _lmc, heat_eqn_function_Instance& inst, heat_eqn_function_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, heat_eqn_function_ThreadVariables& _thread_vars, NrnThread* nt, double _lx);
+    inline static double vol_heat_eqn_function(_nrn_mechanism_cache_range& _lmc, heat_eqn_function_Instance& inst, heat_eqn_function_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, heat_eqn_function_ThreadVariables& _thread_vars, NrnThread* nt, double _lx);
+    inline static double mu_heat_eqn_function(_nrn_mechanism_cache_range& _lmc, heat_eqn_function_Instance& inst, heat_eqn_function_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, heat_eqn_function_ThreadVariables& _thread_vars, NrnThread* nt, double _lx);
     static void* _diffusion_space_X;
     static double _diffusion_coefficient_X(int _i, Memb_list* _ml_arg, size_t id, Datum* _ppvar, double* _pdvol, double* _pdfcdc, Datum* /* _thread */, NrnThread* nt, const _nrn_model_sorted_token& _sorted_token) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};

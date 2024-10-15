@@ -278,9 +278,9 @@ namespace coreneuron {
     }
 
 
-    inline double vtrap_hodhux(int id, int pnodecount, hodhux_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lx, double _ly);
-    inline int states_hodhux(int id, int pnodecount, hodhux_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
-    inline int rates_hodhux(int id, int pnodecount, hodhux_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv);
+    inline static double vtrap_hodhux(int id, int pnodecount, hodhux_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lx, double _ly);
+    inline static int states_hodhux(int id, int pnodecount, hodhux_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static int rates_hodhux(int id, int pnodecount, hodhux_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv);
 
 
     inline int states_hodhux(int id, int pnodecount, hodhux_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {

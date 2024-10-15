@@ -613,7 +613,7 @@ namespace coreneuron {
     }
 
 
-    inline int rates_X2Y(int id, int pnodecount, X2Y_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static int rates_X2Y(int id, int pnodecount, X2Y_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
 
 
     struct functor_X2Y_0 {

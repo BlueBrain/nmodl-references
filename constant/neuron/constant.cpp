@@ -148,7 +148,7 @@ namespace neuron {
 
 
     /* Mechanism procedures and functions */
-    inline double foo_constant_mod(_nrn_mechanism_cache_range& _lmc, constant_mod_Instance& inst, constant_mod_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static double foo_constant_mod(_nrn_mechanism_cache_range& _lmc, constant_mod_Instance& inst, constant_mod_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
 

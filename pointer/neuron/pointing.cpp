@@ -149,7 +149,7 @@ namespace neuron {
 
 
     /* Mechanism procedures and functions */
-    inline double is_valid_pointing(_nrn_mechanism_cache_range& _lmc, pointing_Instance& inst, pointing_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static double is_valid_pointing(_nrn_mechanism_cache_range& _lmc, pointing_Instance& inst, pointing_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
 

@@ -205,13 +205,13 @@ namespace coreneuron {
     }
 
 
-    inline double identity_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv);
-    inline int set_x_42_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
-    inline int set_x_a_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _la);
-    inline int set_a_x_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
-    inline int set_x_v_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
-    inline int set_x_just_v_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
-    inline int set_x_just_vv_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv);
+    inline static double identity_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv);
+    inline static int set_x_42_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static int set_x_a_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _la);
+    inline static int set_a_x_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static int set_x_v_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static int set_x_just_v_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static int set_x_just_vv_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv);
 
 
     inline int set_x_42_procedures(int id, int pnodecount, procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {

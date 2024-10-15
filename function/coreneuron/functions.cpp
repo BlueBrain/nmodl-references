@@ -205,9 +205,9 @@ namespace coreneuron {
     }
 
 
-    inline double x_plus_a_functions(int id, int pnodecount, functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _la);
-    inline double v_plus_a_functions(int id, int pnodecount, functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _la);
-    inline double identity_functions(int id, int pnodecount, functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv);
+    inline static double x_plus_a_functions(int id, int pnodecount, functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _la);
+    inline static double v_plus_a_functions(int id, int pnodecount, functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _la);
+    inline static double identity_functions(int id, int pnodecount, functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv);
 
 
     inline double x_plus_a_functions(int id, int pnodecount, functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _la) {

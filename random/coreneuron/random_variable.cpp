@@ -210,7 +210,7 @@ namespace coreneuron {
     }
 
 
-    inline double negexp_random_variable(int id, int pnodecount, random_variable_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static double negexp_random_variable(int id, int pnodecount, random_variable_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
 
 
     inline double negexp_random_variable(int id, int pnodecount, random_variable_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {

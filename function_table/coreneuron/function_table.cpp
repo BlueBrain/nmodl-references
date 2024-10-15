@@ -206,7 +206,7 @@ namespace coreneuron {
     }
 
 
-    inline double use_tau2_function_table(int id, int pnodecount, function_table_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv, double _lx);
+    inline static double use_tau2_function_table(int id, int pnodecount, function_table_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv, double _lx);
 
 
     inline double use_tau2_function_table(int id, int pnodecount, function_table_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv, double _lx) {

@@ -203,7 +203,7 @@ namespace coreneuron {
     }
 
 
-    inline double call_nrn_ghk_compile_only(int id, int pnodecount, compile_only_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static double call_nrn_ghk_compile_only(int id, int pnodecount, compile_only_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
 
 
     inline double call_nrn_ghk_compile_only(int id, int pnodecount, compile_only_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {

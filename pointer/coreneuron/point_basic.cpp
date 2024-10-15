@@ -227,8 +227,8 @@ namespace coreneuron {
     }
 
 
-    inline double read_p1_point_basic(int id, int pnodecount, point_basic_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
-    inline double read_p2_point_basic(int id, int pnodecount, point_basic_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static double read_p1_point_basic(int id, int pnodecount, point_basic_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static double read_p2_point_basic(int id, int pnodecount, point_basic_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
 
 
     inline double read_p1_point_basic(int id, int pnodecount, point_basic_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {

@@ -595,8 +595,8 @@ namespace coreneuron {
     }
 
 
-    inline double solve_art_nonlin(int id, int pnodecount, art_nonlin_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
-    inline double residual_art_nonlin(int id, int pnodecount, art_nonlin_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lx);
+    inline static double solve_art_nonlin(int id, int pnodecount, art_nonlin_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static double residual_art_nonlin(int id, int pnodecount, art_nonlin_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lx);
 
 
     struct functor_art_nonlin_0 {

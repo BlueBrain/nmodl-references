@@ -160,7 +160,7 @@ namespace neuron {
 
 
     /* Mechanism procedures and functions */
-    inline double use_tau2_function_table(_nrn_mechanism_cache_range& _lmc, function_table_Instance& inst, function_table_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv, double _lx);
+    inline static double use_tau2_function_table(_nrn_mechanism_cache_range& _lmc, function_table_Instance& inst, function_table_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv, double _lx);
     double cnst1_function_table(double v);
     double table_cnst1_function_table();
     double cnst2_function_table(double v, double x);

@@ -205,7 +205,7 @@ namespace coreneuron {
     }
 
 
-    inline double is_valid_pointing(int id, int pnodecount, pointing_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static double is_valid_pointing(int id, int pnodecount, pointing_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
 
 
     inline double is_valid_pointing(int id, int pnodecount, pointing_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {

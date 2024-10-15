@@ -220,8 +220,8 @@ namespace coreneuron {
     }
 
 
-    inline double one_NetReceiveCalls(int id, int pnodecount, NetReceiveCalls_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
-    inline int increment_c2_NetReceiveCalls(int id, int pnodecount, NetReceiveCalls_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static double one_NetReceiveCalls(int id, int pnodecount, NetReceiveCalls_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static int increment_c2_NetReceiveCalls(int id, int pnodecount, NetReceiveCalls_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
 
 
     inline int increment_c2_NetReceiveCalls(int id, int pnodecount, NetReceiveCalls_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {

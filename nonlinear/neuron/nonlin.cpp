@@ -535,8 +535,8 @@ namespace neuron {
 
 
     /* Mechanism procedures and functions */
-    inline double solve_nonlin(_nrn_mechanism_cache_range& _lmc, nonlin_Instance& inst, nonlin_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline double residual_nonlin(_nrn_mechanism_cache_range& _lmc, nonlin_Instance& inst, nonlin_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
+    inline static double solve_nonlin(_nrn_mechanism_cache_range& _lmc, nonlin_Instance& inst, nonlin_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static double residual_nonlin(_nrn_mechanism_cache_range& _lmc, nonlin_Instance& inst, nonlin_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
 

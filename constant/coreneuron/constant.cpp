@@ -203,7 +203,7 @@ namespace coreneuron {
     }
 
 
-    inline double foo_constant_mod(int id, int pnodecount, constant_mod_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static double foo_constant_mod(int id, int pnodecount, constant_mod_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
 
 
     inline double foo_constant_mod(int id, int pnodecount, constant_mod_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {

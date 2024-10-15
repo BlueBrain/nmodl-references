@@ -146,8 +146,8 @@ namespace neuron {
 
 
     /* Mechanism procedures and functions */
-    inline double get_gbl_dst(_nrn_mechanism_cache_range& _lmc, dst_Instance& inst, dst_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline double get_param_dst(_nrn_mechanism_cache_range& _lmc, dst_Instance& inst, dst_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static double get_gbl_dst(_nrn_mechanism_cache_range& _lmc, dst_Instance& inst, dst_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static double get_param_dst(_nrn_mechanism_cache_range& _lmc, dst_Instance& inst, dst_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
 

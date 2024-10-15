@@ -565,7 +565,7 @@ namespace neuron {
 
 
     /* Mechanism procedures and functions */
-    inline double f_finite_difference(_nrn_mechanism_cache_range& _lmc, finite_difference_Instance& inst, finite_difference_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, finite_difference_ThreadVariables& _thread_vars, NrnThread* nt, double _lx);
+    inline static double f_finite_difference(_nrn_mechanism_cache_range& _lmc, finite_difference_Instance& inst, finite_difference_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, finite_difference_ThreadVariables& _thread_vars, NrnThread* nt, double _lx);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
 
