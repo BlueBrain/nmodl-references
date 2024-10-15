@@ -537,10 +537,7 @@ namespace neuron {
             auto v = node_data.node_voltages[node_id];
             inst.ena[id] = (*inst.ion_ena[id]);
             inst.ek[id] = (*inst.ion_ek[id]);
-            rates_hodhux(_lmc, inst, node_data, id, _ppvar, _thread, nt, v);
-            inst.m[id] = inst.m[id] + inst.mexp[id] * (inst.minf[id] - inst.m[id]);
-            inst.h[id] = inst.h[id] + inst.hexp[id] * (inst.hinf[id] - inst.h[id]);
-            inst.n[id] = inst.n[id] + inst.nexp[id] * (inst.ninf[id] - inst.n[id]);
+            states_hodhux(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         }
     }
 
