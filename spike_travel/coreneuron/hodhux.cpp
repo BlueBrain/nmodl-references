@@ -73,7 +73,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<hodhux_Store>);
     static_assert(std::is_trivially_move_assignable_v<hodhux_Store>);
     static_assert(std::is_trivially_destructible_v<hodhux_Store>);
-    hodhux_Store hodhux_global;
+    static hodhux_Store hodhux_global;
 
 
     /** all mechanism instance variables and global variables */

@@ -442,7 +442,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<derivimplicit_scalar_Store>);
     static_assert(std::is_trivially_move_assignable_v<derivimplicit_scalar_Store>);
     static_assert(std::is_trivially_destructible_v<derivimplicit_scalar_Store>);
-    derivimplicit_scalar_Store derivimplicit_scalar_global;
+    static derivimplicit_scalar_Store derivimplicit_scalar_global;
 
 
     /** all mechanism instance variables and global variables */

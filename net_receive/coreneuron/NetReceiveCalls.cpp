@@ -57,7 +57,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<NetReceiveCalls_Store>);
     static_assert(std::is_trivially_move_assignable_v<NetReceiveCalls_Store>);
     static_assert(std::is_trivially_destructible_v<NetReceiveCalls_Store>);
-    NetReceiveCalls_Store NetReceiveCalls_global;
+    static NetReceiveCalls_Store NetReceiveCalls_global;
 
 
     /** all mechanism instance variables and global variables */

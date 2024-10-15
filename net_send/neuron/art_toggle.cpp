@@ -80,7 +80,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<art_toggle_Store>);
     static_assert(std::is_trivially_move_assignable_v<art_toggle_Store>);
     static_assert(std::is_trivially_destructible_v<art_toggle_Store>);
-    art_toggle_Store art_toggle_global;
+    static art_toggle_Store art_toggle_global;
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -135,7 +135,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_art_toggle(Prop* prop);
+    static void nrn_destructor_art_toggle(Prop* prop);
 
 
     static void nrn_alloc_art_toggle(Prop* _prop) {
@@ -215,7 +215,7 @@ namespace neuron {
     };
 
 
-    void nrn_init_art_toggle(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_art_toggle(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_art_toggle(_lmc);
         auto* _thread = _ml_arg->_thread;
@@ -253,7 +253,7 @@ namespace neuron {
         }
 
     }
-    void nrn_destructor_art_toggle(Prop* prop) {
+    static void nrn_destructor_art_toggle(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;

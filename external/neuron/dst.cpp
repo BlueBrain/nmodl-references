@@ -81,7 +81,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<dst_Store>);
     static_assert(std::is_trivially_move_assignable_v<dst_Store>);
     static_assert(std::is_trivially_destructible_v<dst_Store>);
-    dst_Store dst_global;
+    static dst_Store dst_global;
     double gbl_src();
     double param_src();
 
@@ -133,7 +133,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_dst(Prop* prop);
+    static void nrn_destructor_dst(Prop* prop);
 
 
     static void nrn_alloc_dst(Prop* _prop) {
@@ -275,7 +275,7 @@ namespace neuron {
     }
 
 
-    void nrn_init_dst(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_dst(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_dst(_lmc);
         auto node_data = make_node_data_dst(*nt, *_ml_arg);
@@ -298,7 +298,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
         }
     }
-    void nrn_destructor_dst(Prop* prop) {
+    static void nrn_destructor_dst(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;

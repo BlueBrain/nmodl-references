@@ -58,7 +58,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<cnexp_scalar_Store>);
     static_assert(std::is_trivially_move_assignable_v<cnexp_scalar_Store>);
     static_assert(std::is_trivially_destructible_v<cnexp_scalar_Store>);
-    cnexp_scalar_Store cnexp_scalar_global;
+    static cnexp_scalar_Store cnexp_scalar_global;
 
 
     /** all mechanism instance variables and global variables */

@@ -465,7 +465,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<art_nonlin_Store>);
     static_assert(std::is_trivially_move_assignable_v<art_nonlin_Store>);
     static_assert(std::is_trivially_destructible_v<art_nonlin_Store>);
-    art_nonlin_Store art_nonlin_global;
+    static art_nonlin_Store art_nonlin_global;
     auto x0_art_nonlin() -> std::decay<decltype(art_nonlin_global.x0)>::type  {
         return art_nonlin_global.x0;
     }
@@ -522,7 +522,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_art_nonlin(Prop* prop);
+    static void nrn_destructor_art_nonlin(Prop* prop);
 
 
     static void nrn_alloc_art_nonlin(Prop* _prop) {
@@ -704,7 +704,7 @@ namespace neuron {
     }
 
 
-    void nrn_init_art_nonlin(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_art_nonlin(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_art_nonlin(_lmc);
         auto* _thread = _ml_arg->_thread;
@@ -724,7 +724,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
         }
     }
-    void nrn_destructor_art_nonlin(Prop* prop) {
+    static void nrn_destructor_art_nonlin(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;

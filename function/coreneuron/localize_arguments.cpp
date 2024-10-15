@@ -60,7 +60,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<localize_arguments_Store>);
     static_assert(std::is_trivially_move_assignable_v<localize_arguments_Store>);
     static_assert(std::is_trivially_destructible_v<localize_arguments_Store>);
-    localize_arguments_Store localize_arguments_global;
+    static localize_arguments_Store localize_arguments_global;
 
 
     /** all mechanism instance variables and global variables */

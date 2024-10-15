@@ -82,7 +82,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<art_ctor_Store>);
     static_assert(std::is_trivially_move_assignable_v<art_ctor_Store>);
     static_assert(std::is_trivially_destructible_v<art_ctor_Store>);
-    art_ctor_Store art_ctor_global;
+    static art_ctor_Store art_ctor_global;
     auto thread_data_in_use_art_ctor() -> std::decay<decltype(art_ctor_global.thread_data_in_use)>::type  {
         return art_ctor_global.thread_data_in_use;
     }
@@ -162,8 +162,8 @@ namespace neuron {
         };
     }
 
-    void nrn_constructor_art_ctor(Prop* prop);
-    void nrn_destructor_art_ctor(Prop* prop);
+    static void nrn_constructor_art_ctor(Prop* prop);
+    static void nrn_destructor_art_ctor(Prop* prop);
 
 
     static void nrn_alloc_art_ctor(Prop* _prop) {
@@ -264,7 +264,7 @@ namespace neuron {
     }
 
 
-    void nrn_init_art_ctor(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_art_ctor(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_art_ctor(_lmc);
         auto* _thread = _ml_arg->_thread;
@@ -285,7 +285,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
         }
     }
-    void nrn_constructor_art_ctor(Prop* prop) {
+    static void nrn_constructor_art_ctor(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
@@ -294,7 +294,7 @@ namespace neuron {
 
         _thread_vars.ctor_calls(id) = _thread_vars.ctor_calls(id) + 1.0;
     }
-    void nrn_destructor_art_ctor(Prop* prop) {
+    static void nrn_destructor_art_ctor(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;

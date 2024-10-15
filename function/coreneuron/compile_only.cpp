@@ -56,7 +56,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<func_in_breakpoint_Store>);
     static_assert(std::is_trivially_move_assignable_v<func_in_breakpoint_Store>);
     static_assert(std::is_trivially_destructible_v<func_in_breakpoint_Store>);
-    func_in_breakpoint_Store func_in_breakpoint_global;
+    static func_in_breakpoint_Store func_in_breakpoint_global;
 
 
     /** all mechanism instance variables and global variables */

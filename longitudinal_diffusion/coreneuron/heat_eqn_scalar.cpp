@@ -443,7 +443,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<heat_eqn_scalar_Store>);
     static_assert(std::is_trivially_move_assignable_v<heat_eqn_scalar_Store>);
     static_assert(std::is_trivially_destructible_v<heat_eqn_scalar_Store>);
-    heat_eqn_scalar_Store heat_eqn_scalar_global;
+    static heat_eqn_scalar_Store heat_eqn_scalar_global;
 
 
     /** all mechanism instance variables and global variables */
