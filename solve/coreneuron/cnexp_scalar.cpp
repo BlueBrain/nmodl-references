@@ -260,7 +260,7 @@ namespace coreneuron {
             #if NRN_PRCELLSTATE
             inst->v_unused[id] = v;
             #endif
-            inst->x[id] = inst->x[id] + (1.0 - exp(nt->_dt * ( -1.0))) * ( -(0.0) / ( -1.0) - inst->x[id]);
+            inst->x[id] = inst->x[id] * exp( -nt->_dt);
         }
     }
 
