@@ -54,7 +54,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<recursion_Store>);
     static_assert(std::is_trivially_move_assignable_v<recursion_Store>);
     static_assert(std::is_trivially_destructible_v<recursion_Store>);
-    recursion_Store recursion_global;
+    static recursion_Store recursion_global;
 
 
     /** all mechanism instance variables and global variables */
@@ -202,7 +202,7 @@ namespace coreneuron {
     }
 
 
-    inline double fibonacci_recursion(int id, int pnodecount, recursion_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _ln);
+    inline static double fibonacci_recursion(int id, int pnodecount, recursion_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _ln);
 
 
     inline double fibonacci_recursion(int id, int pnodecount, recursion_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _ln) {

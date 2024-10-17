@@ -440,7 +440,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<nonlin_Store>);
     static_assert(std::is_trivially_move_assignable_v<nonlin_Store>);
     static_assert(std::is_trivially_destructible_v<nonlin_Store>);
-    nonlin_Store nonlin_global;
+    static nonlin_Store nonlin_global;
 
 
     /** all mechanism instance variables and global variables */
@@ -590,8 +590,8 @@ namespace coreneuron {
     }
 
 
-    inline double solve_nonlin(int id, int pnodecount, nonlin_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
-    inline double residual_nonlin(int id, int pnodecount, nonlin_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lx);
+    inline static double solve_nonlin(int id, int pnodecount, nonlin_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static double residual_nonlin(int id, int pnodecount, nonlin_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lx);
 
 
     struct functor_nonlin_0 {

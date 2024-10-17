@@ -447,7 +447,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<X2Y_Store>);
     static_assert(std::is_trivially_move_assignable_v<X2Y_Store>);
     static_assert(std::is_trivially_destructible_v<X2Y_Store>);
-    X2Y_Store X2Y_global;
+    static X2Y_Store X2Y_global;
 
 
     /** all mechanism instance variables and global variables */
@@ -613,7 +613,7 @@ namespace coreneuron {
     }
 
 
-    inline int rates_X2Y(int id, int pnodecount, X2Y_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static int rates_X2Y(int id, int pnodecount, X2Y_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
 
 
     struct functor_X2Y_0 {

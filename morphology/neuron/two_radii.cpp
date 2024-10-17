@@ -84,7 +84,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<two_radii_Store>);
     static_assert(std::is_trivially_move_assignable_v<two_radii_Store>);
     static_assert(std::is_trivially_destructible_v<two_radii_Store>);
-    two_radii_Store two_radii_global;
+    static two_radii_Store two_radii_global;
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -143,7 +143,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_two_radii(Prop* prop);
+    static void nrn_destructor_two_radii(Prop* prop);
 
 
     static void nrn_alloc_two_radii(Prop* _prop) {
@@ -162,8 +162,8 @@ namespace neuron {
 
 
     /* Mechanism procedures and functions */
-    inline double square_diam_two_radii(_nrn_mechanism_cache_range& _lmc, two_radii_Instance& inst, two_radii_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline double square_area_two_radii(_nrn_mechanism_cache_range& _lmc, two_radii_Instance& inst, two_radii_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static double square_diam_two_radii(_nrn_mechanism_cache_range& _lmc, two_radii_Instance& inst, two_radii_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static double square_area_two_radii(_nrn_mechanism_cache_range& _lmc, two_radii_Instance& inst, two_radii_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
 
@@ -291,7 +291,7 @@ namespace neuron {
     }
 
 
-    void nrn_init_two_radii(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_two_radii(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_two_radii(_lmc);
         auto node_data = make_node_data_two_radii(*nt, *_ml_arg);
@@ -306,7 +306,7 @@ namespace neuron {
     }
 
 
-    inline double nrn_current_two_radii(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, two_radii_Instance& inst, two_radii_NodeData& node_data, double v) {
+    static inline double nrn_current_two_radii(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, two_radii_Instance& inst, two_radii_NodeData& node_data, double v) {
         double current = 0.0;
         inst.il[id] = (square_diam_two_radii(_lmc, inst, node_data, id, _ppvar, _thread, nt) + (*inst.area[id])) * 0.001 * (v - 20.0);
         current += inst.il[id];
@@ -315,7 +315,7 @@ namespace neuron {
 
 
     /** update current */
-    void nrn_cur_two_radii(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_cur_two_radii(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_two_radii(_lmc);
         auto node_data = make_node_data_two_radii(*nt, *_ml_arg);
@@ -335,7 +335,7 @@ namespace neuron {
     }
 
 
-    void nrn_state_two_radii(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_state_two_radii(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_two_radii(_lmc);
         auto node_data = make_node_data_two_radii(*nt, *_ml_arg);
@@ -360,7 +360,7 @@ namespace neuron {
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
-    void nrn_destructor_two_radii(Prop* prop) {
+    static void nrn_destructor_two_radii(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;

@@ -452,7 +452,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<minipump_Store>);
     static_assert(std::is_trivially_move_assignable_v<minipump_Store>);
     static_assert(std::is_trivially_destructible_v<minipump_Store>);
-    minipump_Store minipump_global;
+    static minipump_Store minipump_global;
 
 
     /** all mechanism instance variables and global variables */

@@ -467,7 +467,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<nonlin_Store>);
     static_assert(std::is_trivially_move_assignable_v<nonlin_Store>);
     static_assert(std::is_trivially_destructible_v<nonlin_Store>);
-    nonlin_Store nonlin_global;
+    static nonlin_Store nonlin_global;
     auto x0_nonlin() -> std::decay<decltype(nonlin_global.x0)>::type  {
         return nonlin_global.x0;
     }
@@ -522,7 +522,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_nonlin(Prop* prop);
+    static void nrn_destructor_nonlin(Prop* prop);
 
 
     static void nrn_alloc_nonlin(Prop* _prop) {
@@ -535,8 +535,8 @@ namespace neuron {
 
 
     /* Mechanism procedures and functions */
-    inline double solve_nonlin(_nrn_mechanism_cache_range& _lmc, nonlin_Instance& inst, nonlin_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline double residual_nonlin(_nrn_mechanism_cache_range& _lmc, nonlin_Instance& inst, nonlin_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
+    inline static double solve_nonlin(_nrn_mechanism_cache_range& _lmc, nonlin_Instance& inst, nonlin_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static double residual_nonlin(_nrn_mechanism_cache_range& _lmc, nonlin_Instance& inst, nonlin_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
 
@@ -710,7 +710,7 @@ namespace neuron {
     }
 
 
-    void nrn_init_nonlin(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_nonlin(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_nonlin(_lmc);
         auto node_data = make_node_data_nonlin(*nt, *_ml_arg);
@@ -734,7 +734,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
         }
     }
-    void nrn_destructor_nonlin(Prop* prop) {
+    static void nrn_destructor_nonlin(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;

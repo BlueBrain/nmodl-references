@@ -473,7 +473,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<X2Y_Store>);
     static_assert(std::is_trivially_move_assignable_v<X2Y_Store>);
     static_assert(std::is_trivially_destructible_v<X2Y_Store>);
-    X2Y_Store X2Y_global;
+    static X2Y_Store X2Y_global;
     auto X0_X2Y() -> std::decay<decltype(X2Y_global.X0)>::type  {
         return X2Y_global.X0;
     }
@@ -547,7 +547,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_X2Y(Prop* prop);
+    static void nrn_destructor_X2Y(Prop* prop);
 
 
     static void nrn_alloc_X2Y(Prop* _prop) {
@@ -560,7 +560,7 @@ namespace neuron {
 
 
     /* Mechanism procedures and functions */
-    inline int rates_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, X2Y_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static int rates_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, X2Y_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
 
@@ -694,7 +694,7 @@ namespace neuron {
     }
 
 
-    void nrn_init_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_X2Y(_lmc);
         auto node_data = make_node_data_X2Y(*nt, *_ml_arg);
@@ -714,7 +714,7 @@ namespace neuron {
     }
 
 
-    inline double nrn_current_X2Y(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, X2Y_Instance& inst, X2Y_NodeData& node_data, double v) {
+    static inline double nrn_current_X2Y(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, X2Y_Instance& inst, X2Y_NodeData& node_data, double v) {
         double current = 0.0;
         inst.il[id] = inst.i[id];
         current += inst.il[id];
@@ -723,7 +723,7 @@ namespace neuron {
 
 
     /** update current */
-    void nrn_cur_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_cur_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_X2Y(_lmc);
         auto node_data = make_node_data_X2Y(*nt, *_ml_arg);
@@ -743,7 +743,7 @@ namespace neuron {
     }
 
 
-    void nrn_state_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_state_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_X2Y(_lmc);
         auto node_data = make_node_data_X2Y(*nt, *_ml_arg);
@@ -783,7 +783,7 @@ namespace neuron {
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
-    void nrn_destructor_X2Y(Prop* prop) {
+    static void nrn_destructor_X2Y(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;

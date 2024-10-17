@@ -55,7 +55,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<constant_mod_Store>);
     static_assert(std::is_trivially_move_assignable_v<constant_mod_Store>);
     static_assert(std::is_trivially_destructible_v<constant_mod_Store>);
-    constant_mod_Store constant_mod_global;
+    static constant_mod_Store constant_mod_global;
 
 
     /** all mechanism instance variables and global variables */
@@ -203,7 +203,7 @@ namespace coreneuron {
     }
 
 
-    inline double foo_constant_mod(int id, int pnodecount, constant_mod_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static double foo_constant_mod(int id, int pnodecount, constant_mod_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
 
 
     inline double foo_constant_mod(int id, int pnodecount, constant_mod_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {

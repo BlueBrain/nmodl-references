@@ -80,7 +80,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<point_procedures_Store>);
     static_assert(std::is_trivially_move_assignable_v<point_procedures_Store>);
     static_assert(std::is_trivially_destructible_v<point_procedures_Store>);
-    point_procedures_Store point_procedures_global;
+    static point_procedures_Store point_procedures_global;
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -133,7 +133,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_point_procedures(Prop* prop);
+    static void nrn_destructor_point_procedures(Prop* prop);
 
 
     static void nrn_alloc_point_procedures(Prop* _prop) {
@@ -156,13 +156,13 @@ namespace neuron {
 
 
     /* Mechanism procedures and functions */
-    inline double identity_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
-    inline int set_x_42_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline int set_x_a_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
-    inline int set_a_x_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline int set_x_v_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline int set_x_just_v_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline int set_x_just_vv_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
+    inline static double identity_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
+    inline static int set_x_42_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static int set_x_a_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
+    inline static int set_a_x_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static int set_x_v_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static int set_x_just_v_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static int set_x_just_vv_point_procedures(_nrn_mechanism_cache_range& _lmc, point_procedures_Instance& inst, point_procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
 
@@ -437,7 +437,7 @@ namespace neuron {
     }
 
 
-    void nrn_init_point_procedures(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_point_procedures(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_point_procedures(_lmc);
         auto node_data = make_node_data_point_procedures(*nt, *_ml_arg);
@@ -461,7 +461,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
         }
     }
-    void nrn_destructor_point_procedures(Prop* prop) {
+    static void nrn_destructor_point_procedures(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
