@@ -202,9 +202,9 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static double _hoc_x_plus_a(void*);
-    static double _hoc_v_plus_a(void*);
-    static double _hoc_identity(void*);
+    static double _hoc_x_plus_a(void * _vptr);
+    static double _hoc_v_plus_a(void * _vptr);
+    static double _hoc_identity(void * _vptr);
 
 
     /* connect user functions to hoc names */
@@ -220,7 +220,7 @@ namespace neuron {
         {"identity", _hoc_identity},
         {nullptr, nullptr}
     };
-    static double _hoc_x_plus_a(void* _vptr) {
+    static double _hoc_x_plus_a(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -240,7 +240,7 @@ namespace neuron {
         _r = x_plus_a_point_functions(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static double _hoc_v_plus_a(void* _vptr) {
+    static double _hoc_v_plus_a(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -260,7 +260,7 @@ namespace neuron {
         _r = v_plus_a_point_functions(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static double _hoc_identity(void* _vptr) {
+    static double _hoc_identity(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;

@@ -201,10 +201,10 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_read_p1(void);
-    static double _npy_read_p1(Prop*);
-    static void _hoc_read_p2(void);
-    static double _npy_read_p2(Prop*);
+    static void _hoc_read_p1();
+    static double _npy_read_p1(Prop* _prop);
+    static void _hoc_read_p2();
+    static double _npy_read_p2(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -219,7 +219,7 @@ namespace neuron {
         {"read_p2", _npy_read_p2},
         {nullptr, nullptr}
     };
-    static void _hoc_read_p1(void) {
+    static void _hoc_read_p1() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -253,7 +253,7 @@ namespace neuron {
         _r = read_p1_basic_pointer(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static void _hoc_read_p2(void) {
+    static void _hoc_read_p2() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;

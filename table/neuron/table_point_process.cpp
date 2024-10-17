@@ -294,9 +294,9 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static double _hoc_quadratic(void*);
-    static double _hoc_sigmoidal(void*);
-    static double _hoc_sinusoidal(void*);
+    static double _hoc_quadratic(void * _vptr);
+    static double _hoc_sigmoidal(void * _vptr);
+    static double _hoc_sinusoidal(void * _vptr);
 
 
     /* connect user functions to hoc names */
@@ -312,7 +312,7 @@ namespace neuron {
         {"quadratic", _hoc_quadratic},
         {nullptr, nullptr}
     };
-    static double _hoc_sigmoidal(void* _vptr) {
+    static double _hoc_sigmoidal(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -334,7 +334,7 @@ namespace neuron {
         sigmoidal_tbl_point_process(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static double _hoc_sinusoidal(void* _vptr) {
+    static double _hoc_sinusoidal(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -356,7 +356,7 @@ namespace neuron {
         sinusoidal_tbl_point_process(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static double _hoc_quadratic(void* _vptr) {
+    static double _hoc_quadratic(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;

@@ -198,24 +198,24 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_use_tau2(void);
-    static double _npy_use_tau2(Prop*);
-    static void _hoc_cnst1(void);
-    static double _npy_cnst1(Prop*);
-    static void _hoc_cnst2(void);
-    static double _npy_cnst2(Prop*);
-    static void _hoc_tau1(void);
-    static double _npy_tau1(Prop*);
-    static void _hoc_tau2(void);
-    static double _npy_tau2(Prop*);
-    static void _hoc_table_cnst1(void);
-    static double _npy_table_cnst1(Prop*);
-    static void _hoc_table_cnst2(void);
-    static double _npy_table_cnst2(Prop*);
-    static void _hoc_table_tau1(void);
-    static double _npy_table_tau1(Prop*);
-    static void _hoc_table_tau2(void);
-    static double _npy_table_tau2(Prop*);
+    static void _hoc_use_tau2();
+    static double _npy_use_tau2(Prop* _prop);
+    static void _hoc_cnst1();
+    static double _npy_cnst1(Prop* _prop);
+    static void _hoc_cnst2();
+    static double _npy_cnst2(Prop* _prop);
+    static void _hoc_tau1();
+    static double _npy_tau1(Prop* _prop);
+    static void _hoc_tau2();
+    static double _npy_tau2(Prop* _prop);
+    static void _hoc_table_cnst1();
+    static double _npy_table_cnst1(Prop* _prop);
+    static void _hoc_table_cnst2();
+    static double _npy_table_cnst2(Prop* _prop);
+    static void _hoc_table_tau1();
+    static double _npy_table_tau1(Prop* _prop);
+    static void _hoc_table_tau2();
+    static double _npy_table_tau2(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -234,9 +234,17 @@ namespace neuron {
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
         {"use_tau2", _npy_use_tau2},
+        {"cnst1", _npy_cnst1},
+        {"cnst2", _npy_cnst2},
+        {"tau1", _npy_tau1},
+        {"tau2", _npy_tau2},
+        {"table_cnst1", _npy_table_cnst1},
+        {"table_cnst2", _npy_table_cnst2},
+        {"table_tau1", _npy_table_tau1},
+        {"table_tau2", _npy_table_tau2},
         {nullptr, nullptr}
     };
-    static void _hoc_use_tau2(void) {
+    static void _hoc_use_tau2() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -268,10 +276,12 @@ namespace neuron {
         return(_r);
     }
     static void _hoc_cnst1() {
-        hoc_retpushx(cnst1_function_table(*getarg(1)));
+        double _ret = cnst1_function_table(*getarg(1));
+        hoc_retpushx(_ret);
     }
     static void _hoc_table_cnst1() {
-        hoc_retpushx(table_cnst1_function_table());
+        double _ret = table_cnst1_function_table();
+        hoc_retpushx(_ret);
     }
     static double _npy_cnst1(Prop* _prop) {
         return cnst1_function_table(*getarg(1));
@@ -280,10 +290,12 @@ namespace neuron {
         return table_cnst1_function_table();
     }
     static void _hoc_cnst2() {
-        hoc_retpushx(cnst2_function_table(*getarg(1), *getarg(2)));
+        double _ret = cnst2_function_table(*getarg(1), *getarg(2));
+        hoc_retpushx(_ret);
     }
     static void _hoc_table_cnst2() {
-        hoc_retpushx(table_cnst2_function_table());
+        double _ret = table_cnst2_function_table();
+        hoc_retpushx(_ret);
     }
     static double _npy_cnst2(Prop* _prop) {
         return cnst2_function_table(*getarg(1), *getarg(2));
@@ -292,10 +304,12 @@ namespace neuron {
         return table_cnst2_function_table();
     }
     static void _hoc_tau1() {
-        hoc_retpushx(tau1_function_table(*getarg(1)));
+        double _ret = tau1_function_table(*getarg(1));
+        hoc_retpushx(_ret);
     }
     static void _hoc_table_tau1() {
-        hoc_retpushx(table_tau1_function_table());
+        double _ret = table_tau1_function_table();
+        hoc_retpushx(_ret);
     }
     static double _npy_tau1(Prop* _prop) {
         return tau1_function_table(*getarg(1));
@@ -304,10 +318,12 @@ namespace neuron {
         return table_tau1_function_table();
     }
     static void _hoc_tau2() {
-        hoc_retpushx(tau2_function_table(*getarg(1), *getarg(2)));
+        double _ret = tau2_function_table(*getarg(1), *getarg(2));
+        hoc_retpushx(_ret);
     }
     static void _hoc_table_tau2() {
-        hoc_retpushx(table_tau2_function_table());
+        double _ret = table_tau2_function_table();
+        hoc_retpushx(_ret);
     }
     static double _npy_tau2(Prop* _prop) {
         return tau2_function_table(*getarg(1), *getarg(2));

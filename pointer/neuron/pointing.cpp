@@ -179,8 +179,8 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_is_valid(void);
-    static double _npy_is_valid(Prop*);
+    static void _hoc_is_valid();
+    static double _npy_is_valid(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -193,7 +193,7 @@ namespace neuron {
         {"is_valid", _npy_is_valid},
         {nullptr, nullptr}
     };
-    static void _hoc_is_valid(void) {
+    static void _hoc_is_valid() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;

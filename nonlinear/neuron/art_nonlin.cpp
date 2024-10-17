@@ -619,8 +619,8 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static double _hoc_solve(void*);
-    static double _hoc_residual(void*);
+    static double _hoc_solve(void * _vptr);
+    static double _hoc_residual(void * _vptr);
 
 
     /* connect user functions to hoc names */
@@ -635,7 +635,7 @@ namespace neuron {
         {"residual", _hoc_residual},
         {nullptr, nullptr}
     };
-    static double _hoc_solve(void* _vptr) {
+    static double _hoc_solve(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -654,7 +654,7 @@ namespace neuron {
         _r = solve_art_nonlin(_lmc, inst, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static double _hoc_residual(void* _vptr) {
+    static double _hoc_residual(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;

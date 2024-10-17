@@ -178,8 +178,8 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_foo(void);
-    static double _npy_foo(Prop*);
+    static void _hoc_foo();
+    static double _npy_foo(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -192,7 +192,7 @@ namespace neuron {
         {"foo", _npy_foo},
         {nullptr, nullptr}
     };
-    static void _hoc_foo(void) {
+    static void _hoc_foo() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;

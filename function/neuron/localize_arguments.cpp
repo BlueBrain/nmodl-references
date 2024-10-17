@@ -222,20 +222,20 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_id_v(void);
-    static double _npy_id_v(Prop*);
-    static void _hoc_id_nai(void);
-    static double _npy_id_nai(Prop*);
-    static void _hoc_id_ina(void);
-    static double _npy_id_ina(Prop*);
-    static void _hoc_id_x(void);
-    static double _npy_id_x(Prop*);
-    static void _hoc_id_g(void);
-    static double _npy_id_g(Prop*);
-    static void _hoc_id_s(void);
-    static double _npy_id_s(Prop*);
-    static void _hoc_id_p(void);
-    static double _npy_id_p(Prop*);
+    static void _hoc_id_v();
+    static double _npy_id_v(Prop* _prop);
+    static void _hoc_id_nai();
+    static double _npy_id_nai(Prop* _prop);
+    static void _hoc_id_ina();
+    static double _npy_id_ina(Prop* _prop);
+    static void _hoc_id_x();
+    static double _npy_id_x(Prop* _prop);
+    static void _hoc_id_g();
+    static double _npy_id_g(Prop* _prop);
+    static void _hoc_id_s();
+    static double _npy_id_s(Prop* _prop);
+    static void _hoc_id_p();
+    static double _npy_id_p(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -260,7 +260,7 @@ namespace neuron {
         {"id_p", _npy_id_p},
         {nullptr, nullptr}
     };
-    static void _hoc_id_v(void) {
+    static void _hoc_id_v() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -291,7 +291,7 @@ namespace neuron {
         _r = id_v_localize_arguments(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_id_nai(void) {
+    static void _hoc_id_nai() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -322,7 +322,7 @@ namespace neuron {
         _r = id_nai_localize_arguments(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_id_ina(void) {
+    static void _hoc_id_ina() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -353,7 +353,7 @@ namespace neuron {
         _r = id_ina_localize_arguments(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_id_x(void) {
+    static void _hoc_id_x() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -384,7 +384,7 @@ namespace neuron {
         _r = id_x_localize_arguments(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_id_g(void) {
+    static void _hoc_id_g() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -415,7 +415,7 @@ namespace neuron {
         _r = id_g_localize_arguments(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_id_s(void) {
+    static void _hoc_id_s() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -446,7 +446,7 @@ namespace neuron {
         _r = id_s_localize_arguments(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_id_p(void) {
+    static void _hoc_id_p() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;

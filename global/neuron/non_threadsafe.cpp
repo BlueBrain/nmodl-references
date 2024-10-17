@@ -197,12 +197,12 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_get_gbl(void);
-    static double _npy_get_gbl(Prop*);
-    static void _hoc_get_top_local(void);
-    static double _npy_get_top_local(Prop*);
-    static void _hoc_get_parameter(void);
-    static double _npy_get_parameter(Prop*);
+    static void _hoc_get_gbl();
+    static double _npy_get_gbl(Prop* _prop);
+    static void _hoc_get_top_local();
+    static double _npy_get_top_local(Prop* _prop);
+    static void _hoc_get_parameter();
+    static double _npy_get_parameter(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -219,7 +219,7 @@ namespace neuron {
         {"get_parameter", _npy_get_parameter},
         {nullptr, nullptr}
     };
-    static void _hoc_get_gbl(void) {
+    static void _hoc_get_gbl() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -250,7 +250,7 @@ namespace neuron {
         _r = get_gbl_non_threadsafe(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static void _hoc_get_top_local(void) {
+    static void _hoc_get_top_local() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -281,7 +281,7 @@ namespace neuron {
         _r = get_top_local_non_threadsafe(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static void _hoc_get_parameter(void) {
+    static void _hoc_get_parameter() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;

@@ -206,13 +206,13 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static double _hoc_identity(void*);
-    static double _hoc_set_x_42(void*);
-    static double _hoc_set_x_a(void*);
-    static double _hoc_set_a_x(void*);
-    static double _hoc_set_x_v(void*);
-    static double _hoc_set_x_just_v(void*);
-    static double _hoc_set_x_just_vv(void*);
+    static double _hoc_identity(void * _vptr);
+    static double _hoc_set_x_42(void * _vptr);
+    static double _hoc_set_x_a(void * _vptr);
+    static double _hoc_set_a_x(void * _vptr);
+    static double _hoc_set_x_v(void * _vptr);
+    static double _hoc_set_x_just_v(void * _vptr);
+    static double _hoc_set_x_just_vv(void * _vptr);
 
 
     /* connect user functions to hoc names */
@@ -232,7 +232,7 @@ namespace neuron {
         {"identity", _hoc_identity},
         {nullptr, nullptr}
     };
-    static double _hoc_set_x_42(void* _vptr) {
+    static double _hoc_set_x_42(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -253,7 +253,7 @@ namespace neuron {
         set_x_42_point_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static double _hoc_set_x_a(void* _vptr) {
+    static double _hoc_set_x_a(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -274,7 +274,7 @@ namespace neuron {
         set_x_a_point_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static double _hoc_set_a_x(void* _vptr) {
+    static double _hoc_set_a_x(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -295,7 +295,7 @@ namespace neuron {
         set_a_x_point_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static double _hoc_set_x_v(void* _vptr) {
+    static double _hoc_set_x_v(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -316,7 +316,7 @@ namespace neuron {
         set_x_v_point_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static double _hoc_set_x_just_v(void* _vptr) {
+    static double _hoc_set_x_just_v(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -337,7 +337,7 @@ namespace neuron {
         set_x_just_v_point_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static double _hoc_set_x_just_vv(void* _vptr) {
+    static double _hoc_set_x_just_vv(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -358,7 +358,7 @@ namespace neuron {
         set_x_just_vv_point_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static double _hoc_identity(void* _vptr) {
+    static double _hoc_identity(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;

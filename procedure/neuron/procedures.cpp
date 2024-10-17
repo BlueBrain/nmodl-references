@@ -182,20 +182,20 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_identity(void);
-    static double _npy_identity(Prop*);
-    static void _hoc_set_x_42(void);
-    static double _npy_set_x_42(Prop*);
-    static void _hoc_set_x_a(void);
-    static double _npy_set_x_a(Prop*);
-    static void _hoc_set_a_x(void);
-    static double _npy_set_a_x(Prop*);
-    static void _hoc_set_x_v(void);
-    static double _npy_set_x_v(Prop*);
-    static void _hoc_set_x_just_v(void);
-    static double _npy_set_x_just_v(Prop*);
-    static void _hoc_set_x_just_vv(void);
-    static double _npy_set_x_just_vv(Prop*);
+    static void _hoc_identity();
+    static double _npy_identity(Prop* _prop);
+    static void _hoc_set_x_42();
+    static double _npy_set_x_42(Prop* _prop);
+    static void _hoc_set_x_a();
+    static double _npy_set_x_a(Prop* _prop);
+    static void _hoc_set_a_x();
+    static double _npy_set_a_x(Prop* _prop);
+    static void _hoc_set_x_v();
+    static double _npy_set_x_v(Prop* _prop);
+    static void _hoc_set_x_just_v();
+    static double _npy_set_x_just_v(Prop* _prop);
+    static void _hoc_set_x_just_vv();
+    static double _npy_set_x_just_vv(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -220,7 +220,7 @@ namespace neuron {
         {"identity", _npy_identity},
         {nullptr, nullptr}
     };
-    static void _hoc_set_x_42(void) {
+    static void _hoc_set_x_42() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -256,7 +256,7 @@ namespace neuron {
         set_x_42_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static void _hoc_set_x_a(void) {
+    static void _hoc_set_x_a() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -292,7 +292,7 @@ namespace neuron {
         set_x_a_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_set_a_x(void) {
+    static void _hoc_set_a_x() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -328,7 +328,7 @@ namespace neuron {
         set_a_x_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static void _hoc_set_x_v(void) {
+    static void _hoc_set_x_v() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -364,7 +364,7 @@ namespace neuron {
         set_x_v_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static void _hoc_set_x_just_v(void) {
+    static void _hoc_set_x_just_v() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -400,7 +400,7 @@ namespace neuron {
         set_x_just_v_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static void _hoc_set_x_just_vv(void) {
+    static void _hoc_set_x_just_vv() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -436,7 +436,7 @@ namespace neuron {
         set_x_just_vv_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_identity(void) {
+    static void _hoc_identity() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
