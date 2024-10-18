@@ -212,7 +212,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static void _hoc_square_diam() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -224,11 +223,11 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_two_radii(_lmc);
         auto node_data = make_node_data_two_radii(_local_prop);
+        double _r = 0.0;
         _r = square_diam_two_radii(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_square_diam(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -239,11 +238,11 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_two_radii(_lmc);
         auto node_data = make_node_data_two_radii(_prop);
+        double _r = 0.0;
         _r = square_diam_two_radii(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
     static void _hoc_square_area() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -255,11 +254,11 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_two_radii(_lmc);
         auto node_data = make_node_data_two_radii(_local_prop);
+        double _r = 0.0;
         _r = square_area_two_radii(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_square_area(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -270,6 +269,7 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_two_radii(_lmc);
         auto node_data = make_node_data_two_radii(_prop);
+        double _r = 0.0;
         _r = square_area_two_radii(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }

@@ -234,7 +234,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static double _hoc_x_plus_a(void * _vptr) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -250,11 +249,11 @@ namespace neuron {
         nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto inst = make_instance_point_non_threadsafe(_lmc);
         auto node_data = make_node_data_point_non_threadsafe(_p);
+        double _r = 0.0;
         _r = x_plus_a_point_non_threadsafe(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
     static double _hoc_v_plus_a(void * _vptr) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -270,11 +269,11 @@ namespace neuron {
         nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto inst = make_instance_point_non_threadsafe(_lmc);
         auto node_data = make_node_data_point_non_threadsafe(_p);
+        double _r = 0.0;
         _r = v_plus_a_point_non_threadsafe(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
     static double _hoc_identity(void * _vptr) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -290,6 +289,7 @@ namespace neuron {
         nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto inst = make_instance_point_non_threadsafe(_lmc);
         auto node_data = make_node_data_point_non_threadsafe(_p);
+        double _r = 0.0;
         _r = identity_point_non_threadsafe(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }

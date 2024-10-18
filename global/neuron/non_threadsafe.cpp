@@ -220,7 +220,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static void _hoc_get_gbl() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -232,11 +231,11 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_non_threadsafe(_lmc);
         auto node_data = make_node_data_non_threadsafe(_local_prop);
+        double _r = 0.0;
         _r = get_gbl_non_threadsafe(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_get_gbl(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -247,11 +246,11 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_non_threadsafe(_lmc);
         auto node_data = make_node_data_non_threadsafe(_prop);
+        double _r = 0.0;
         _r = get_gbl_non_threadsafe(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
     static void _hoc_get_top_local() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -263,11 +262,11 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_non_threadsafe(_lmc);
         auto node_data = make_node_data_non_threadsafe(_local_prop);
+        double _r = 0.0;
         _r = get_top_local_non_threadsafe(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_get_top_local(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -278,11 +277,11 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_non_threadsafe(_lmc);
         auto node_data = make_node_data_non_threadsafe(_prop);
+        double _r = 0.0;
         _r = get_top_local_non_threadsafe(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
     static void _hoc_get_parameter() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -294,11 +293,11 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_non_threadsafe(_lmc);
         auto node_data = make_node_data_non_threadsafe(_local_prop);
+        double _r = 0.0;
         _r = get_parameter_non_threadsafe(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_get_parameter(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -309,6 +308,7 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_non_threadsafe(_lmc);
         auto node_data = make_node_data_non_threadsafe(_prop);
+        double _r = 0.0;
         _r = get_parameter_non_threadsafe(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }

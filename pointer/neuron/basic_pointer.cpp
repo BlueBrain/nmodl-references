@@ -220,7 +220,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static void _hoc_read_p1() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -235,11 +234,11 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_basic_pointer(_lmc);
         auto node_data = make_node_data_basic_pointer(_local_prop);
+        double _r = 0.0;
         _r = read_p1_basic_pointer(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_read_p1(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -250,11 +249,11 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_basic_pointer(_lmc);
         auto node_data = make_node_data_basic_pointer(_prop);
+        double _r = 0.0;
         _r = read_p1_basic_pointer(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
     static void _hoc_read_p2() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -269,11 +268,11 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_basic_pointer(_lmc);
         auto node_data = make_node_data_basic_pointer(_local_prop);
+        double _r = 0.0;
         _r = read_p2_basic_pointer(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_read_p2(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -284,6 +283,7 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_basic_pointer(_lmc);
         auto node_data = make_node_data_basic_pointer(_prop);
+        double _r = 0.0;
         _r = read_p2_basic_pointer(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
