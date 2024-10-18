@@ -194,7 +194,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static void _hoc_is_valid() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -206,11 +205,11 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_pointing(_lmc);
         auto node_data = make_node_data_pointing(_local_prop);
+        double _r = 0.0;
         _r = is_valid_pointing(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_is_valid(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -221,6 +220,7 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_pointing(_lmc);
         auto node_data = make_node_data_pointing(_prop);
+        double _r = 0.0;
         _r = is_valid_pointing(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
@@ -275,7 +275,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _pointing_reg() {
         _initlists();
 

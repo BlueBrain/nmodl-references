@@ -755,7 +755,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _side_effects_reg() {
         _initlists();
 

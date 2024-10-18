@@ -295,7 +295,6 @@ namespace neuron {
         }
     }
     static void _hoc_set_g_w() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -308,12 +307,12 @@ namespace neuron {
         auto inst = make_instance_shared_global(_lmc);
         auto node_data = make_node_data_shared_global(_local_prop);
         auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
+        double _r = 0.0;
         _r = 1.;
         set_g_w_shared_global(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_set_g_w(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -325,12 +324,12 @@ namespace neuron {
         auto inst = make_instance_shared_global(_lmc);
         auto node_data = make_node_data_shared_global(_prop);
         auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
+        double _r = 0.0;
         _r = 1.;
         set_g_w_shared_global(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
         return(_r);
     }
     static void _hoc_compute_g_v1() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -344,12 +343,12 @@ namespace neuron {
         auto node_data = make_node_data_shared_global(_local_prop);
         auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
         update_table_compute_g_v1_shared_global(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt);
+        double _r = 0.0;
         _r = 1.;
         compute_g_v1_shared_global(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_compute_g_v1(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -362,12 +361,12 @@ namespace neuron {
         auto node_data = make_node_data_shared_global(_prop);
         auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
         update_table_compute_g_v1_shared_global(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt);
+        double _r = 0.0;
         _r = 1.;
         compute_g_v1_shared_global(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
         return(_r);
     }
     static void _hoc_sum_arr() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -380,11 +379,11 @@ namespace neuron {
         auto inst = make_instance_shared_global(_lmc);
         auto node_data = make_node_data_shared_global(_local_prop);
         auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
+        double _r = 0.0;
         _r = sum_arr_shared_global(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt);
         hoc_retpushx(_r);
     }
     static double _npy_sum_arr(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -396,6 +395,7 @@ namespace neuron {
         auto inst = make_instance_shared_global(_lmc);
         auto node_data = make_node_data_shared_global(_prop);
         auto _thread_vars = shared_global_ThreadVariables(_thread[0].get<double*>());
+        double _r = 0.0;
         _r = sum_arr_shared_global(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt);
         return(_r);
     }
@@ -568,7 +568,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _thread_variable_reg() {
         _initlists();
 

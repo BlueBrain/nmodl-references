@@ -239,7 +239,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static double _hoc_read_p1(void * _vptr) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -255,11 +254,11 @@ namespace neuron {
         nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto inst = make_instance_point_basic(_lmc);
         auto node_data = make_node_data_point_basic(_p);
+        double _r = 0.0;
         _r = read_p1_point_basic(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
     static double _hoc_read_p2(void * _vptr) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -275,6 +274,7 @@ namespace neuron {
         nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto inst = make_instance_point_basic(_lmc);
         auto node_data = make_node_data_point_basic(_p);
+        double _r = 0.0;
         _r = read_p2_point_basic(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
@@ -337,7 +337,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _point_basic_reg() {
         _initlists();
 

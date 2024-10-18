@@ -241,7 +241,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _valence_reg() {
         _initlists();
 

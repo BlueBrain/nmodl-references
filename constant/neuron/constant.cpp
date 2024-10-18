@@ -193,7 +193,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static void _hoc_foo() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -205,11 +204,11 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_constant_mod(_lmc);
         auto node_data = make_node_data_constant_mod(_local_prop);
+        double _r = 0.0;
         _r = foo_constant_mod(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_foo(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -220,6 +219,7 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_constant_mod(_lmc);
         auto node_data = make_node_data_constant_mod(_prop);
+        double _r = 0.0;
         _r = foo_constant_mod(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
@@ -270,7 +270,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _constant_reg() {
         _initlists();
 

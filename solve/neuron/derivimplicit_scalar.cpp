@@ -686,7 +686,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _derivimplicit_scalar_reg() {
         _initlists();
 

@@ -325,7 +325,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _snapsyn_reg() {
         _initlists();
 

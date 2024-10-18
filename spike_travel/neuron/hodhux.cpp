@@ -309,7 +309,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static void _hoc_states() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -324,12 +323,12 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_hodhux(_lmc);
         auto node_data = make_node_data_hodhux(_local_prop);
+        double _r = 0.0;
         _r = 1.;
         states_hodhux(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_states(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -340,12 +339,12 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_hodhux(_lmc);
         auto node_data = make_node_data_hodhux(_prop);
+        double _r = 0.0;
         _r = 1.;
         states_hodhux(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
     static void _hoc_rates() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -360,12 +359,12 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_hodhux(_lmc);
         auto node_data = make_node_data_hodhux(_local_prop);
+        double _r = 0.0;
         _r = 1.;
         rates_hodhux(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_rates(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -376,12 +375,12 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_hodhux(_lmc);
         auto node_data = make_node_data_hodhux(_prop);
+        double _r = 0.0;
         _r = 1.;
         rates_hodhux(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
     static void _hoc_vtrap() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -393,11 +392,11 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_hodhux(_lmc);
         auto node_data = make_node_data_hodhux(_local_prop);
+        double _r = 0.0;
         _r = vtrap_hodhux(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1), *getarg(2));
         hoc_retpushx(_r);
     }
     static double _npy_vtrap(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -408,6 +407,7 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_hodhux(_lmc);
         auto node_data = make_node_data_hodhux(_prop);
+        double _r = 0.0;
         _r = vtrap_hodhux(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1), *getarg(2));
         return(_r);
     }
@@ -570,7 +570,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _hodhux_reg() {
         _initlists();
 

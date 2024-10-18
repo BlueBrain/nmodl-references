@@ -648,7 +648,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static void _hoc_rates() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -663,12 +662,12 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_X2Y(_lmc);
         auto node_data = make_node_data_X2Y(_local_prop);
+        double _r = 0.0;
         _r = 1.;
         rates_X2Y(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_rates(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -679,6 +678,7 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_X2Y(_lmc);
         auto node_data = make_node_data_X2Y(_prop);
+        double _r = 0.0;
         _r = 1.;
         rates_X2Y(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
@@ -805,7 +805,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _X2Y_reg() {
         _initlists();
 

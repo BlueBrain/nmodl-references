@@ -295,7 +295,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _for_netcons_syn_reg() {
         _initlists();
 

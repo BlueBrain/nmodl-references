@@ -245,7 +245,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static void _hoc_use_tau2() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -257,11 +256,11 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_function_table(_lmc);
         auto node_data = make_node_data_function_table(_local_prop);
+        double _r = 0.0;
         _r = use_tau2_function_table(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1), *getarg(2));
         hoc_retpushx(_r);
     }
     static double _npy_use_tau2(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -272,6 +271,7 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_function_table(_lmc);
         auto node_data = make_node_data_function_table(_prop);
+        double _r = 0.0;
         _r = use_tau2_function_table(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1), *getarg(2));
         return(_r);
     }
@@ -416,7 +416,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _function_table_reg() {
         _initlists();
 

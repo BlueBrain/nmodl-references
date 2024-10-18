@@ -253,7 +253,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static double _hoc_use_tau2(void * _vptr) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -268,6 +267,7 @@ namespace neuron {
         _thread = _extcall_thread.data();
         nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto inst = make_instance_art_function_table(_lmc);
+        double _r = 0.0;
         _r = use_tau2_art_function_table(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1), *getarg(2));
         return(_r);
     }
@@ -406,7 +406,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _art_function_table_reg() {
         _initlists();
 

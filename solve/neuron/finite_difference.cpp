@@ -663,7 +663,6 @@ namespace neuron {
         }
     }
     static void _hoc_f() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -676,11 +675,11 @@ namespace neuron {
         auto inst = make_instance_finite_difference(_lmc);
         auto node_data = make_node_data_finite_difference(_local_prop);
         auto _thread_vars = finite_difference_ThreadVariables(_thread[0].get<double*>());
+        double _r = 0.0;
         _r = f_finite_difference(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_f(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -692,6 +691,7 @@ namespace neuron {
         auto inst = make_instance_finite_difference(_lmc);
         auto node_data = make_node_data_finite_difference(_prop);
         auto _thread_vars = finite_difference_ThreadVariables(_thread[0].get<double*>());
+        double _r = 0.0;
         _r = f_finite_difference(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
         return(_r);
     }
@@ -782,7 +782,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _finite_difference_reg() {
         _initlists();
 
