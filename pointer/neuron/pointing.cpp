@@ -82,7 +82,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<pointing_Store>);
     static_assert(std::is_trivially_move_assignable_v<pointing_Store>);
     static_assert(std::is_trivially_destructible_v<pointing_Store>);
-    pointing_Store pointing_global;
+    static pointing_Store pointing_global;
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -133,7 +133,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_pointing(Prop* prop);
+    static void nrn_destructor_pointing(Prop* prop);
 
 
     static void nrn_alloc_pointing(Prop* _prop) {
@@ -149,7 +149,7 @@ namespace neuron {
 
 
     /* Mechanism procedures and functions */
-    inline double is_valid_pointing(_nrn_mechanism_cache_range& _lmc, pointing_Instance& inst, pointing_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static double is_valid_pointing(_nrn_mechanism_cache_range& _lmc, pointing_Instance& inst, pointing_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
 
@@ -179,8 +179,8 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_is_valid(void);
-    static double _npy_is_valid(Prop*);
+    static void _hoc_is_valid();
+    static double _npy_is_valid(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -193,7 +193,7 @@ namespace neuron {
         {"is_valid", _npy_is_valid},
         {nullptr, nullptr}
     };
-    static void _hoc_is_valid(void) {
+    static void _hoc_is_valid() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -238,7 +238,7 @@ namespace neuron {
     }
 
 
-    void nrn_init_pointing(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_pointing(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_pointing(_lmc);
         auto node_data = make_node_data_pointing(*nt, *_ml_arg);
@@ -261,7 +261,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
         }
     }
-    void nrn_destructor_pointing(Prop* prop) {
+    static void nrn_destructor_pointing(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;

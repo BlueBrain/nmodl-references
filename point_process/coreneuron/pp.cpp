@@ -55,7 +55,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<pp_Store>);
     static_assert(std::is_trivially_move_assignable_v<pp_Store>);
     static_assert(std::is_trivially_destructible_v<pp_Store>);
-    pp_Store pp_global;
+    static pp_Store pp_global;
 
 
     /** all mechanism instance variables and global variables */

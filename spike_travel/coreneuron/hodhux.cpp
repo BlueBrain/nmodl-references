@@ -73,7 +73,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<hodhux_Store>);
     static_assert(std::is_trivially_move_assignable_v<hodhux_Store>);
     static_assert(std::is_trivially_destructible_v<hodhux_Store>);
-    hodhux_Store hodhux_global;
+    static hodhux_Store hodhux_global;
 
 
     /** all mechanism instance variables and global variables */
@@ -278,9 +278,9 @@ namespace coreneuron {
     }
 
 
-    inline double vtrap_hodhux(int id, int pnodecount, hodhux_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lx, double _ly);
-    inline int states_hodhux(int id, int pnodecount, hodhux_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
-    inline int rates_hodhux(int id, int pnodecount, hodhux_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv);
+    inline static double vtrap_hodhux(int id, int pnodecount, hodhux_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lx, double _ly);
+    inline static int states_hodhux(int id, int pnodecount, hodhux_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static int rates_hodhux(int id, int pnodecount, hodhux_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv);
 
 
     inline int states_hodhux(int id, int pnodecount, hodhux_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
@@ -438,10 +438,7 @@ namespace coreneuron {
             #endif
             inst->ena[id] = inst->ion_ena[indexes[0*pnodecount + id]];
             inst->ek[id] = inst->ion_ek[indexes[3*pnodecount + id]];
-            rates_hodhux(id, pnodecount, inst, data, indexes, thread, nt, v, v);
-            inst->m[id] = inst->m[id] + inst->mexp[id] * (inst->minf[id] - inst->m[id]);
-            inst->h[id] = inst->h[id] + inst->hexp[id] * (inst->hinf[id] - inst->h[id]);
-            inst->n[id] = inst->n[id] + inst->nexp[id] * (inst->ninf[id] - inst->n[id]);
+            states_hodhux(id, pnodecount, inst, data, indexes, thread, nt, v);
         }
     }
 

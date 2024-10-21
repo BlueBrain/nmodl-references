@@ -55,7 +55,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<pointing_Store>);
     static_assert(std::is_trivially_move_assignable_v<pointing_Store>);
     static_assert(std::is_trivially_destructible_v<pointing_Store>);
-    pointing_Store pointing_global;
+    static pointing_Store pointing_global;
 
 
     /** all mechanism instance variables and global variables */
@@ -205,7 +205,7 @@ namespace coreneuron {
     }
 
 
-    inline double is_valid_pointing(int id, int pnodecount, pointing_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static double is_valid_pointing(int id, int pnodecount, pointing_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
 
 
     inline double is_valid_pointing(int id, int pnodecount, pointing_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {

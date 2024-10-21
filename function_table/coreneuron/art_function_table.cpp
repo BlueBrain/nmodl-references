@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : function_table
-Filename        : function_table.mod
+Model Name      : art_function_table
+Filename        : art_function_table.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -36,7 +36,7 @@ namespace coreneuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "function_table",
+        "art_function_table",
         0,
         0,
         0,
@@ -45,7 +45,8 @@ namespace coreneuron {
 
 
     /** all global variables */
-    struct function_table_Store {
+    struct art_function_table_Store {
+        int point_type{};
         int reset{};
         int mech_type{};
         void* _ptable_cnst1{};
@@ -53,18 +54,20 @@ namespace coreneuron {
         void* _ptable_tau1{};
         void* _ptable_tau2{};
     };
-    static_assert(std::is_trivially_copy_constructible_v<function_table_Store>);
-    static_assert(std::is_trivially_move_constructible_v<function_table_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<function_table_Store>);
-    static_assert(std::is_trivially_move_assignable_v<function_table_Store>);
-    static_assert(std::is_trivially_destructible_v<function_table_Store>);
-    static function_table_Store function_table_global;
+    static_assert(std::is_trivially_copy_constructible_v<art_function_table_Store>);
+    static_assert(std::is_trivially_move_constructible_v<art_function_table_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<art_function_table_Store>);
+    static_assert(std::is_trivially_move_assignable_v<art_function_table_Store>);
+    static_assert(std::is_trivially_destructible_v<art_function_table_Store>);
+    static art_function_table_Store art_function_table_global;
 
 
     /** all mechanism instance variables and global variables */
-    struct function_table_Instance  {
+    struct art_function_table_Instance  {
         double* v_unused{};
-        function_table_Store* global{&function_table_global};
+        const double* node_area{};
+        void** point_process{};
+        art_function_table_Store* global{&art_function_table_global};
     };
 
 
@@ -96,12 +99,12 @@ namespace coreneuron {
 
 
     static inline int int_variables_size() {
-        return 0;
+        return 2;
     }
 
 
     static inline int get_mech_type() {
-        return function_table_global.mech_type;
+        return art_function_table_global.mech_type;
     }
 
 
@@ -131,25 +134,25 @@ namespace coreneuron {
     }
 
     // Allocate instance structure
-    static void nrn_private_constructor_function_table(NrnThread* nt, Memb_list* ml, int type) {
+    static void nrn_private_constructor_art_function_table(NrnThread* nt, Memb_list* ml, int type) {
         assert(!ml->instance);
         assert(!ml->global_variables);
         assert(ml->global_variables_size == 0);
-        auto* const inst = new function_table_Instance{};
-        assert(inst->global == &function_table_global);
+        auto* const inst = new art_function_table_Instance{};
+        assert(inst->global == &art_function_table_global);
         ml->instance = inst;
         ml->global_variables = inst->global;
-        ml->global_variables_size = sizeof(function_table_Store);
+        ml->global_variables_size = sizeof(art_function_table_Store);
     }
 
     // Deallocate the instance structure
-    static void nrn_private_destructor_function_table(NrnThread* nt, Memb_list* ml, int type) {
-        auto* const inst = static_cast<function_table_Instance*>(ml->instance);
+    static void nrn_private_destructor_art_function_table(NrnThread* nt, Memb_list* ml, int type) {
+        auto* const inst = static_cast<art_function_table_Instance*>(ml->instance);
         assert(inst);
         assert(inst->global);
-        assert(inst->global == &function_table_global);
+        assert(inst->global == &art_function_table_global);
         assert(inst->global == ml->global_variables);
-        assert(ml->global_variables_size == sizeof(function_table_Store));
+        assert(ml->global_variables_size == sizeof(art_function_table_Store));
         delete inst;
         ml->instance = nullptr;
         ml->global_variables = nullptr;
@@ -158,25 +161,27 @@ namespace coreneuron {
 
     /** initialize mechanism instance variables */
     static inline void setup_instance(NrnThread* nt, Memb_list* ml) {
-        auto* const inst = static_cast<function_table_Instance*>(ml->instance);
+        auto* const inst = static_cast<art_function_table_Instance*>(ml->instance);
         assert(inst);
         assert(inst->global);
-        assert(inst->global == &function_table_global);
+        assert(inst->global == &art_function_table_global);
         assert(inst->global == ml->global_variables);
-        assert(ml->global_variables_size == sizeof(function_table_Store));
+        assert(ml->global_variables_size == sizeof(art_function_table_Store));
         int pnodecount = ml->_nodecount_padded;
         Datum* indexes = ml->pdata;
         inst->v_unused = ml->data+0*pnodecount;
+        inst->node_area = nt->_data;
+        inst->point_process = nt->_vdata;
     }
 
 
 
-    static void nrn_alloc_function_table(double* data, Datum* indexes, int type) {
+    static void nrn_alloc_art_function_table(double* data, Datum* indexes, int type) {
         // do nothing
     }
 
 
-    void nrn_constructor_function_table(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_constructor_art_function_table(NrnThread* nt, Memb_list* ml, int type) {
         #ifndef CORENEURON_BUILD
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
@@ -185,13 +190,13 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<function_table_Instance*>(ml->instance);
+        auto* const inst = static_cast<art_function_table_Instance*>(ml->instance);
 
         #endif
     }
 
 
-    void nrn_destructor_function_table(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_destructor_art_function_table(NrnThread* nt, Memb_list* ml, int type) {
         #ifndef CORENEURON_BUILD
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
@@ -200,62 +205,62 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<function_table_Instance*>(ml->instance);
+        auto* const inst = static_cast<art_function_table_Instance*>(ml->instance);
 
         #endif
     }
 
 
-    inline static double use_tau2_function_table(int id, int pnodecount, function_table_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv, double _lx);
+    inline static double use_tau2_art_function_table(int id, int pnodecount, art_function_table_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv, double _lx);
 
 
-    inline double use_tau2_function_table(int id, int pnodecount, function_table_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv, double _lx) {
+    inline double use_tau2_art_function_table(int id, int pnodecount, art_function_table_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv, double _lx) {
         double ret_use_tau2 = 0.0;
-        ret_use_tau2 = tau2_function_table(id, pnodecount, inst, data, indexes, thread, nt, v, _lv, _lx);
+        ret_use_tau2 = tau2_art_function_table(id, pnodecount, inst, data, indexes, thread, nt, v, _lv, _lx);
         return ret_use_tau2;
     }
-    double cnst1_function_table(int id, int pnodecount, function_table_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double v) {
+    double cnst1_art_function_table(int id, int pnodecount, art_function_table_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double v) {
         double _arg[1];
         _arg[0] = v;
         return hoc_func_table(inst->global->_ptable_cnst1, 1, _arg);
     }
-    double table_cnst1_function_table(int id, int pnodecount, function_table_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
+    double table_cnst1_art_function_table(int id, int pnodecount, art_function_table_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
         hoc_spec_table(&inst->global->_ptable_cnst1, 1);
         return 0.;
     }
-    double cnst2_function_table(int id, int pnodecount, function_table_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double v, double x) {
+    double cnst2_art_function_table(int id, int pnodecount, art_function_table_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double v, double x) {
         double _arg[2];
         _arg[0] = v;
         _arg[1] = x;
         return hoc_func_table(inst->global->_ptable_cnst2, 2, _arg);
     }
-    double table_cnst2_function_table(int id, int pnodecount, function_table_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
+    double table_cnst2_art_function_table(int id, int pnodecount, art_function_table_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
         hoc_spec_table(&inst->global->_ptable_cnst2, 2);
         return 0.;
     }
-    double tau1_function_table(int id, int pnodecount, function_table_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double v) {
+    double tau1_art_function_table(int id, int pnodecount, art_function_table_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double v) {
         double _arg[1];
         _arg[0] = v;
         return hoc_func_table(inst->global->_ptable_tau1, 1, _arg);
     }
-    double table_tau1_function_table(int id, int pnodecount, function_table_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
+    double table_tau1_art_function_table(int id, int pnodecount, art_function_table_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
         hoc_spec_table(&inst->global->_ptable_tau1, 1);
         return 0.;
     }
-    double tau2_function_table(int id, int pnodecount, function_table_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double v, double x) {
+    double tau2_art_function_table(int id, int pnodecount, art_function_table_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double v, double x) {
         double _arg[2];
         _arg[0] = v;
         _arg[1] = x;
         return hoc_func_table(inst->global->_ptable_tau2, 2, _arg);
     }
-    double table_tau2_function_table(int id, int pnodecount, function_table_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
+    double table_tau2_art_function_table(int id, int pnodecount, art_function_table_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
         hoc_spec_table(&inst->global->_ptable_tau2, 2);
         return 0.;
     }
 
 
     /** initialize channel */
-    void nrn_init_function_table(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_init_art_function_table(NrnThread* nt, Memb_list* ml, int type) {
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
         const int* node_index = ml->nodeindices;
@@ -265,35 +270,34 @@ namespace coreneuron {
         ThreadDatum* thread = ml->_thread;
 
         setup_instance(nt, ml);
-        auto* const inst = static_cast<function_table_Instance*>(ml->instance);
+        auto* const inst = static_cast<art_function_table_Instance*>(ml->instance);
 
         if (_nrn_skip_initmodel == 0) {
             #pragma omp simd
             #pragma ivdep
             for (int id = 0; id < nodecount; id++) {
-                int node_id = node_index[id];
-                double v = voltage[node_id];
-                #if NRN_PRCELLSTATE
-                inst->v_unused[id] = v;
-                #endif
+                double v = 0.0;
             }
         }
     }
 
 
     /** register channel with the simulator */
-    void _function_table_reg() {
+    void _art_function_table_reg() {
 
-        int mech_type = nrn_get_mechtype("function_table");
-        function_table_global.mech_type = mech_type;
+        int mech_type = nrn_get_mechtype("art_function_table");
+        art_function_table_global.mech_type = mech_type;
         if (mech_type == -1) {
             return;
         }
 
         _nrn_layout_reg(mech_type, 0);
-        register_mech(mechanism_info, nrn_alloc_function_table, nullptr, nullptr, nullptr, nrn_init_function_table, nrn_private_constructor_function_table, nrn_private_destructor_function_table, first_pointer_var_index(), 1);
+        point_register_mech(mechanism_info, nrn_alloc_art_function_table, nullptr, nullptr, nullptr, nrn_init_art_function_table, nrn_private_constructor_art_function_table, nrn_private_destructor_art_function_table, first_pointer_var_index(), nullptr, nullptr, 1);
 
         hoc_register_prop_size(mech_type, float_variables_size(), int_variables_size());
+        hoc_register_dparam_semantics(mech_type, 0, "area");
+        hoc_register_dparam_semantics(mech_type, 1, "pntproc");
+        add_nrn_artcell(mech_type, 0);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, NULL);
     }
 }

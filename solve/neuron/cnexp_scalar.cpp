@@ -84,7 +84,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<cnexp_scalar_Store>);
     static_assert(std::is_trivially_move_assignable_v<cnexp_scalar_Store>);
     static_assert(std::is_trivially_destructible_v<cnexp_scalar_Store>);
-    cnexp_scalar_Store cnexp_scalar_global;
+    static cnexp_scalar_Store cnexp_scalar_global;
     auto x0_cnexp_scalar() -> std::decay<decltype(cnexp_scalar_global.x0)>::type  {
         return cnexp_scalar_global.x0;
     }
@@ -143,7 +143,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_cnexp_scalar(Prop* prop);
+    static void nrn_destructor_cnexp_scalar(Prop* prop);
 
 
     static void nrn_alloc_cnexp_scalar(Prop* _prop) {
@@ -197,7 +197,7 @@ namespace neuron {
     };
 
 
-    void nrn_init_cnexp_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_cnexp_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_cnexp_scalar(_lmc);
         auto node_data = make_node_data_cnexp_scalar(*nt, *_ml_arg);
@@ -213,7 +213,7 @@ namespace neuron {
     }
 
 
-    void nrn_state_cnexp_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_state_cnexp_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_cnexp_scalar(_lmc);
         auto node_data = make_node_data_cnexp_scalar(*nt, *_ml_arg);
@@ -239,7 +239,7 @@ namespace neuron {
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
-    void nrn_destructor_cnexp_scalar(Prop* prop) {
+    static void nrn_destructor_cnexp_scalar(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;

@@ -82,7 +82,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<procedures_Store>);
     static_assert(std::is_trivially_move_assignable_v<procedures_Store>);
     static_assert(std::is_trivially_destructible_v<procedures_Store>);
-    procedures_Store procedures_global;
+    static procedures_Store procedures_global;
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -133,7 +133,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_procedures(Prop* prop);
+    static void nrn_destructor_procedures(Prop* prop);
 
 
     static void nrn_alloc_procedures(Prop* _prop) {
@@ -146,13 +146,13 @@ namespace neuron {
 
 
     /* Mechanism procedures and functions */
-    inline double identity_procedures(_nrn_mechanism_cache_range& _lmc, procedures_Instance& inst, procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
-    inline int set_x_42_procedures(_nrn_mechanism_cache_range& _lmc, procedures_Instance& inst, procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline int set_x_a_procedures(_nrn_mechanism_cache_range& _lmc, procedures_Instance& inst, procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
-    inline int set_a_x_procedures(_nrn_mechanism_cache_range& _lmc, procedures_Instance& inst, procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline int set_x_v_procedures(_nrn_mechanism_cache_range& _lmc, procedures_Instance& inst, procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline int set_x_just_v_procedures(_nrn_mechanism_cache_range& _lmc, procedures_Instance& inst, procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline int set_x_just_vv_procedures(_nrn_mechanism_cache_range& _lmc, procedures_Instance& inst, procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
+    inline static double identity_procedures(_nrn_mechanism_cache_range& _lmc, procedures_Instance& inst, procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
+    inline static int set_x_42_procedures(_nrn_mechanism_cache_range& _lmc, procedures_Instance& inst, procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static int set_x_a_procedures(_nrn_mechanism_cache_range& _lmc, procedures_Instance& inst, procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
+    inline static int set_a_x_procedures(_nrn_mechanism_cache_range& _lmc, procedures_Instance& inst, procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static int set_x_v_procedures(_nrn_mechanism_cache_range& _lmc, procedures_Instance& inst, procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static int set_x_just_v_procedures(_nrn_mechanism_cache_range& _lmc, procedures_Instance& inst, procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static int set_x_just_vv_procedures(_nrn_mechanism_cache_range& _lmc, procedures_Instance& inst, procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
 
@@ -182,20 +182,20 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_identity(void);
-    static double _npy_identity(Prop*);
-    static void _hoc_set_x_42(void);
-    static double _npy_set_x_42(Prop*);
-    static void _hoc_set_x_a(void);
-    static double _npy_set_x_a(Prop*);
-    static void _hoc_set_a_x(void);
-    static double _npy_set_a_x(Prop*);
-    static void _hoc_set_x_v(void);
-    static double _npy_set_x_v(Prop*);
-    static void _hoc_set_x_just_v(void);
-    static double _npy_set_x_just_v(Prop*);
-    static void _hoc_set_x_just_vv(void);
-    static double _npy_set_x_just_vv(Prop*);
+    static void _hoc_identity();
+    static double _npy_identity(Prop* _prop);
+    static void _hoc_set_x_42();
+    static double _npy_set_x_42(Prop* _prop);
+    static void _hoc_set_x_a();
+    static double _npy_set_x_a(Prop* _prop);
+    static void _hoc_set_a_x();
+    static double _npy_set_a_x(Prop* _prop);
+    static void _hoc_set_x_v();
+    static double _npy_set_x_v(Prop* _prop);
+    static void _hoc_set_x_just_v();
+    static double _npy_set_x_just_v(Prop* _prop);
+    static void _hoc_set_x_just_vv();
+    static double _npy_set_x_just_vv(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -220,7 +220,7 @@ namespace neuron {
         {"identity", _npy_identity},
         {nullptr, nullptr}
     };
-    static void _hoc_set_x_42(void) {
+    static void _hoc_set_x_42() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -256,7 +256,7 @@ namespace neuron {
         set_x_42_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static void _hoc_set_x_a(void) {
+    static void _hoc_set_x_a() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -292,7 +292,7 @@ namespace neuron {
         set_x_a_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_set_a_x(void) {
+    static void _hoc_set_a_x() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -328,7 +328,7 @@ namespace neuron {
         set_a_x_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static void _hoc_set_x_v(void) {
+    static void _hoc_set_x_v() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -364,7 +364,7 @@ namespace neuron {
         set_x_v_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static void _hoc_set_x_just_v(void) {
+    static void _hoc_set_x_just_v() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -400,7 +400,7 @@ namespace neuron {
         set_x_just_v_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static void _hoc_set_x_just_vv(void) {
+    static void _hoc_set_x_just_vv() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -436,7 +436,7 @@ namespace neuron {
         set_x_just_vv_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_identity(void) {
+    static void _hoc_identity() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -526,7 +526,7 @@ namespace neuron {
     }
 
 
-    void nrn_init_procedures(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_procedures(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_procedures(_lmc);
         auto node_data = make_node_data_procedures(*nt, *_ml_arg);
@@ -550,7 +550,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
         }
     }
-    void nrn_destructor_procedures(Prop* prop) {
+    static void nrn_destructor_procedures(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;

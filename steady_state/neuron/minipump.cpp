@@ -478,7 +478,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<minipump_Store>);
     static_assert(std::is_trivially_move_assignable_v<minipump_Store>);
     static_assert(std::is_trivially_destructible_v<minipump_Store>);
-    minipump_Store minipump_global;
+    static minipump_Store minipump_global;
     auto volA_minipump() -> std::decay<decltype(minipump_global.volA)>::type  {
         return minipump_global.volA;
     }
@@ -569,7 +569,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_minipump(Prop* prop);
+    static void nrn_destructor_minipump(Prop* prop);
 
 
     static void nrn_alloc_minipump(Prop* _prop) {
@@ -726,7 +726,7 @@ namespace neuron {
     };
 
 
-    void nrn_init_minipump(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_minipump(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_minipump(_lmc);
         auto node_data = make_node_data_minipump(*nt, *_ml_arg);
@@ -769,7 +769,7 @@ namespace neuron {
     }
 
 
-    void nrn_state_minipump(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_state_minipump(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_minipump(_lmc);
         auto node_data = make_node_data_minipump(*nt, *_ml_arg);
@@ -811,7 +811,7 @@ namespace neuron {
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
-    void nrn_destructor_minipump(Prop* prop) {
+    static void nrn_destructor_minipump(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;

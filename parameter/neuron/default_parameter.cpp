@@ -86,7 +86,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<default_parameter_Store>);
     static_assert(std::is_trivially_move_assignable_v<default_parameter_Store>);
     static_assert(std::is_trivially_destructible_v<default_parameter_Store>);
-    default_parameter_Store default_parameter_global;
+    static default_parameter_Store default_parameter_global;
     auto a_default_parameter() -> std::decay<decltype(default_parameter_global.a)>::type  {
         return default_parameter_global.a;
     }
@@ -151,7 +151,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_default_parameter(Prop* prop);
+    static void nrn_destructor_default_parameter(Prop* prop);
 
 
     static void nrn_alloc_default_parameter(Prop* _prop) {
@@ -210,7 +210,7 @@ namespace neuron {
     };
 
 
-    void nrn_init_default_parameter(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_default_parameter(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_default_parameter(_lmc);
         auto node_data = make_node_data_default_parameter(*nt, *_ml_arg);
@@ -233,7 +233,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
         }
     }
-    void nrn_destructor_default_parameter(Prop* prop) {
+    static void nrn_destructor_default_parameter(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;

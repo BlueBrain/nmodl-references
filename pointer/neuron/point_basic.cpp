@@ -85,7 +85,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<point_basic_Store>);
     static_assert(std::is_trivially_move_assignable_v<point_basic_Store>);
     static_assert(std::is_trivially_destructible_v<point_basic_Store>);
-    point_basic_Store point_basic_global;
+    static point_basic_Store point_basic_global;
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -150,7 +150,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_point_basic(Prop* prop);
+    static void nrn_destructor_point_basic(Prop* prop);
 
 
     static void nrn_alloc_point_basic(Prop* _prop) {
@@ -177,8 +177,8 @@ namespace neuron {
 
 
     /* Mechanism procedures and functions */
-    inline double read_p1_point_basic(_nrn_mechanism_cache_range& _lmc, point_basic_Instance& inst, point_basic_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline double read_p2_point_basic(_nrn_mechanism_cache_range& _lmc, point_basic_Instance& inst, point_basic_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static double read_p1_point_basic(_nrn_mechanism_cache_range& _lmc, point_basic_Instance& inst, point_basic_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static double read_p2_point_basic(_nrn_mechanism_cache_range& _lmc, point_basic_Instance& inst, point_basic_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
 
@@ -222,8 +222,8 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static double _hoc_read_p1(void*);
-    static double _hoc_read_p2(void*);
+    static double _hoc_read_p1(void * _vptr);
+    static double _hoc_read_p2(void * _vptr);
 
 
     /* connect user functions to hoc names */
@@ -238,7 +238,7 @@ namespace neuron {
         {"read_p2", _hoc_read_p2},
         {nullptr, nullptr}
     };
-    static double _hoc_read_p1(void* _vptr) {
+    static double _hoc_read_p1(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -258,7 +258,7 @@ namespace neuron {
         _r = read_p1_point_basic(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static double _hoc_read_p2(void* _vptr) {
+    static double _hoc_read_p2(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -296,7 +296,7 @@ namespace neuron {
     }
 
 
-    void nrn_init_point_basic(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_point_basic(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_point_basic(_lmc);
         auto node_data = make_node_data_point_basic(*nt, *_ml_arg);
@@ -323,7 +323,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
         }
     }
-    void nrn_destructor_point_basic(Prop* prop) {
+    static void nrn_destructor_point_basic(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
