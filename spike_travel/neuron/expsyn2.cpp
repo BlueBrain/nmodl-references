@@ -90,7 +90,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<ExpSyn2_Store>);
     static_assert(std::is_trivially_move_assignable_v<ExpSyn2_Store>);
     static_assert(std::is_trivially_destructible_v<ExpSyn2_Store>);
-    ExpSyn2_Store ExpSyn2_global;
+    static ExpSyn2_Store ExpSyn2_global;
     auto g0_ExpSyn2() -> std::decay<decltype(ExpSyn2_global.g0)>::type  {
         return ExpSyn2_global.g0;
     }
@@ -161,7 +161,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_ExpSyn2(Prop* prop);
+    static void nrn_destructor_ExpSyn2(Prop* prop);
 
 
     static void nrn_alloc_ExpSyn2(Prop* _prop) {
@@ -303,7 +303,7 @@ namespace neuron {
     };
 
 
-    void nrn_init_ExpSyn2(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_ExpSyn2(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_ExpSyn2(_lmc);
         auto node_data = make_node_data_ExpSyn2(*nt, *_ml_arg);
@@ -319,7 +319,7 @@ namespace neuron {
     }
 
 
-    inline double nrn_current_ExpSyn2(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, ExpSyn2_Instance& inst, ExpSyn2_NodeData& node_data, double v) {
+    static inline double nrn_current_ExpSyn2(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, ExpSyn2_Instance& inst, ExpSyn2_NodeData& node_data, double v) {
         double current = 0.0;
         inst.i[id] = inst.g[id] * (v - inst.e[id]);
         current += inst.i[id];
@@ -328,7 +328,7 @@ namespace neuron {
 
 
     /** update current */
-    void nrn_cur_ExpSyn2(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_cur_ExpSyn2(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_ExpSyn2(_lmc);
         auto node_data = make_node_data_ExpSyn2(*nt, *_ml_arg);
@@ -351,7 +351,7 @@ namespace neuron {
     }
 
 
-    void nrn_state_ExpSyn2(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_state_ExpSyn2(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_ExpSyn2(_lmc);
         auto node_data = make_node_data_ExpSyn2(*nt, *_ml_arg);
@@ -361,7 +361,7 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
-            inst.g[id] = inst.g[id] + (1.0 - exp(nt->_dt * (( -1.0) / inst.tau[id]))) * ( -(0.0) / (( -1.0) / inst.tau[id]) - inst.g[id]);
+            inst.g[id] = inst.g[id] * exp( -nt->_dt / inst.tau[id]);
         }
     }
 
@@ -392,7 +392,7 @@ namespace neuron {
         inst.g[id] = inst.g[id] + _args[0];
 
     }
-    void nrn_destructor_ExpSyn2(Prop* prop) {
+    static void nrn_destructor_ExpSyn2(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;

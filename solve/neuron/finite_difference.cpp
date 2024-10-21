@@ -476,7 +476,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<finite_difference_Store>);
     static_assert(std::is_trivially_move_assignable_v<finite_difference_Store>);
     static_assert(std::is_trivially_destructible_v<finite_difference_Store>);
-    finite_difference_Store finite_difference_global;
+    static finite_difference_Store finite_difference_global;
     auto thread_data_in_use_finite_difference() -> std::decay<decltype(finite_difference_global.thread_data_in_use)>::type  {
         return finite_difference_global.thread_data_in_use;
     }
@@ -557,7 +557,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_finite_difference(Prop* prop);
+    static void nrn_destructor_finite_difference(Prop* prop);
 
 
     static void nrn_alloc_finite_difference(Prop* _prop) {
@@ -572,7 +572,7 @@ namespace neuron {
 
 
     /* Mechanism procedures and functions */
-    inline double f_finite_difference(_nrn_mechanism_cache_range& _lmc, finite_difference_Instance& inst, finite_difference_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, finite_difference_ThreadVariables& _thread_vars, NrnThread* nt, double _lx);
+    inline static double f_finite_difference(_nrn_mechanism_cache_range& _lmc, finite_difference_Instance& inst, finite_difference_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, finite_difference_ThreadVariables& _thread_vars, NrnThread* nt, double _lx);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
 
@@ -699,8 +699,8 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_f(void);
-    static double _npy_f(Prop*);
+    static void _hoc_f();
+    static double _npy_f(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -731,7 +731,7 @@ namespace neuron {
             delete[] _thread_data_ptr;
         }
     }
-    static void _hoc_f(void) {
+    static void _hoc_f() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -774,7 +774,7 @@ namespace neuron {
     }
 
 
-    void nrn_init_finite_difference(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_finite_difference(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_finite_difference(_lmc);
         auto node_data = make_node_data_finite_difference(*nt, *_ml_arg);
@@ -792,7 +792,7 @@ namespace neuron {
     }
 
 
-    void nrn_state_finite_difference(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_state_finite_difference(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_finite_difference(_lmc);
         auto node_data = make_node_data_finite_difference(*nt, *_ml_arg);
@@ -832,7 +832,7 @@ namespace neuron {
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
-    void nrn_destructor_finite_difference(Prop* prop) {
+    static void nrn_destructor_finite_difference(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;

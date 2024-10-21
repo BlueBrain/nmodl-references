@@ -476,7 +476,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<heat_eqn_array_Store>);
     static_assert(std::is_trivially_move_assignable_v<heat_eqn_array_Store>);
     static_assert(std::is_trivially_destructible_v<heat_eqn_array_Store>);
-    heat_eqn_array_Store heat_eqn_array_global;
+    static heat_eqn_array_Store heat_eqn_array_global;
     auto kf_heat_eqn_array() -> std::decay<decltype(heat_eqn_array_global.kf)>::type  {
         return heat_eqn_array_global.kf;
     }
@@ -547,7 +547,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_heat_eqn_array(Prop* prop);
+    static void nrn_destructor_heat_eqn_array(Prop* prop);
 
 
     static void nrn_alloc_heat_eqn_array(Prop* _prop) {
@@ -582,7 +582,7 @@ namespace neuron {
 
     /* Functions related to CVODE codegen */
     static constexpr int ode_count_heat_eqn_array(int _type) {
-        return 1;
+        return 4;
     }
 
 
@@ -599,4 +599,293 @@ namespace neuron {
             kf2_ = inst.global->kf;
             kb2_ = inst.global->kb;
         }
-        
+        (inst.DX+id*4)[static_cast<int>(0)] = (( -1.0 * (kf0_ * (inst.X+id*4)[static_cast<int>(0)] - kb0_ * (inst.X+id*4)[static_cast<int>(1)]))) / ((inst.vol+id*4)[static_cast<int>(0)]);
+        (inst.DX+id*4)[static_cast<int>(1)] = ((1.0 * (kf0_ * (inst.X+id*4)[static_cast<int>(0)] - kb0_ * (inst.X+id*4)[static_cast<int>(1)])) + ( -1.0 * (kf1_ * (inst.X+id*4)[static_cast<int>(1)] - kb1_ * (inst.X+id*4)[static_cast<int>(2)]))) / ((inst.vol+id*4)[static_cast<int>(1)]);
+        (inst.DX+id*4)[static_cast<int>(2)] = ((1.0 * (kf1_ * (inst.X+id*4)[static_cast<int>(1)] - kb1_ * (inst.X+id*4)[static_cast<int>(2)])) + ( -1.0 * (kf2_ * (inst.X+id*4)[static_cast<int>(2)] - kb2_ * (inst.X+id*4)[static_cast<int>(3)]))) / ((inst.vol+id*4)[static_cast<int>(2)]);
+        (inst.DX+id*4)[static_cast<int>(3)] = ((1.0 * (kf2_ * (inst.X+id*4)[static_cast<int>(2)] - kb2_ * (inst.X+id*4)[static_cast<int>(3)]))) / ((inst.vol+id*4)[static_cast<int>(3)]);
+        return 0;
+    }
+
+
+    static void ode_setup_nonstiff_heat_eqn_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        auto inst = make_instance_heat_eqn_array(_lmc);
+        auto nodecount = _ml_arg->nodecount;
+        auto node_data = make_node_data_heat_eqn_array(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
+        for (int id = 0; id < nodecount; id++) {
+            int node_id = node_data.nodeindices[id];
+            auto* _ppvar = _ml_arg->pdata[id];
+            auto v = node_data.node_voltages[node_id];
+            ode_update_nonstiff_heat_eqn_array(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        }
+    }
+
+
+    static void ode_setup_tolerance_heat_eqn_array(Prop* _prop, int equation_index, neuron::container::data_handle<double>* _pv, neuron::container::data_handle<double>* _pvdot, double* _atol, int _type) {
+        auto* _ppvar = _nrn_mechanism_access_dparam(_prop);
+        _ppvar[0].literal_value<int>() = equation_index;
+        for (int i = 0; i < ode_count_heat_eqn_array(0); i++) {
+            _pv[i] = _nrn_mechanism_get_param_handle(_prop, _slist1[i]);
+            _pvdot[i] = _nrn_mechanism_get_param_handle(_prop, _dlist1[i]);
+            _cvode_abstol(_atollist, _atol, i);
+        }
+    }
+
+
+    static void ode_update_stiff_heat_eqn_array(_nrn_mechanism_cache_range& _lmc, heat_eqn_array_Instance& inst, heat_eqn_array_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+        double kf0_, kb0_, kf1_, kb1_, kf2_, kb2_;
+        ;
+        {
+            kf0_ = inst.global->kf;
+            kb0_ = inst.global->kb;
+            kf1_ = inst.global->kf;
+            kb1_ = inst.global->kb;
+            kf2_ = inst.global->kf;
+            kb2_ = inst.global->kb;
+        }
+        (inst.DX+id*4)[static_cast<int>(0)] = (inst.DX+id*4)[static_cast<int>(0)] / (1.0 - nt->_dt * ( -kf0_ / (inst.vol+id*4)[static_cast<int>(0)]));
+        (inst.DX+id*4)[static_cast<int>(1)] = (inst.DX+id*4)[static_cast<int>(1)] / (1.0 - nt->_dt * (( -kb0_ - kf1_) / (inst.vol+id*4)[static_cast<int>(1)]));
+        (inst.DX+id*4)[static_cast<int>(2)] = (inst.DX+id*4)[static_cast<int>(2)] / (1.0 - nt->_dt * (( -kb1_ - kf2_) / (inst.vol+id*4)[static_cast<int>(2)]));
+        (inst.DX+id*4)[static_cast<int>(3)] = (inst.DX+id*4)[static_cast<int>(3)] / (1.0 - nt->_dt * ( -kb2_ / (inst.vol+id*4)[static_cast<int>(3)]));
+    }
+
+
+    static void ode_setup_stiff_heat_eqn_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        auto inst = make_instance_heat_eqn_array(_lmc);
+        auto nodecount = _ml_arg->nodecount;
+        auto node_data = make_node_data_heat_eqn_array(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
+        for (int id = 0; id < nodecount; id++) {
+            int node_id = node_data.nodeindices[id];
+            auto* _ppvar = _ml_arg->pdata[id];
+            auto v = node_data.node_voltages[node_id];
+            ode_update_stiff_heat_eqn_array(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        }
+    }
+    /* Neuron setdata functions */
+    extern void _nrn_setdata_reg(int, void(*)(Prop*));
+    static void _setdata(Prop* _prop) {
+        _extcall_prop = _prop;
+        _prop_id = _nrn_get_prop_id(_prop);
+    }
+    static void _hoc_setdata() {
+        Prop *_prop = hoc_getdata_range(mech_type);
+        _setdata(_prop);
+        hoc_retpushx(1.);
+    }
+
+
+    struct functor_heat_eqn_array_0 {
+        _nrn_mechanism_cache_range& _lmc;
+        heat_eqn_array_Instance& inst;
+        heat_eqn_array_NodeData& node_data;
+        size_t id;
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        double v;
+        double kf0_, kb0_, kf1_, kb1_, kf2_, kb2_, old_X_0, old_X_1, old_X_2, old_X_3;
+
+        void initialize() {
+            ;
+            {
+                kf0_ = inst.global->kf;
+                kb0_ = inst.global->kb;
+                kf1_ = inst.global->kf;
+                kb1_ = inst.global->kb;
+                kf2_ = inst.global->kf;
+                kb2_ = inst.global->kb;
+            }
+            old_X_0 = (inst.X+id*4)[static_cast<int>(0)];
+            old_X_1 = (inst.X+id*4)[static_cast<int>(1)];
+            old_X_2 = (inst.X+id*4)[static_cast<int>(2)];
+            old_X_3 = (inst.X+id*4)[static_cast<int>(3)];
+        }
+
+        functor_heat_eqn_array_0(_nrn_mechanism_cache_range& _lmc, heat_eqn_array_Instance& inst, heat_eqn_array_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v)
+            : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt), v(v)
+        {}
+        void operator()(const Eigen::Matrix<double, 4, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 4, 1>& nmodl_eigen_dxm, Eigen::Matrix<double, 4, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 4, 4>& nmodl_eigen_jm) const {
+            const double* nmodl_eigen_x = nmodl_eigen_xm.data();
+            double* nmodl_eigen_dx = nmodl_eigen_dxm.data();
+            double* nmodl_eigen_j = nmodl_eigen_jm.data();
+            double* nmodl_eigen_f = nmodl_eigen_fm.data();
+            nmodl_eigen_dx[0] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[0]));
+            nmodl_eigen_dx[1] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[1]));
+            nmodl_eigen_dx[2] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[2]));
+            nmodl_eigen_dx[3] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[3]));
+            nmodl_eigen_f[static_cast<int>(0)] = (nt->_dt * ( -nmodl_eigen_x[static_cast<int>(0)] * kf0_ + nmodl_eigen_x[static_cast<int>(1)] * kb0_) + ( -nmodl_eigen_x[static_cast<int>(0)] + old_X_0) * (inst.vol+id*4)[static_cast<int>(0)]) / (nt->_dt * (inst.vol+id*4)[static_cast<int>(0)]);
+            nmodl_eigen_j[static_cast<int>(0)] =  -kf0_ / (inst.vol+id*4)[static_cast<int>(0)] - 1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(4)] = kb0_ / (inst.vol+id*4)[static_cast<int>(0)];
+            nmodl_eigen_j[static_cast<int>(8)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(12)] = 0.0;
+            nmodl_eigen_f[static_cast<int>(1)] = (nt->_dt * (nmodl_eigen_x[static_cast<int>(0)] * kf0_ - nmodl_eigen_x[static_cast<int>(1)] * kb0_ - nmodl_eigen_x[static_cast<int>(1)] * kf1_ + nmodl_eigen_x[static_cast<int>(2)] * kb1_) + ( -nmodl_eigen_x[static_cast<int>(1)] + old_X_1) * (inst.vol+id*4)[static_cast<int>(1)]) / (nt->_dt * (inst.vol+id*4)[static_cast<int>(1)]);
+            nmodl_eigen_j[static_cast<int>(1)] = kf0_ / (inst.vol+id*4)[static_cast<int>(1)];
+            nmodl_eigen_j[static_cast<int>(5)] = (nt->_dt * ( -kb0_ - kf1_) - (inst.vol+id*4)[static_cast<int>(1)]) / (nt->_dt * (inst.vol+id*4)[static_cast<int>(1)]);
+            nmodl_eigen_j[static_cast<int>(9)] = kb1_ / (inst.vol+id*4)[static_cast<int>(1)];
+            nmodl_eigen_j[static_cast<int>(13)] = 0.0;
+            nmodl_eigen_f[static_cast<int>(2)] = (nt->_dt * (nmodl_eigen_x[static_cast<int>(1)] * kf1_ - nmodl_eigen_x[static_cast<int>(2)] * kb1_ - nmodl_eigen_x[static_cast<int>(2)] * kf2_ + nmodl_eigen_x[static_cast<int>(3)] * kb2_) + ( -nmodl_eigen_x[static_cast<int>(2)] + old_X_2) * (inst.vol+id*4)[static_cast<int>(2)]) / (nt->_dt * (inst.vol+id*4)[static_cast<int>(2)]);
+            nmodl_eigen_j[static_cast<int>(2)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(6)] = kf1_ / (inst.vol+id*4)[static_cast<int>(2)];
+            nmodl_eigen_j[static_cast<int>(10)] = (nt->_dt * ( -kb1_ - kf2_) - (inst.vol+id*4)[static_cast<int>(2)]) / (nt->_dt * (inst.vol+id*4)[static_cast<int>(2)]);
+            nmodl_eigen_j[static_cast<int>(14)] = kb2_ / (inst.vol+id*4)[static_cast<int>(2)];
+            nmodl_eigen_f[static_cast<int>(3)] = (nt->_dt * (nmodl_eigen_x[static_cast<int>(2)] * kf2_ - nmodl_eigen_x[static_cast<int>(3)] * kb2_) + ( -nmodl_eigen_x[static_cast<int>(3)] + old_X_3) * (inst.vol+id*4)[static_cast<int>(3)]) / (nt->_dt * (inst.vol+id*4)[static_cast<int>(3)]);
+            nmodl_eigen_j[static_cast<int>(3)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(7)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(11)] = kf2_ / (inst.vol+id*4)[static_cast<int>(3)];
+            nmodl_eigen_j[static_cast<int>(15)] =  -kb2_ / (inst.vol+id*4)[static_cast<int>(3)] - 1.0 / nt->_dt;
+        }
+
+        void finalize() {
+        }
+    };
+
+
+    /** connect global (scalar) variables to hoc -- */
+    static DoubScal hoc_scalar_double[] = {
+        {"kf_heat_eqn_array", &heat_eqn_array_global.kf},
+        {"kb_heat_eqn_array", &heat_eqn_array_global.kb},
+        {nullptr, nullptr}
+    };
+
+
+    /** connect global (array) variables to hoc -- */
+    static DoubVec hoc_vector_double[] = {
+        {nullptr, nullptr, 0}
+    };
+
+
+    /* declaration of user functions */
+
+
+    /* connect user functions to hoc names */
+    static VoidFunc hoc_intfunc[] = {
+        {"setdata_heat_eqn_array", _hoc_setdata},
+        {nullptr, nullptr}
+    };
+    static NPyDirectMechFunc npy_direct_func_proc[] = {
+        {nullptr, nullptr}
+    };
+
+
+    static void nrn_init_heat_eqn_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_heat_eqn_array(_lmc);
+        auto node_data = make_node_data_heat_eqn_array(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
+        for (int id = 0; id < nodecount; id++) {
+            auto* _ppvar = _ml_arg->pdata[id];
+            int node_id = node_data.nodeindices[id];
+            auto v = node_data.node_voltages[node_id];
+            (inst.X+id*4)[0] = inst.global->X0;
+            (inst.X+id*4)[1] = inst.global->X0;
+            (inst.X+id*4)[2] = inst.global->X0;
+            (inst.X+id*4)[3] = inst.global->X0;
+            for (int i = 0; i <= 4 - 1; i++) {
+                (inst.mu+id*4)[static_cast<int>(i)] = 1.0 + i;
+                (inst.vol+id*4)[static_cast<int>(i)] = 0.01 / (i + 1.0);
+                if (inst.x[id] < 0.5) {
+                    (inst.X+id*4)[static_cast<int>(i)] = 1.0 + i;
+                } else {
+                    (inst.X+id*4)[static_cast<int>(i)] = 0.0;
+                }
+            }
+        }
+    }
+
+
+    static void nrn_state_heat_eqn_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_heat_eqn_array(_lmc);
+        auto node_data = make_node_data_heat_eqn_array(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
+        for (int id = 0; id < nodecount; id++) {
+            int node_id = node_data.nodeindices[id];
+            auto* _ppvar = _ml_arg->pdata[id];
+            auto v = node_data.node_voltages[node_id];
+            
+            Eigen::Matrix<double, 4, 1> nmodl_eigen_xm;
+            double* nmodl_eigen_x = nmodl_eigen_xm.data();
+            nmodl_eigen_x[static_cast<int>(0)] = (inst.X+id*4)[static_cast<int>(0)];
+            nmodl_eigen_x[static_cast<int>(1)] = (inst.X+id*4)[static_cast<int>(1)];
+            nmodl_eigen_x[static_cast<int>(2)] = (inst.X+id*4)[static_cast<int>(2)];
+            nmodl_eigen_x[static_cast<int>(3)] = (inst.X+id*4)[static_cast<int>(3)];
+            // call newton solver
+            functor_heat_eqn_array_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, nt, v);
+            newton_functor.initialize();
+            int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
+            if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
+            (inst.X+id*4)[static_cast<int>(0)] = nmodl_eigen_x[static_cast<int>(0)];
+            (inst.X+id*4)[static_cast<int>(1)] = nmodl_eigen_x[static_cast<int>(1)];
+            (inst.X+id*4)[static_cast<int>(2)] = nmodl_eigen_x[static_cast<int>(2)];
+            (inst.X+id*4)[static_cast<int>(3)] = nmodl_eigen_x[static_cast<int>(3)];
+            newton_functor.initialize(); // TODO mimic calling F again.
+            newton_functor.finalize();
+
+        }
+    }
+
+
+    static void nrn_jacob_heat_eqn_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_heat_eqn_array(_lmc);
+        auto node_data = make_node_data_heat_eqn_array(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
+        for (int id = 0; id < nodecount; id++) {
+            int node_id = node_data.nodeindices[id];
+            node_data.node_diagonal[node_id] += inst.g_unused[id];
+        }
+    }
+    static void nrn_destructor_heat_eqn_array(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_heat_eqn_array(_lmc);
+        auto node_data = make_node_data_heat_eqn_array(prop);
+
+    }
+
+
+    static void _initlists() {
+        for (int _i = 0; _i < 4; ++_i) {
+            /* X[4] */
+            _slist1[0+_i] = {1, _i};
+            /* DX[4] */
+            _dlist1[0+_i] = {4, _i};
+        }
+    }
+
+
+    /** register channel with the simulator */
+    extern "C" void _heat_eqn_array_reg() {
+        _initlists();
+
+        register_mech(mechanism_info, nrn_alloc_heat_eqn_array, nullptr, nrn_jacob_heat_eqn_array, nrn_state_heat_eqn_array, nrn_init_heat_eqn_array, -1, 1);
+
+        mech_type = nrn_get_mechtype(mechanism_info[1]);
+        hoc_register_parm_default(mech_type, &_parameter_defaults);
+        _nrn_mechanism_register_data_fields(mech_type,
+            _nrn_mechanism_field<double>{"x"} /* 0 */,
+            _nrn_mechanism_field<double>{"X", 4} /* 1 */,
+            _nrn_mechanism_field<double>{"mu", 4} /* 2 */,
+            _nrn_mechanism_field<double>{"vol", 4} /* 3 */,
+            _nrn_mechanism_field<double>{"DX", 4} /* 4 */,
+            _nrn_mechanism_field<double>{"v_unused"} /* 5 */,
+            _nrn_mechanism_field<double>{"g_unused"} /* 6 */,
+            _nrn_mechanism_field<int>{"_cvode_ieq", "cvodeieq"} /* 0 */
+        );
+
+        hoc_register_prop_size(mech_type, 19, 1);
+        hoc_register_ldifus1(_apply_diffusion_function);
+        hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
+        hoc_register_npy_direct(mech_type, npy_direct_func_proc);
+        hoc_register_dparam_semantics(mech_type, 0, "cvodeieq");
+        hoc_register_cvode(mech_type, ode_count_heat_eqn_array, ode_setup_tolerance_heat_eqn_array, ode_setup_nonstiff_heat_eqn_array, ode_setup_stiff_heat_eqn_array);
+        hoc_register_tolerance(mech_type, _hoc_state_tol, &_atollist);
+    }
+}

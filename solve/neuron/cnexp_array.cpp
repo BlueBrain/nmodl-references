@@ -92,7 +92,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<cnexp_array_Store>);
     static_assert(std::is_trivially_move_assignable_v<cnexp_array_Store>);
     static_assert(std::is_trivially_destructible_v<cnexp_array_Store>);
-    cnexp_array_Store cnexp_array_global;
+    static cnexp_array_Store cnexp_array_global;
     auto x0_cnexp_array() -> std::decay<decltype(cnexp_array_global.x0)>::type  {
         return cnexp_array_global.x0;
     }
@@ -160,7 +160,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_cnexp_array(Prop* prop);
+    static void nrn_destructor_cnexp_array(Prop* prop);
 
 
     static void nrn_alloc_cnexp_array(Prop* _prop) {
@@ -276,7 +276,7 @@ namespace neuron {
     };
 
 
-    void nrn_init_cnexp_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_cnexp_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_cnexp_array(_lmc);
         auto node_data = make_node_data_cnexp_array(*nt, *_ml_arg);
@@ -299,7 +299,7 @@ namespace neuron {
     }
 
 
-    void nrn_state_cnexp_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_state_cnexp_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_cnexp_array(_lmc);
         auto node_data = make_node_data_cnexp_array(*nt, *_ml_arg);
@@ -309,7 +309,7 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
-            inst.x[id] = inst.x[id] + (1.0 - exp(nt->_dt * ((((inst.s+id*2)[static_cast<int>(0)] + (inst.s+id*2)[static_cast<int>(1)]) * ((inst.z+id*3)[static_cast<int>(0)] * (inst.z+id*3)[static_cast<int>(1)] * (inst.z+id*3)[static_cast<int>(2)])) * (1.0)))) * ( -(0.0) / (((((inst.s+id*2)[static_cast<int>(0)] + (inst.s+id*2)[static_cast<int>(1)])) * (((((inst.z+id*3)[static_cast<int>(0)]) * ((inst.z+id*3)[static_cast<int>(1)])) * ((inst.z+id*3)[static_cast<int>(2)])))) * (1.0)) - inst.x[id]);
+            inst.x[id] = inst.x[id] * exp(nt->_dt * ((inst.s+id*2)[static_cast<int>(0)] + (inst.s+id*2)[static_cast<int>(1)]) * (inst.z+id*3)[static_cast<int>(0)] * (inst.z+id*3)[static_cast<int>(1)] * (inst.z+id*3)[static_cast<int>(2)]);
         }
     }
 
@@ -325,7 +325,7 @@ namespace neuron {
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
-    void nrn_destructor_cnexp_array(Prop* prop) {
+    static void nrn_destructor_cnexp_array(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;

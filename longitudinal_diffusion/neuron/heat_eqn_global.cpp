@@ -476,7 +476,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<heat_eqn_global_Store>);
     static_assert(std::is_trivially_move_assignable_v<heat_eqn_global_Store>);
     static_assert(std::is_trivially_destructible_v<heat_eqn_global_Store>);
-    heat_eqn_global_Store heat_eqn_global_global;
+    static heat_eqn_global_Store heat_eqn_global_global;
     auto mu_heat_eqn_global() -> std::decay<decltype(heat_eqn_global_global.mu)>::type  {
         return heat_eqn_global_global.mu;
     }
@@ -543,7 +543,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_heat_eqn_global(Prop* prop);
+    static void nrn_destructor_heat_eqn_global(Prop* prop);
 
 
     static void nrn_alloc_heat_eqn_global(Prop* _prop) {
@@ -715,7 +715,7 @@ namespace neuron {
     };
 
 
-    void nrn_init_heat_eqn_global(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_heat_eqn_global(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_heat_eqn_global(_lmc);
         auto node_data = make_node_data_heat_eqn_global(*nt, *_ml_arg);
@@ -735,7 +735,7 @@ namespace neuron {
     }
 
 
-    void nrn_state_heat_eqn_global(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_state_heat_eqn_global(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_heat_eqn_global(_lmc);
         auto node_data = make_node_data_heat_eqn_global(*nt, *_ml_arg);
@@ -773,7 +773,7 @@ namespace neuron {
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
-    void nrn_destructor_heat_eqn_global(Prop* prop) {
+    static void nrn_destructor_heat_eqn_global(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;

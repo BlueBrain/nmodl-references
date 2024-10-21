@@ -100,7 +100,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<tbl_point_process_Store>);
     static_assert(std::is_trivially_move_assignable_v<tbl_point_process_Store>);
     static_assert(std::is_trivially_destructible_v<tbl_point_process_Store>);
-    tbl_point_process_Store tbl_point_process_global;
+    static tbl_point_process_Store tbl_point_process_global;
     auto k_tbl_point_process() -> std::decay<decltype(tbl_point_process_global.k)>::type  {
         return tbl_point_process_global.k;
     }
@@ -209,7 +209,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_tbl_point_process(Prop* prop);
+    static void nrn_destructor_tbl_point_process(Prop* prop);
 
 
     static void nrn_alloc_tbl_point_process(Prop* _prop) {
@@ -232,9 +232,9 @@ namespace neuron {
 
 
     /* Mechanism procedures and functions */
-    inline double quadratic_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
-    inline int sigmoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
-    inline int sinusoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
+    inline static double quadratic_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
+    inline static int sigmoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
+    inline static int sinusoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
 
@@ -295,9 +295,9 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static double _hoc_quadratic(void*);
-    static double _hoc_sigmoidal(void*);
-    static double _hoc_sinusoidal(void*);
+    static double _hoc_quadratic(void * _vptr);
+    static double _hoc_sigmoidal(void * _vptr);
+    static double _hoc_sinusoidal(void * _vptr);
 
 
     /* connect user functions to hoc names */
@@ -313,7 +313,7 @@ namespace neuron {
         {"quadratic", _hoc_quadratic},
         {nullptr, nullptr}
     };
-    static double _hoc_sigmoidal(void* _vptr) {
+    static double _hoc_sigmoidal(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -335,7 +335,7 @@ namespace neuron {
         sigmoidal_tbl_point_process(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static double _hoc_sinusoidal(void* _vptr) {
+    static double _hoc_sinusoidal(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -357,7 +357,7 @@ namespace neuron {
         sinusoidal_tbl_point_process(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static double _hoc_quadratic(void* _vptr) {
+    static double _hoc_quadratic(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -418,7 +418,7 @@ namespace neuron {
     }
 
 
-    inline int sigmoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv){
+    inline static int sigmoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv){
         if (inst.global->usetable == 0) {
             f_sigmoidal_tbl_point_process(_lmc, inst, node_data, id, _ppvar, _thread, nt, _lv);
             return 0;
@@ -480,7 +480,7 @@ namespace neuron {
     }
 
 
-    inline int sinusoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx){
+    inline static int sinusoidal_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx){
         if (inst.global->usetable == 0) {
             f_sinusoidal_tbl_point_process(_lmc, inst, node_data, id, _ppvar, _thread, nt, _lx);
             return 0;
@@ -542,7 +542,7 @@ namespace neuron {
     }
 
 
-    inline double quadratic_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx){
+    inline static double quadratic_tbl_point_process(_nrn_mechanism_cache_range& _lmc, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx){
         if (inst.global->usetable == 0) {
             return f_quadratic_tbl_point_process(_lmc, inst, node_data, id, _ppvar, _thread, nt, _lx);
         }
@@ -560,7 +560,7 @@ namespace neuron {
     }
 
 
-    void nrn_init_tbl_point_process(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_tbl_point_process(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_tbl_point_process(_lmc);
         auto node_data = make_node_data_tbl_point_process(*nt, *_ml_arg);
@@ -574,7 +574,7 @@ namespace neuron {
     }
 
 
-    inline double nrn_current_tbl_point_process(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, double v) {
+    static inline double nrn_current_tbl_point_process(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, tbl_point_process_Instance& inst, tbl_point_process_NodeData& node_data, double v) {
         double current = 0.0;
         sigmoidal_tbl_point_process(_lmc, inst, node_data, id, _ppvar, _thread, nt, v);
         inst.g[id] = 0.001 * inst.sig[id];
@@ -585,7 +585,7 @@ namespace neuron {
 
 
     /** update current */
-    void nrn_cur_tbl_point_process(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_cur_tbl_point_process(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_tbl_point_process(_lmc);
         auto node_data = make_node_data_tbl_point_process(*nt, *_ml_arg);
@@ -608,7 +608,7 @@ namespace neuron {
     }
 
 
-    void nrn_state_tbl_point_process(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_state_tbl_point_process(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_tbl_point_process(_lmc);
         auto node_data = make_node_data_tbl_point_process(*nt, *_ml_arg);
@@ -633,7 +633,7 @@ namespace neuron {
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
-    void nrn_destructor_tbl_point_process(Prop* prop) {
+    static void nrn_destructor_tbl_point_process(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;

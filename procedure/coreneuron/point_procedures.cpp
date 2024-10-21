@@ -56,7 +56,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<point_procedures_Store>);
     static_assert(std::is_trivially_move_assignable_v<point_procedures_Store>);
     static_assert(std::is_trivially_destructible_v<point_procedures_Store>);
-    point_procedures_Store point_procedures_global;
+    static point_procedures_Store point_procedures_global;
 
 
     /** all mechanism instance variables and global variables */
@@ -210,13 +210,13 @@ namespace coreneuron {
     }
 
 
-    inline double identity_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv);
-    inline int set_x_42_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
-    inline int set_x_a_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _la);
-    inline int set_a_x_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
-    inline int set_x_v_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
-    inline int set_x_just_v_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
-    inline int set_x_just_vv_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv);
+    inline static double identity_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv);
+    inline static int set_x_42_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static int set_x_a_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _la);
+    inline static int set_a_x_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static int set_x_v_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static int set_x_just_v_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static int set_x_just_vv_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv);
 
 
     inline int set_x_42_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {

@@ -83,7 +83,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<functions_Store>);
     static_assert(std::is_trivially_move_assignable_v<functions_Store>);
     static_assert(std::is_trivially_destructible_v<functions_Store>);
-    functions_Store functions_global;
+    static functions_Store functions_global;
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -134,7 +134,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_functions(Prop* prop);
+    static void nrn_destructor_functions(Prop* prop);
 
 
     static void nrn_alloc_functions(Prop* _prop) {
@@ -147,9 +147,9 @@ namespace neuron {
 
 
     /* Mechanism procedures and functions */
-    inline double x_plus_a_functions(_nrn_mechanism_cache_range& _lmc, functions_Instance& inst, functions_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
-    inline double v_plus_a_functions(_nrn_mechanism_cache_range& _lmc, functions_Instance& inst, functions_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
-    inline double identity_functions(_nrn_mechanism_cache_range& _lmc, functions_Instance& inst, functions_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
+    inline static double x_plus_a_functions(_nrn_mechanism_cache_range& _lmc, functions_Instance& inst, functions_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
+    inline static double v_plus_a_functions(_nrn_mechanism_cache_range& _lmc, functions_Instance& inst, functions_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
+    inline static double identity_functions(_nrn_mechanism_cache_range& _lmc, functions_Instance& inst, functions_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
 
@@ -179,12 +179,12 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_x_plus_a(void);
-    static double _npy_x_plus_a(Prop*);
-    static void _hoc_v_plus_a(void);
-    static double _npy_v_plus_a(Prop*);
-    static void _hoc_identity(void);
-    static double _npy_identity(Prop*);
+    static void _hoc_x_plus_a();
+    static double _npy_x_plus_a(Prop* _prop);
+    static void _hoc_v_plus_a();
+    static double _npy_v_plus_a(Prop* _prop);
+    static void _hoc_identity();
+    static double _npy_identity(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -201,7 +201,7 @@ namespace neuron {
         {"identity", _npy_identity},
         {nullptr, nullptr}
     };
-    static void _hoc_x_plus_a(void) {
+    static void _hoc_x_plus_a() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -235,7 +235,7 @@ namespace neuron {
         _r = x_plus_a_functions(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_v_plus_a(void) {
+    static void _hoc_v_plus_a() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -266,7 +266,7 @@ namespace neuron {
         _r = v_plus_a_functions(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_identity(void) {
+    static void _hoc_identity() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -323,7 +323,7 @@ namespace neuron {
     }
 
 
-    void nrn_init_functions(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_functions(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_functions(_lmc);
         auto node_data = make_node_data_functions(*nt, *_ml_arg);
@@ -347,7 +347,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
         }
     }
-    void nrn_destructor_functions(Prop* prop) {
+    static void nrn_destructor_functions(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;

@@ -82,7 +82,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<spiker_Store>);
     static_assert(std::is_trivially_move_assignable_v<spiker_Store>);
     static_assert(std::is_trivially_destructible_v<spiker_Store>);
-    spiker_Store spiker_global;
+    static spiker_Store spiker_global;
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -139,7 +139,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_spiker(Prop* prop);
+    static void nrn_destructor_spiker(Prop* prop);
 
 
     static void nrn_alloc_spiker(Prop* _prop) {
@@ -219,7 +219,7 @@ namespace neuron {
     };
 
 
-    void nrn_init_spiker(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_spiker(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_spiker(_lmc);
         auto node_data = make_node_data_spiker(*nt, *_ml_arg);
@@ -266,7 +266,7 @@ namespace neuron {
         }
 
     }
-    void nrn_destructor_spiker(Prop* prop) {
+    static void nrn_destructor_spiker(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;

@@ -83,7 +83,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<ionic_Store>);
     static_assert(std::is_trivially_move_assignable_v<ionic_Store>);
     static_assert(std::is_trivially_destructible_v<ionic_Store>);
-    ionic_Store ionic_global;
+    static ionic_Store ionic_global;
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -142,7 +142,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_ionic(Prop* prop);
+    static void nrn_destructor_ionic(Prop* prop);
 
 
     static void nrn_alloc_ionic(Prop* _prop) {
@@ -204,7 +204,7 @@ namespace neuron {
     };
 
 
-    void nrn_init_ionic(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_ionic(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_ionic(_lmc);
         auto node_data = make_node_data_ionic(*nt, *_ml_arg);
@@ -220,7 +220,7 @@ namespace neuron {
     }
 
 
-    void nrn_state_ionic(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_state_ionic(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_ionic(_lmc);
         auto node_data = make_node_data_ionic(*nt, *_ml_arg);
@@ -248,7 +248,7 @@ namespace neuron {
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
-    void nrn_destructor_ionic(Prop* prop) {
+    static void nrn_destructor_ionic(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;

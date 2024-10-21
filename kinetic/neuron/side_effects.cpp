@@ -479,7 +479,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<side_effects_Store>);
     static_assert(std::is_trivially_move_assignable_v<side_effects_Store>);
     static_assert(std::is_trivially_destructible_v<side_effects_Store>);
-    side_effects_Store side_effects_global;
+    static side_effects_Store side_effects_global;
     auto X0_side_effects() -> std::decay<decltype(side_effects_global.X0)>::type  {
         return side_effects_global.X0;
     }
@@ -553,7 +553,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_side_effects(Prop* prop);
+    static void nrn_destructor_side_effects(Prop* prop);
 
 
     static void nrn_alloc_side_effects(Prop* _prop) {
@@ -727,7 +727,7 @@ namespace neuron {
     };
 
 
-    void nrn_init_side_effects(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_side_effects(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_side_effects(_lmc);
         auto node_data = make_node_data_side_effects(*nt, *_ml_arg);
@@ -745,7 +745,7 @@ namespace neuron {
     }
 
 
-    inline double nrn_current_side_effects(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, side_effects_Instance& inst, side_effects_NodeData& node_data, double v) {
+    static inline double nrn_current_side_effects(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, side_effects_Instance& inst, side_effects_NodeData& node_data, double v) {
         double current = 0.0;
         inst.il[id] = inst.forward_flux[id] - inst.backward_flux[id];
         current += inst.il[id];
@@ -754,7 +754,7 @@ namespace neuron {
 
 
     /** update current */
-    void nrn_cur_side_effects(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_cur_side_effects(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_side_effects(_lmc);
         auto node_data = make_node_data_side_effects(*nt, *_ml_arg);
@@ -774,7 +774,7 @@ namespace neuron {
     }
 
 
-    void nrn_state_side_effects(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_state_side_effects(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_side_effects(_lmc);
         auto node_data = make_node_data_side_effects(*nt, *_ml_arg);
@@ -814,7 +814,7 @@ namespace neuron {
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
-    void nrn_destructor_side_effects(Prop* prop) {
+    static void nrn_destructor_side_effects(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;

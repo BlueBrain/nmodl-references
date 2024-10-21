@@ -82,7 +82,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<recursion_Store>);
     static_assert(std::is_trivially_move_assignable_v<recursion_Store>);
     static_assert(std::is_trivially_destructible_v<recursion_Store>);
-    recursion_Store recursion_global;
+    static recursion_Store recursion_global;
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -131,7 +131,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_recursion(Prop* prop);
+    static void nrn_destructor_recursion(Prop* prop);
 
 
     static void nrn_alloc_recursion(Prop* _prop) {
@@ -144,7 +144,7 @@ namespace neuron {
 
 
     /* Mechanism procedures and functions */
-    inline double fibonacci_recursion(_nrn_mechanism_cache_range& _lmc, recursion_Instance& inst, recursion_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _ln);
+    inline static double fibonacci_recursion(_nrn_mechanism_cache_range& _lmc, recursion_Instance& inst, recursion_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _ln);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
 
@@ -174,8 +174,8 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_fibonacci(void);
-    static double _npy_fibonacci(Prop*);
+    static void _hoc_fibonacci();
+    static double _npy_fibonacci(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -188,7 +188,7 @@ namespace neuron {
         {"fibonacci", _npy_fibonacci},
         {nullptr, nullptr}
     };
-    static void _hoc_fibonacci(void) {
+    static void _hoc_fibonacci() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -233,7 +233,7 @@ namespace neuron {
     }
 
 
-    void nrn_init_recursion(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_recursion(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_recursion(_lmc);
         auto node_data = make_node_data_recursion(*nt, *_ml_arg);
@@ -256,7 +256,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
         }
     }
-    void nrn_destructor_recursion(Prop* prop) {
+    static void nrn_destructor_recursion(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;

@@ -84,7 +84,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<func_in_breakpoint_Store>);
     static_assert(std::is_trivially_move_assignable_v<func_in_breakpoint_Store>);
     static_assert(std::is_trivially_destructible_v<func_in_breakpoint_Store>);
-    func_in_breakpoint_Store func_in_breakpoint_global;
+    static func_in_breakpoint_Store func_in_breakpoint_global;
     auto c_func_in_breakpoint() -> std::decay<decltype(func_in_breakpoint_global.c)>::type  {
         return func_in_breakpoint_global.c;
     }
@@ -141,7 +141,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_func_in_breakpoint(Prop* prop);
+    static void nrn_destructor_func_in_breakpoint(Prop* prop);
 
 
     static void nrn_alloc_func_in_breakpoint(Prop* _prop) {
@@ -154,9 +154,9 @@ namespace neuron {
 
 
     /* Mechanism procedures and functions */
-    inline int func_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, func_in_breakpoint_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline int func_with_v_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, func_in_breakpoint_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
-    inline int func_with_other_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, func_in_breakpoint_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lq);
+    inline static int func_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, func_in_breakpoint_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static int func_with_v_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, func_in_breakpoint_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
+    inline static int func_with_other_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, func_in_breakpoint_Instance& inst, func_in_breakpoint_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lq);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
 
@@ -187,12 +187,12 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_func(void);
-    static double _npy_func(Prop*);
-    static void _hoc_func_with_v(void);
-    static double _npy_func_with_v(Prop*);
-    static void _hoc_func_with_other(void);
-    static double _npy_func_with_other(Prop*);
+    static void _hoc_func();
+    static double _npy_func(Prop* _prop);
+    static void _hoc_func_with_v();
+    static double _npy_func_with_v(Prop* _prop);
+    static void _hoc_func_with_other();
+    static double _npy_func_with_other(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -209,7 +209,7 @@ namespace neuron {
         {"func_with_other", _npy_func_with_other},
         {nullptr, nullptr}
     };
-    static void _hoc_func(void) {
+    static void _hoc_func() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -242,7 +242,7 @@ namespace neuron {
         func_func_in_breakpoint(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static void _hoc_func_with_v(void) {
+    static void _hoc_func_with_v() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -275,7 +275,7 @@ namespace neuron {
         func_with_v_func_in_breakpoint(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static void _hoc_func_with_other(void) {
+    static void _hoc_func_with_other() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -331,7 +331,7 @@ namespace neuron {
     }
 
 
-    void nrn_init_func_in_breakpoint(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_func_in_breakpoint(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_func_in_breakpoint(_lmc);
         auto node_data = make_node_data_func_in_breakpoint(*nt, *_ml_arg);
@@ -345,7 +345,7 @@ namespace neuron {
     }
 
 
-    inline double nrn_current_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, func_in_breakpoint_Instance& inst, func_in_breakpoint_NodeData& node_data, double v) {
+    static inline double nrn_current_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, func_in_breakpoint_Instance& inst, func_in_breakpoint_NodeData& node_data, double v) {
         double current = 0.0;
         func_func_in_breakpoint(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         func_with_v_func_in_breakpoint(_lmc, inst, node_data, id, _ppvar, _thread, nt, v);
@@ -356,7 +356,7 @@ namespace neuron {
 
 
     /** update current */
-    void nrn_cur_func_in_breakpoint(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_cur_func_in_breakpoint(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_func_in_breakpoint(_lmc);
         auto node_data = make_node_data_func_in_breakpoint(*nt, *_ml_arg);
@@ -376,7 +376,7 @@ namespace neuron {
     }
 
 
-    void nrn_state_func_in_breakpoint(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_state_func_in_breakpoint(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_func_in_breakpoint(_lmc);
         auto node_data = make_node_data_func_in_breakpoint(*nt, *_ml_arg);
@@ -401,7 +401,7 @@ namespace neuron {
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
-    void nrn_destructor_func_in_breakpoint(Prop* prop) {
+    static void nrn_destructor_func_in_breakpoint(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;

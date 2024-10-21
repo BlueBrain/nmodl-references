@@ -60,7 +60,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<localize_arguments_Store>);
     static_assert(std::is_trivially_move_assignable_v<localize_arguments_Store>);
     static_assert(std::is_trivially_destructible_v<localize_arguments_Store>);
-    localize_arguments_Store localize_arguments_global;
+    static localize_arguments_Store localize_arguments_global;
 
 
     /** all mechanism instance variables and global variables */
@@ -226,13 +226,13 @@ namespace coreneuron {
     }
 
 
-    inline double id_v_localize_arguments(int id, int pnodecount, localize_arguments_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv);
-    inline double id_nai_localize_arguments(int id, int pnodecount, localize_arguments_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lnai);
-    inline double id_ina_localize_arguments(int id, int pnodecount, localize_arguments_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lina);
-    inline double id_x_localize_arguments(int id, int pnodecount, localize_arguments_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lx);
-    inline double id_g_localize_arguments(int id, int pnodecount, localize_arguments_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lg);
-    inline double id_s_localize_arguments(int id, int pnodecount, localize_arguments_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _ls);
-    inline double id_p_localize_arguments(int id, int pnodecount, localize_arguments_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lp);
+    inline static double id_v_localize_arguments(int id, int pnodecount, localize_arguments_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv);
+    inline static double id_nai_localize_arguments(int id, int pnodecount, localize_arguments_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lnai);
+    inline static double id_ina_localize_arguments(int id, int pnodecount, localize_arguments_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lina);
+    inline static double id_x_localize_arguments(int id, int pnodecount, localize_arguments_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lx);
+    inline static double id_g_localize_arguments(int id, int pnodecount, localize_arguments_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lg);
+    inline static double id_s_localize_arguments(int id, int pnodecount, localize_arguments_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _ls);
+    inline static double id_p_localize_arguments(int id, int pnodecount, localize_arguments_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lp);
 
 
     inline double id_v_localize_arguments(int id, int pnodecount, localize_arguments_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv) {

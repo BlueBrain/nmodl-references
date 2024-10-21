@@ -84,7 +84,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<point_non_threadsafe_Store>);
     static_assert(std::is_trivially_move_assignable_v<point_non_threadsafe_Store>);
     static_assert(std::is_trivially_destructible_v<point_non_threadsafe_Store>);
-    point_non_threadsafe_Store point_non_threadsafe_global;
+    static point_non_threadsafe_Store point_non_threadsafe_global;
     auto gbl_point_non_threadsafe() -> std::decay<decltype(point_non_threadsafe_global.gbl)>::type  {
         return point_non_threadsafe_global.gbl;
     }
@@ -146,7 +146,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_point_non_threadsafe(Prop* prop);
+    static void nrn_destructor_point_non_threadsafe(Prop* prop);
 
 
     static void nrn_alloc_point_non_threadsafe(Prop* _prop) {
@@ -169,9 +169,9 @@ namespace neuron {
 
 
     /* Mechanism procedures and functions */
-    inline double x_plus_a_point_non_threadsafe(_nrn_mechanism_cache_range& _lmc, point_non_threadsafe_Instance& inst, point_non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
-    inline double v_plus_a_point_non_threadsafe(_nrn_mechanism_cache_range& _lmc, point_non_threadsafe_Instance& inst, point_non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
-    inline double identity_point_non_threadsafe(_nrn_mechanism_cache_range& _lmc, point_non_threadsafe_Instance& inst, point_non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
+    inline static double x_plus_a_point_non_threadsafe(_nrn_mechanism_cache_range& _lmc, point_non_threadsafe_Instance& inst, point_non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
+    inline static double v_plus_a_point_non_threadsafe(_nrn_mechanism_cache_range& _lmc, point_non_threadsafe_Instance& inst, point_non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
+    inline static double identity_point_non_threadsafe(_nrn_mechanism_cache_range& _lmc, point_non_threadsafe_Instance& inst, point_non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
 
@@ -216,9 +216,9 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static double _hoc_x_plus_a(void*);
-    static double _hoc_v_plus_a(void*);
-    static double _hoc_identity(void*);
+    static double _hoc_x_plus_a(void * _vptr);
+    static double _hoc_v_plus_a(void * _vptr);
+    static double _hoc_identity(void * _vptr);
 
 
     /* connect user functions to hoc names */
@@ -234,7 +234,7 @@ namespace neuron {
         {"identity", _hoc_identity},
         {nullptr, nullptr}
     };
-    static double _hoc_x_plus_a(void* _vptr) {
+    static double _hoc_x_plus_a(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -254,7 +254,7 @@ namespace neuron {
         _r = x_plus_a_point_non_threadsafe(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static double _hoc_v_plus_a(void* _vptr) {
+    static double _hoc_v_plus_a(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -274,7 +274,7 @@ namespace neuron {
         _r = v_plus_a_point_non_threadsafe(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static double _hoc_identity(void* _vptr) {
+    static double _hoc_identity(void * _vptr) {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -320,7 +320,7 @@ namespace neuron {
     }
 
 
-    void nrn_init_point_non_threadsafe(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_point_non_threadsafe(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_point_non_threadsafe(_lmc);
         auto node_data = make_node_data_point_non_threadsafe(*nt, *_ml_arg);
@@ -346,7 +346,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
         }
     }
-    void nrn_destructor_point_non_threadsafe(Prop* prop) {
+    static void nrn_destructor_point_non_threadsafe(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;

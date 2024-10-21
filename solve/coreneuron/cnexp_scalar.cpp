@@ -58,7 +58,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<cnexp_scalar_Store>);
     static_assert(std::is_trivially_move_assignable_v<cnexp_scalar_Store>);
     static_assert(std::is_trivially_destructible_v<cnexp_scalar_Store>);
-    cnexp_scalar_Store cnexp_scalar_global;
+    static cnexp_scalar_Store cnexp_scalar_global;
 
 
     /** all mechanism instance variables and global variables */
@@ -260,7 +260,7 @@ namespace coreneuron {
             #if NRN_PRCELLSTATE
             inst->v_unused[id] = v;
             #endif
-            inst->x[id] = inst->x[id] + (1.0 - exp(nt->_dt * ( -1.0))) * ( -(0.0) / ( -1.0) - inst->x[id]);
+            inst->x[id] = inst->x[id] * exp( -nt->_dt);
         }
     }
 

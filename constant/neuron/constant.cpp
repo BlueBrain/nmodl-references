@@ -83,7 +83,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<constant_mod_Store>);
     static_assert(std::is_trivially_move_assignable_v<constant_mod_Store>);
     static_assert(std::is_trivially_destructible_v<constant_mod_Store>);
-    constant_mod_Store constant_mod_global;
+    static constant_mod_Store constant_mod_global;
     auto a_constant_mod() -> std::decay<decltype(constant_mod_global.a)>::type  {
         return constant_mod_global.a;
     }
@@ -136,7 +136,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_constant_mod(Prop* prop);
+    static void nrn_destructor_constant_mod(Prop* prop);
 
 
     static void nrn_alloc_constant_mod(Prop* _prop) {
@@ -149,7 +149,7 @@ namespace neuron {
 
 
     /* Mechanism procedures and functions */
-    inline double foo_constant_mod(_nrn_mechanism_cache_range& _lmc, constant_mod_Instance& inst, constant_mod_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static double foo_constant_mod(_nrn_mechanism_cache_range& _lmc, constant_mod_Instance& inst, constant_mod_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
 
@@ -179,8 +179,8 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_foo(void);
-    static double _npy_foo(Prop*);
+    static void _hoc_foo();
+    static double _npy_foo(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -193,7 +193,7 @@ namespace neuron {
         {"foo", _npy_foo},
         {nullptr, nullptr}
     };
-    static void _hoc_foo(void) {
+    static void _hoc_foo() {
         double _r{};
         Datum* _ppvar;
         Datum* _thread;
@@ -234,7 +234,7 @@ namespace neuron {
     }
 
 
-    void nrn_init_constant_mod(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_constant_mod(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_constant_mod(_lmc);
         auto node_data = make_node_data_constant_mod(*nt, *_ml_arg);
@@ -257,7 +257,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
         }
     }
-    void nrn_destructor_constant_mod(Prop* prop) {
+    static void nrn_destructor_constant_mod(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;

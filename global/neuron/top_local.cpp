@@ -87,7 +87,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<top_local_Store>);
     static_assert(std::is_trivially_move_assignable_v<top_local_Store>);
     static_assert(std::is_trivially_destructible_v<top_local_Store>);
-    top_local_Store top_local_global;
+    static top_local_Store top_local_global;
     auto thread_data_in_use_top_local() -> std::decay<decltype(top_local_global.thread_data_in_use)>::type  {
         return top_local_global.thread_data_in_use;
     }
@@ -165,7 +165,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_top_local(Prop* prop);
+    static void nrn_destructor_top_local(Prop* prop);
 
 
     static void nrn_alloc_top_local(Prop* _prop) {
@@ -237,7 +237,7 @@ namespace neuron {
     }
 
 
-    void nrn_init_top_local(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_top_local(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_top_local(_lmc);
         auto node_data = make_node_data_top_local(*nt, *_ml_arg);
@@ -253,7 +253,7 @@ namespace neuron {
     }
 
 
-    inline double nrn_current_top_local(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, top_local_ThreadVariables& _thread_vars, size_t id, top_local_Instance& inst, top_local_NodeData& node_data, double v) {
+    static inline double nrn_current_top_local(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, top_local_ThreadVariables& _thread_vars, size_t id, top_local_Instance& inst, top_local_NodeData& node_data, double v) {
         double current = 0.0;
         if (nt->_t > 0.33) {
             _thread_vars.gbl(id) = 3.0;
@@ -266,7 +266,7 @@ namespace neuron {
 
 
     /** update current */
-    void nrn_cur_top_local(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_cur_top_local(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_top_local(_lmc);
         auto node_data = make_node_data_top_local(*nt, *_ml_arg);
@@ -287,7 +287,7 @@ namespace neuron {
     }
 
 
-    void nrn_state_top_local(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_state_top_local(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_top_local(_lmc);
         auto node_data = make_node_data_top_local(*nt, *_ml_arg);
@@ -314,7 +314,7 @@ namespace neuron {
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
-    void nrn_destructor_top_local(Prop* prop) {
+    static void nrn_destructor_top_local(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
