@@ -121,10 +121,14 @@ namespace neuron {
     };
 
 
-    static non_threadsafe_Instance make_instance_non_threadsafe(_nrn_mechanism_cache_range& _lmc) {
+    static non_threadsafe_Instance make_instance_non_threadsafe(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return non_threadsafe_Instance();
+        }
+
         return non_threadsafe_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>()
         };
     }
 
@@ -139,6 +143,10 @@ namespace neuron {
         };
     }
     static non_threadsafe_NodeData make_node_data_non_threadsafe(Prop * _prop) {
+        if(!_prop) {
+            return non_threadsafe_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return non_threadsafe_NodeData {
@@ -230,7 +238,7 @@ namespace neuron {
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_non_threadsafe(_lmc);
+        auto inst = make_instance_non_threadsafe(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_non_threadsafe(_local_prop);
         _r = get_gbl_non_threadsafe(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
@@ -245,7 +253,7 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_non_threadsafe(_lmc);
+        auto inst = make_instance_non_threadsafe(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_non_threadsafe(_prop);
         _r = get_gbl_non_threadsafe(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
@@ -261,7 +269,7 @@ namespace neuron {
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_non_threadsafe(_lmc);
+        auto inst = make_instance_non_threadsafe(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_non_threadsafe(_local_prop);
         _r = get_top_local_non_threadsafe(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
@@ -276,7 +284,7 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_non_threadsafe(_lmc);
+        auto inst = make_instance_non_threadsafe(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_non_threadsafe(_prop);
         _r = get_top_local_non_threadsafe(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
@@ -292,7 +300,7 @@ namespace neuron {
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_non_threadsafe(_lmc);
+        auto inst = make_instance_non_threadsafe(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_non_threadsafe(_local_prop);
         _r = get_parameter_non_threadsafe(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
@@ -307,7 +315,7 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_non_threadsafe(_lmc);
+        auto inst = make_instance_non_threadsafe(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_non_threadsafe(_prop);
         _r = get_parameter_non_threadsafe(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
@@ -316,7 +324,7 @@ namespace neuron {
 
     inline double get_gbl_non_threadsafe(_nrn_mechanism_cache_range& _lmc, non_threadsafe_Instance& inst, non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         double ret_get_gbl = 0.0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         ret_get_gbl = inst.global->gbl;
         return ret_get_gbl;
     }
@@ -324,7 +332,7 @@ namespace neuron {
 
     inline double get_top_local_non_threadsafe(_nrn_mechanism_cache_range& _lmc, non_threadsafe_Instance& inst, non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         double ret_get_top_local = 0.0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         ret_get_top_local = inst.global->top_local;
         return ret_get_top_local;
     }
@@ -332,7 +340,7 @@ namespace neuron {
 
     inline double get_parameter_non_threadsafe(_nrn_mechanism_cache_range& _lmc, non_threadsafe_Instance& inst, non_threadsafe_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         double ret_get_parameter = 0.0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         ret_get_parameter = inst.global->parameter;
         return ret_get_parameter;
     }
@@ -340,7 +348,7 @@ namespace neuron {
 
     static void nrn_init_non_threadsafe(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_non_threadsafe(_lmc);
+        auto inst = make_instance_non_threadsafe(&_lmc);
         auto node_data = make_node_data_non_threadsafe(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -357,7 +365,7 @@ namespace neuron {
 
     static void nrn_jacob_non_threadsafe(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_non_threadsafe(_lmc);
+        auto inst = make_instance_non_threadsafe(&_lmc);
         auto node_data = make_node_data_non_threadsafe(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -368,7 +376,7 @@ namespace neuron {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_non_threadsafe(_lmc);
+        auto inst = make_instance_non_threadsafe(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_non_threadsafe(prop);
 
     }

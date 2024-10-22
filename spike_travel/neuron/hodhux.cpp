@@ -165,38 +165,42 @@ namespace neuron {
     };
 
 
-    static hodhux_Instance make_instance_hodhux(_nrn_mechanism_cache_range& _lmc) {
+    static hodhux_Instance make_instance_hodhux(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return hodhux_Instance();
+        }
+
         return hodhux_Instance {
             &::celsius,
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>(),
-            _lmc.template fpfield_ptr<4>(),
-            _lmc.template fpfield_ptr<5>(),
-            _lmc.template fpfield_ptr<6>(),
-            _lmc.template fpfield_ptr<7>(),
-            _lmc.template fpfield_ptr<8>(),
-            _lmc.template fpfield_ptr<9>(),
-            _lmc.template fpfield_ptr<10>(),
-            _lmc.template fpfield_ptr<11>(),
-            _lmc.template fpfield_ptr<12>(),
-            _lmc.template fpfield_ptr<13>(),
-            _lmc.template fpfield_ptr<14>(),
-            _lmc.template fpfield_ptr<15>(),
-            _lmc.template fpfield_ptr<16>(),
-            _lmc.template fpfield_ptr<17>(),
-            _lmc.template fpfield_ptr<18>(),
-            _lmc.template fpfield_ptr<19>(),
-            _lmc.template fpfield_ptr<20>(),
-            _lmc.template fpfield_ptr<21>(),
-            _lmc.template fpfield_ptr<22>(),
-            _lmc.template dptr_field_ptr<0>(),
-            _lmc.template dptr_field_ptr<1>(),
-            _lmc.template dptr_field_ptr<2>(),
-            _lmc.template dptr_field_ptr<3>(),
-            _lmc.template dptr_field_ptr<4>(),
-            _lmc.template dptr_field_ptr<5>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template fpfield_ptr<2>(),
+            _lmc->template fpfield_ptr<3>(),
+            _lmc->template fpfield_ptr<4>(),
+            _lmc->template fpfield_ptr<5>(),
+            _lmc->template fpfield_ptr<6>(),
+            _lmc->template fpfield_ptr<7>(),
+            _lmc->template fpfield_ptr<8>(),
+            _lmc->template fpfield_ptr<9>(),
+            _lmc->template fpfield_ptr<10>(),
+            _lmc->template fpfield_ptr<11>(),
+            _lmc->template fpfield_ptr<12>(),
+            _lmc->template fpfield_ptr<13>(),
+            _lmc->template fpfield_ptr<14>(),
+            _lmc->template fpfield_ptr<15>(),
+            _lmc->template fpfield_ptr<16>(),
+            _lmc->template fpfield_ptr<17>(),
+            _lmc->template fpfield_ptr<18>(),
+            _lmc->template fpfield_ptr<19>(),
+            _lmc->template fpfield_ptr<20>(),
+            _lmc->template fpfield_ptr<21>(),
+            _lmc->template fpfield_ptr<22>(),
+            _lmc->template dptr_field_ptr<0>(),
+            _lmc->template dptr_field_ptr<1>(),
+            _lmc->template dptr_field_ptr<2>(),
+            _lmc->template dptr_field_ptr<3>(),
+            _lmc->template dptr_field_ptr<4>(),
+            _lmc->template dptr_field_ptr<5>()
         };
     }
 
@@ -211,6 +215,10 @@ namespace neuron {
         };
     }
     static hodhux_NodeData make_node_data_hodhux(Prop * _prop) {
+        if(!_prop) {
+            return hodhux_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return hodhux_NodeData {
@@ -322,7 +330,7 @@ namespace neuron {
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_hodhux(_lmc);
+        auto inst = make_instance_hodhux(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_hodhux(_local_prop);
         _r = 1.;
         states_hodhux(_lmc, inst, node_data, id, _ppvar, _thread, nt);
@@ -338,7 +346,7 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_hodhux(_lmc);
+        auto inst = make_instance_hodhux(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_hodhux(_prop);
         _r = 1.;
         states_hodhux(_lmc, inst, node_data, id, _ppvar, _thread, nt);
@@ -358,7 +366,7 @@ namespace neuron {
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_hodhux(_lmc);
+        auto inst = make_instance_hodhux(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_hodhux(_local_prop);
         _r = 1.;
         rates_hodhux(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
@@ -374,7 +382,7 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_hodhux(_lmc);
+        auto inst = make_instance_hodhux(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_hodhux(_prop);
         _r = 1.;
         rates_hodhux(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
@@ -391,7 +399,7 @@ namespace neuron {
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_hodhux(_lmc);
+        auto inst = make_instance_hodhux(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_hodhux(_local_prop);
         _r = vtrap_hodhux(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1), *getarg(2));
         hoc_retpushx(_r);
@@ -406,7 +414,7 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_hodhux(_lmc);
+        auto inst = make_instance_hodhux(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_hodhux(_prop);
         _r = vtrap_hodhux(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1), *getarg(2));
         return(_r);
@@ -415,7 +423,7 @@ namespace neuron {
 
     inline int states_hodhux(_nrn_mechanism_cache_range& _lmc, hodhux_Instance& inst, hodhux_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         int ret_states = 0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         rates_hodhux(_lmc, inst, node_data, id, _ppvar, _thread, nt, v);
         inst.m[id] = inst.m[id] + inst.mexp[id] * (inst.minf[id] - inst.m[id]);
         inst.h[id] = inst.h[id] + inst.hexp[id] * (inst.hinf[id] - inst.h[id]);
@@ -426,7 +434,7 @@ namespace neuron {
 
     inline int rates_hodhux(_nrn_mechanism_cache_range& _lmc, hodhux_Instance& inst, hodhux_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv) {
         int ret_rates = 0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         double q10, tinc, alpha, beta, sum;
         q10 = pow(3.0, ((*(inst.celsius) - 6.3) / 10.0));
         tinc =  -nt->_dt * q10;
@@ -451,7 +459,7 @@ namespace neuron {
 
     inline double vtrap_hodhux(_nrn_mechanism_cache_range& _lmc, hodhux_Instance& inst, hodhux_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx, double _ly) {
         double ret_vtrap = 0.0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         if (fabs(_lx / _ly) < 1e-6) {
             ret_vtrap = _ly * (1.0 - _lx / _ly / 2.0);
         } else {
@@ -463,7 +471,7 @@ namespace neuron {
 
     static void nrn_init_hodhux(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_hodhux(_lmc);
+        auto inst = make_instance_hodhux(&_lmc);
         auto node_data = make_node_data_hodhux(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -499,7 +507,7 @@ namespace neuron {
     /** update current */
     static void nrn_cur_hodhux(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_hodhux(_lmc);
+        auto inst = make_instance_hodhux(&_lmc);
         auto node_data = make_node_data_hodhux(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -527,7 +535,7 @@ namespace neuron {
 
     static void nrn_state_hodhux(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_hodhux(_lmc);
+        auto inst = make_instance_hodhux(&_lmc);
         auto node_data = make_node_data_hodhux(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -544,7 +552,7 @@ namespace neuron {
 
     static void nrn_jacob_hodhux(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_hodhux(_lmc);
+        auto inst = make_instance_hodhux(&_lmc);
         auto node_data = make_node_data_hodhux(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -557,7 +565,7 @@ namespace neuron {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_hodhux(_lmc);
+        auto inst = make_instance_hodhux(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_hodhux(prop);
 
     }

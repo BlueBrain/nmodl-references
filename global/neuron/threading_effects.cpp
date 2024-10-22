@@ -164,13 +164,17 @@ namespace neuron {
     };
 
 
-    static threading_effects_Instance make_instance_threading_effects(_nrn_mechanism_cache_range& _lmc) {
+    static threading_effects_Instance make_instance_threading_effects(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return threading_effects_Instance();
+        }
+
         return threading_effects_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>(),
-            _lmc.template fpfield_ptr<4>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template fpfield_ptr<2>(),
+            _lmc->template fpfield_ptr<3>(),
+            _lmc->template fpfield_ptr<4>()
         };
     }
 
@@ -185,6 +189,10 @@ namespace neuron {
         };
     }
     static threading_effects_NodeData make_node_data_threading_effects(Prop * _prop) {
+        if(!_prop) {
+            return threading_effects_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return threading_effects_NodeData {
@@ -230,7 +238,7 @@ namespace neuron {
     static void _check_table_thread(Memb_list* _ml, size_t id, Datum* _ppvar, Datum* _thread, double* _globals, NrnThread* nt, int _type, const _nrn_model_sorted_token& _sorted_token)
 {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml, _type};
-        auto inst = make_instance_threading_effects(_lmc);
+        auto inst = make_instance_threading_effects(&_lmc);
         auto node_data = make_node_data_threading_effects(*nt, *_ml);
         auto _thread_vars = threading_effects_ThreadVariables(_thread[0].get<double*>());
         update_table_compute_g_v1_threading_effects(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt);
@@ -305,7 +313,7 @@ namespace neuron {
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_threading_effects(_lmc);
+        auto inst = make_instance_threading_effects(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_threading_effects(_local_prop);
         auto _thread_vars = threading_effects_ThreadVariables(_thread[0].get<double*>());
         _r = 1.;
@@ -322,7 +330,7 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_threading_effects(_lmc);
+        auto inst = make_instance_threading_effects(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_threading_effects(_prop);
         auto _thread_vars = threading_effects_ThreadVariables(_thread[0].get<double*>());
         _r = 1.;
@@ -340,7 +348,7 @@ namespace neuron {
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_threading_effects(_lmc);
+        auto inst = make_instance_threading_effects(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_threading_effects(_local_prop);
         auto _thread_vars = threading_effects_ThreadVariables(_thread[0].get<double*>());
         update_table_compute_g_v1_threading_effects(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt);
@@ -358,7 +366,7 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_threading_effects(_lmc);
+        auto inst = make_instance_threading_effects(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_threading_effects(_prop);
         auto _thread_vars = threading_effects_ThreadVariables(_thread[0].get<double*>());
         update_table_compute_g_v1_threading_effects(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt);
@@ -377,7 +385,7 @@ namespace neuron {
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_threading_effects(_lmc);
+        auto inst = make_instance_threading_effects(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_threading_effects(_local_prop);
         auto _thread_vars = threading_effects_ThreadVariables(_thread[0].get<double*>());
         _r = sum_arr_threading_effects(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt);
@@ -393,7 +401,7 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_threading_effects(_lmc);
+        auto inst = make_instance_threading_effects(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_threading_effects(_prop);
         auto _thread_vars = threading_effects_ThreadVariables(_thread[0].get<double*>());
         _r = sum_arr_threading_effects(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt);
@@ -403,7 +411,7 @@ namespace neuron {
 
     inline int set_g_w_threading_effects(_nrn_mechanism_cache_range& _lmc, threading_effects_Instance& inst, threading_effects_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, threading_effects_ThreadVariables& _thread_vars, NrnThread* nt, double _lzz) {
         int ret_set_g_w = 0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         _thread_vars.g_w(id) = _lzz;
         return ret_set_g_w;
     }
@@ -411,7 +419,7 @@ namespace neuron {
 
     inline static int f_compute_g_v1_threading_effects(_nrn_mechanism_cache_range& _lmc, threading_effects_Instance& inst, threading_effects_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, threading_effects_ThreadVariables& _thread_vars, NrnThread* nt, double _lzz) {
         int ret_f_compute_g_v1 = 0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         _thread_vars.g_v1(id) = _lzz * _lzz;
         return ret_f_compute_g_v1;
     }
@@ -461,7 +469,7 @@ namespace neuron {
 
     inline double sum_arr_threading_effects(_nrn_mechanism_cache_range& _lmc, threading_effects_Instance& inst, threading_effects_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, threading_effects_ThreadVariables& _thread_vars, NrnThread* nt) {
         double ret_sum_arr = 0.0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         ret_sum_arr = (_thread_vars.g_arr_ptr(id))[static_cast<int>(0)] + (_thread_vars.g_arr_ptr(id))[static_cast<int>(1)] + (_thread_vars.g_arr_ptr(id))[static_cast<int>(2)];
         return ret_sum_arr;
     }
@@ -469,7 +477,7 @@ namespace neuron {
 
     static void nrn_init_threading_effects(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_threading_effects(_lmc);
+        auto inst = make_instance_threading_effects(&_lmc);
         auto node_data = make_node_data_threading_effects(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto _thread_vars = threading_effects_ThreadVariables(_thread[0].get<double*>());
@@ -507,7 +515,7 @@ namespace neuron {
     /** update current */
     static void nrn_cur_threading_effects(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_threading_effects(_lmc);
+        auto inst = make_instance_threading_effects(&_lmc);
         auto node_data = make_node_data_threading_effects(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto _thread_vars = threading_effects_ThreadVariables(_thread[0].get<double*>());
@@ -528,7 +536,7 @@ namespace neuron {
 
     static void nrn_state_threading_effects(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_threading_effects(_lmc);
+        auto inst = make_instance_threading_effects(&_lmc);
         auto node_data = make_node_data_threading_effects(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto _thread_vars = threading_effects_ThreadVariables(_thread[0].get<double*>());
@@ -543,7 +551,7 @@ namespace neuron {
 
     static void nrn_jacob_threading_effects(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_threading_effects(_lmc);
+        auto inst = make_instance_threading_effects(&_lmc);
         auto node_data = make_node_data_threading_effects(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto _thread_vars = threading_effects_ThreadVariables(_thread[0].get<double*>());
@@ -557,7 +565,7 @@ namespace neuron {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_threading_effects(_lmc);
+        auto inst = make_instance_threading_effects(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_threading_effects(prop);
         auto _thread_vars = threading_effects_ThreadVariables(threading_effects_global.thread_data);
 
