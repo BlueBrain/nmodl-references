@@ -243,7 +243,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _write_eca_reg() {
         _initlists();
 

@@ -273,7 +273,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _style_ion_reg() {
         _initlists();
 

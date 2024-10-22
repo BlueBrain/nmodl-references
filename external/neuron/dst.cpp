@@ -320,7 +320,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _dst_reg() {
         _initlists();
 

@@ -790,7 +790,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _finite_difference_reg() {
         _initlists();
 

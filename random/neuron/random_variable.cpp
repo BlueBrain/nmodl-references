@@ -280,7 +280,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _random_variable_reg() {
         _initlists();
 

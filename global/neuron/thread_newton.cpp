@@ -750,7 +750,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _thread_newton_reg() {
         _initlists();
 

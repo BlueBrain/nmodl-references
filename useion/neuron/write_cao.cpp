@@ -254,7 +254,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _write_cao_reg() {
         _initlists();
 

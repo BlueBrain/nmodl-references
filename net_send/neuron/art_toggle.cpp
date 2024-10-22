@@ -274,7 +274,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _art_toggle_reg() {
         _initlists();
 

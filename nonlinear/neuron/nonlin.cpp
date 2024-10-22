@@ -756,7 +756,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _nonlin_reg() {
         _initlists();
 

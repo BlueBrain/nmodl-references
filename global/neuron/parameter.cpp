@@ -279,7 +279,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _parameter_reg() {
         _initlists();
 

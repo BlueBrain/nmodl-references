@@ -323,7 +323,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _ctor_reg() {
         _initlists();
 

@@ -813,7 +813,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _X2Y_reg() {
         _initlists();
 

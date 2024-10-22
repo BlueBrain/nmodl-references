@@ -775,7 +775,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _heat_eqn_thread_vars_reg() {
         _initlists();
 

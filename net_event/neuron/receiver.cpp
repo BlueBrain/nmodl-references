@@ -276,7 +276,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _receiver_reg() {
         _initlists();
 

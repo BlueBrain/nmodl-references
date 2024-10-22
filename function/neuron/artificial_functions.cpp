@@ -327,7 +327,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _artificial_functions_reg() {
         _initlists();
 

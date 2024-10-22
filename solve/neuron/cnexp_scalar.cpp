@@ -265,7 +265,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _cnexp_scalar_reg() {
         _initlists();
 

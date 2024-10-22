@@ -383,7 +383,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _non_threadsafe_reg() {
         _initlists();
 
