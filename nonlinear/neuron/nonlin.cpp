@@ -494,10 +494,14 @@ namespace neuron {
     };
 
 
-    static nonlin_Instance make_instance_nonlin(_nrn_mechanism_cache_range& _lmc) {
+    static nonlin_Instance make_instance_nonlin(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return nonlin_Instance();
+        }
+
         return nonlin_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>()
         };
     }
 
@@ -512,6 +516,10 @@ namespace neuron {
         };
     }
     static nonlin_NodeData make_node_data_nonlin(Prop * _prop) {
+        if(!_prop) {
+            return nonlin_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return nonlin_NodeData {
@@ -617,7 +625,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static void _hoc_solve() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -627,13 +634,13 @@ namespace neuron {
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_nonlin(_lmc);
+        auto inst = make_instance_nonlin(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_nonlin(_local_prop);
+        double _r = 0.0;
         _r = solve_nonlin(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_solve(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -642,13 +649,13 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_nonlin(_lmc);
+        auto inst = make_instance_nonlin(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_nonlin(_prop);
+        double _r = 0.0;
         _r = solve_nonlin(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
     static void _hoc_residual() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -658,13 +665,13 @@ namespace neuron {
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_nonlin(_lmc);
+        auto inst = make_instance_nonlin(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_nonlin(_local_prop);
+        double _r = 0.0;
         _r = residual_nonlin(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_residual(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -673,8 +680,9 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_nonlin(_lmc);
+        auto inst = make_instance_nonlin(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_nonlin(_prop);
+        double _r = 0.0;
         _r = residual_nonlin(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
@@ -682,7 +690,7 @@ namespace neuron {
 
     inline double solve_nonlin(_nrn_mechanism_cache_range& _lmc, nonlin_Instance& inst, nonlin_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         double ret_solve = 0.0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         inst.x[id] = 1.0;
                 
         Eigen::Matrix<double, 1, 1> nmodl_eigen_xm;
@@ -705,7 +713,7 @@ namespace neuron {
 
     inline double residual_nonlin(_nrn_mechanism_cache_range& _lmc, nonlin_Instance& inst, nonlin_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx) {
         double ret_residual = 0.0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         ret_residual = _lx - 2.0;
         return ret_residual;
     }
@@ -713,7 +721,7 @@ namespace neuron {
 
     static void nrn_init_nonlin(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_nonlin(_lmc);
+        auto inst = make_instance_nonlin(&_lmc);
         auto node_data = make_node_data_nonlin(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -728,7 +736,7 @@ namespace neuron {
 
     static void nrn_jacob_nonlin(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_nonlin(_lmc);
+        auto inst = make_instance_nonlin(&_lmc);
         auto node_data = make_node_data_nonlin(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -739,7 +747,7 @@ namespace neuron {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_nonlin(_lmc);
+        auto inst = make_instance_nonlin(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_nonlin(prop);
 
     }

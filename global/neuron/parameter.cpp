@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : NeuronVariables
-Filename        : neuron_variables.mod
+Model Name      : parameter
+Filename        : parameter.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -27,7 +27,7 @@ NMODL Compiler  : VERSION
 #define NRN_VECTORIZED 1
 
 static constexpr auto number_of_datum_variables = 0;
-static constexpr auto number_of_floating_point_variables = 3;
+static constexpr auto number_of_floating_point_variables = 1;
 
 namespace {
 template <typename T>
@@ -47,7 +47,6 @@ void _nrn_mechanism_register_data_fields(Args&&... args) {
 Prop* hoc_getdata_range(int type);
 extern void _cvode_abstol(Symbol**, double*, int);
 extern Node* nrn_alloc_node_;
-extern double celsius;
 
 
 namespace neuron {
@@ -59,9 +58,8 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "NeuronVariables",
+        "parameter",
         0,
-        "range_celsius_NeuronVariables",
         0,
         0,
         0
@@ -77,29 +75,31 @@ namespace neuron {
 
 
     /** all global variables */
-    struct NeuronVariables_Store {
+    struct parameter_Store {
+        double gbl{42};
     };
-    static_assert(std::is_trivially_copy_constructible_v<NeuronVariables_Store>);
-    static_assert(std::is_trivially_move_constructible_v<NeuronVariables_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<NeuronVariables_Store>);
-    static_assert(std::is_trivially_move_assignable_v<NeuronVariables_Store>);
-    static_assert(std::is_trivially_destructible_v<NeuronVariables_Store>);
-    static NeuronVariables_Store NeuronVariables_global;
+    static_assert(std::is_trivially_copy_constructible_v<parameter_Store>);
+    static_assert(std::is_trivially_move_constructible_v<parameter_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<parameter_Store>);
+    static_assert(std::is_trivially_move_assignable_v<parameter_Store>);
+    static_assert(std::is_trivially_destructible_v<parameter_Store>);
+    static parameter_Store parameter_global;
+    auto gbl_parameter() -> std::decay<decltype(parameter_global.gbl)>::type  {
+        return parameter_global.gbl;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 
 
     /** all mechanism instance variables and global variables */
-    struct NeuronVariables_Instance  {
-        double* celsius{&::celsius};
-        double* range_celsius{};
+    struct parameter_Instance  {
         double* v_unused{};
-        double* g_unused{};
-        NeuronVariables_Store* global{&NeuronVariables_global};
+        parameter_Store* global{&parameter_global};
     };
 
 
-    struct NeuronVariables_NodeData  {
+    struct parameter_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -108,22 +108,19 @@ namespace neuron {
     };
 
 
-    static NeuronVariables_Instance make_instance_NeuronVariables(_nrn_mechanism_cache_range* _lmc) {
+    static parameter_Instance make_instance_parameter(_nrn_mechanism_cache_range* _lmc) {
         if(_lmc == nullptr) {
-            return NeuronVariables_Instance();
+            return parameter_Instance();
         }
 
-        return NeuronVariables_Instance {
-            &::celsius,
-            _lmc->template fpfield_ptr<0>(),
-            _lmc->template fpfield_ptr<1>(),
-            _lmc->template fpfield_ptr<2>()
+        return parameter_Instance {
+            _lmc->template fpfield_ptr<0>()
         };
     }
 
 
-    static NeuronVariables_NodeData make_node_data_NeuronVariables(NrnThread& nt, Memb_list& _ml_arg) {
-        return NeuronVariables_NodeData {
+    static parameter_NodeData make_node_data_parameter(NrnThread& nt, Memb_list& _ml_arg) {
+        return parameter_NodeData {
             _ml_arg.nodeindices,
             nt.node_voltage_storage(),
             nt.node_d_storage(),
@@ -131,14 +128,14 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
-    static NeuronVariables_NodeData make_node_data_NeuronVariables(Prop * _prop) {
+    static parameter_NodeData make_node_data_parameter(Prop * _prop) {
         if(!_prop) {
-            return NeuronVariables_NodeData();
+            return parameter_NodeData();
         }
 
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
-        return NeuronVariables_NodeData {
+        return parameter_NodeData {
             node_index.data(),
             &_nrn_mechanism_access_voltage(_node),
             &_nrn_mechanism_access_d(_node),
@@ -147,19 +144,20 @@ namespace neuron {
         };
     }
 
-    static void nrn_destructor_NeuronVariables(Prop* prop);
+    static void nrn_destructor_parameter(Prop* prop);
 
 
-    static void nrn_alloc_NeuronVariables(Prop* _prop) {
+    static void nrn_alloc_parameter(Prop* _prop) {
         Datum *_ppvar = nullptr;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const _iml = 0;
-        assert(_nrn_mechanism_get_num_vars(_prop) == 3);
+        assert(_nrn_mechanism_get_num_vars(_prop) == 1);
         /*initialize range parameters*/
     }
 
 
     /* Mechanism procedures and functions */
+    inline static double get_gbl_parameter(_nrn_mechanism_cache_range& _lmc, parameter_Instance& inst, parameter_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
 
@@ -178,6 +176,7 @@ namespace neuron {
 
     /** connect global (scalar) variables to hoc -- */
     static DoubScal hoc_scalar_double[] = {
+        {"gbl_parameter", &parameter_global.gbl},
         {nullptr, nullptr}
     };
 
@@ -189,22 +188,65 @@ namespace neuron {
 
 
     /* declaration of user functions */
+    static void _hoc_get_gbl();
+    static double _npy_get_gbl(Prop* _prop);
 
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
-        {"setdata_NeuronVariables", _hoc_setdata},
+        {"setdata_parameter", _hoc_setdata},
+        {"get_gbl_parameter", _hoc_get_gbl},
         {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
+        {"get_gbl", _npy_get_gbl},
         {nullptr, nullptr}
     };
+    static void _hoc_get_gbl() {
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
+        _nrn_mechanism_cache_instance _lmc{_local_prop};
+        size_t const id{};
+        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
+        _thread = _extcall_thread.data();
+        nt = nrn_threads;
+        auto inst = make_instance_parameter(_local_prop ? &_lmc : nullptr);
+        auto node_data = make_node_data_parameter(_local_prop);
+        double _r = 0.0;
+        _r = get_gbl_parameter(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        hoc_retpushx(_r);
+    }
+    static double _npy_get_gbl(Prop* _prop) {
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        _nrn_mechanism_cache_instance _lmc{_prop};
+        size_t const id = 0;
+        _ppvar = _nrn_mechanism_access_dparam(_prop);
+        _thread = _extcall_thread.data();
+        nt = nrn_threads;
+        auto inst = make_instance_parameter(_prop ? &_lmc : nullptr);
+        auto node_data = make_node_data_parameter(_prop);
+        double _r = 0.0;
+        _r = get_gbl_parameter(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        return(_r);
+    }
 
 
-    static void nrn_init_NeuronVariables(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    inline double get_gbl_parameter(_nrn_mechanism_cache_range& _lmc, parameter_Instance& inst, parameter_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+        double ret_get_gbl = 0.0;
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
+        ret_get_gbl = inst.global->gbl;
+        return ret_get_gbl;
+    }
+
+
+    static void nrn_init_parameter(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_NeuronVariables(&_lmc);
-        auto node_data = make_node_data_NeuronVariables(*nt, *_ml_arg);
+        auto inst = make_instance_parameter(&_lmc);
+        auto node_data = make_node_data_parameter(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
@@ -215,38 +257,21 @@ namespace neuron {
     }
 
 
-    static void nrn_state_NeuronVariables(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_parameter(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_NeuronVariables(&_lmc);
-        auto node_data = make_node_data_NeuronVariables(*nt, *_ml_arg);
+        auto inst = make_instance_parameter(&_lmc);
+        auto node_data = make_node_data_parameter(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
-            int node_id = node_data.nodeindices[id];
-            auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
-            inst.range_celsius[id] = *(inst.celsius);
         }
     }
-
-
-    static void nrn_jacob_NeuronVariables(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_NeuronVariables(&_lmc);
-        auto node_data = make_node_data_NeuronVariables(*nt, *_ml_arg);
-        auto* _thread = _ml_arg->_thread;
-        auto nodecount = _ml_arg->nodecount;
-        for (int id = 0; id < nodecount; id++) {
-            int node_id = node_data.nodeindices[id];
-            node_data.node_diagonal[node_id] += inst.g_unused[id];
-        }
-    }
-    static void nrn_destructor_NeuronVariables(Prop* prop) {
+    static void nrn_destructor_parameter(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_NeuronVariables(prop ? &_lmc : nullptr);
-        auto node_data = make_node_data_NeuronVariables(prop);
+        auto inst = make_instance_parameter(prop ? &_lmc : nullptr);
+        auto node_data = make_node_data_parameter(prop);
 
     }
 
@@ -256,20 +281,18 @@ namespace neuron {
 
 
     /** register channel with the simulator */
-    extern "C" void _neuron_variables_reg() {
+    extern "C" void _parameter_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_NeuronVariables, nullptr, nrn_jacob_NeuronVariables, nrn_state_NeuronVariables, nrn_init_NeuronVariables, -1, 1);
+        register_mech(mechanism_info, nrn_alloc_parameter, nullptr, nullptr, nullptr, nrn_init_parameter, -1, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
-            _nrn_mechanism_field<double>{"range_celsius"} /* 0 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 1 */,
-            _nrn_mechanism_field<double>{"g_unused"} /* 2 */
+            _nrn_mechanism_field<double>{"v_unused"} /* 0 */
         );
 
-        hoc_register_prop_size(mech_type, 3, 0);
+        hoc_register_prop_size(mech_type, 1, 0);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
     }

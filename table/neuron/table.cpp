@@ -175,15 +175,19 @@ namespace neuron {
     };
 
 
-    static tbl_Instance make_instance_tbl(_nrn_mechanism_cache_range& _lmc) {
+    static tbl_Instance make_instance_tbl(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return tbl_Instance();
+        }
+
         return tbl_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>(),
-            _lmc.template fpfield_ptr<4>(),
-            _lmc.template fpfield_ptr<5>(),
-            _lmc.template fpfield_ptr<6>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template fpfield_ptr<2>(),
+            _lmc->template fpfield_ptr<3>(),
+            _lmc->template fpfield_ptr<4>(),
+            _lmc->template fpfield_ptr<5>(),
+            _lmc->template fpfield_ptr<6>()
         };
     }
 
@@ -198,6 +202,10 @@ namespace neuron {
         };
     }
     static tbl_NodeData make_node_data_tbl(Prop * _prop) {
+        if(!_prop) {
+            return tbl_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return tbl_NodeData {
@@ -245,7 +253,7 @@ namespace neuron {
     static void _check_table_thread(Memb_list* _ml, size_t id, Datum* _ppvar, Datum* _thread, double* _globals, NrnThread* nt, int _type, const _nrn_model_sorted_token& _sorted_token)
 {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml, _type};
-        auto inst = make_instance_tbl(_lmc);
+        auto inst = make_instance_tbl(&_lmc);
         auto node_data = make_node_data_tbl(*nt, *_ml);
         update_table_sigmoidal_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         update_table_quadratic_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt);
@@ -294,7 +302,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static void _hoc_sigmoidal() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -304,15 +311,15 @@ namespace neuron {
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_tbl(_lmc);
+        auto inst = make_instance_tbl(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_tbl(_local_prop);
         update_table_sigmoidal_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        double _r = 0.0;
         _r = 1.;
         sigmoidal_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_sigmoidal(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -321,15 +328,15 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_tbl(_lmc);
+        auto inst = make_instance_tbl(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_tbl(_prop);
         update_table_sigmoidal_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        double _r = 0.0;
         _r = 1.;
         sigmoidal_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
     static void _hoc_sinusoidal() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -342,15 +349,15 @@ namespace neuron {
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_tbl(_lmc);
+        auto inst = make_instance_tbl(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_tbl(_local_prop);
         update_table_sinusoidal_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        double _r = 0.0;
         _r = 1.;
         sinusoidal_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_sinusoidal(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -359,15 +366,15 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_tbl(_lmc);
+        auto inst = make_instance_tbl(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_tbl(_prop);
         update_table_sinusoidal_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        double _r = 0.0;
         _r = 1.;
         sinusoidal_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
     static void _hoc_quadratic() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -377,14 +384,14 @@ namespace neuron {
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_tbl(_lmc);
+        auto inst = make_instance_tbl(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_tbl(_local_prop);
         update_table_quadratic_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        double _r = 0.0;
         _r = quadratic_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_quadratic(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -393,9 +400,10 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_tbl(_lmc);
+        auto inst = make_instance_tbl(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_tbl(_prop);
         update_table_quadratic_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        double _r = 0.0;
         _r = quadratic_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
@@ -403,7 +411,7 @@ namespace neuron {
 
     inline static int f_sigmoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, tbl_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv) {
         int ret_f_sigmoidal = 0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         inst.sig[id] = 1.0 / (1.0 + exp(inst.global->k * (_lv - inst.global->d)));
         return ret_f_sigmoidal;
     }
@@ -463,7 +471,7 @@ namespace neuron {
 
     inline static int f_sinusoidal_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, tbl_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx) {
         int ret_f_sinusoidal = 0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         inst.v1[id] = sin(inst.global->c1 * _lx) + 2.0;
         inst.v2[id] = cos(inst.global->c2 * _lx) + 2.0;
         return ret_f_sinusoidal;
@@ -528,7 +536,7 @@ namespace neuron {
 
     inline static double f_quadratic_tbl(_nrn_mechanism_cache_range& _lmc, tbl_Instance& inst, tbl_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx) {
         double ret_f_quadratic = 0.0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         ret_f_quadratic = inst.global->c1 * _lx * _lx + inst.global->c2;
         return ret_f_quadratic;
     }
@@ -583,7 +591,7 @@ namespace neuron {
 
     static void nrn_init_tbl(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_tbl(_lmc);
+        auto inst = make_instance_tbl(&_lmc);
         auto node_data = make_node_data_tbl(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -608,7 +616,7 @@ namespace neuron {
     /** update current */
     static void nrn_cur_tbl(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_tbl(_lmc);
+        auto inst = make_instance_tbl(&_lmc);
         auto node_data = make_node_data_tbl(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -628,7 +636,7 @@ namespace neuron {
 
     static void nrn_state_tbl(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_tbl(_lmc);
+        auto inst = make_instance_tbl(&_lmc);
         auto node_data = make_node_data_tbl(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -642,7 +650,7 @@ namespace neuron {
 
     static void nrn_jacob_tbl(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_tbl(_lmc);
+        auto inst = make_instance_tbl(&_lmc);
         auto node_data = make_node_data_tbl(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -655,7 +663,7 @@ namespace neuron {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_tbl(_lmc);
+        auto inst = make_instance_tbl(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_tbl(prop);
 
     }

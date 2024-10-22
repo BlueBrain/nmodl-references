@@ -125,17 +125,21 @@ namespace neuron {
     };
 
 
-    static ExpSyn2_Instance make_instance_ExpSyn2(_nrn_mechanism_cache_range& _lmc) {
+    static ExpSyn2_Instance make_instance_ExpSyn2(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return ExpSyn2_Instance();
+        }
+
         return ExpSyn2_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>(),
-            _lmc.template fpfield_ptr<4>(),
-            _lmc.template fpfield_ptr<5>(),
-            _lmc.template fpfield_ptr<6>(),
-            _lmc.template fpfield_ptr<7>(),
-            _lmc.template dptr_field_ptr<0>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template fpfield_ptr<2>(),
+            _lmc->template fpfield_ptr<3>(),
+            _lmc->template fpfield_ptr<4>(),
+            _lmc->template fpfield_ptr<5>(),
+            _lmc->template fpfield_ptr<6>(),
+            _lmc->template fpfield_ptr<7>(),
+            _lmc->template dptr_field_ptr<0>()
         };
     }
 
@@ -150,6 +154,10 @@ namespace neuron {
         };
     }
     static ExpSyn2_NodeData make_node_data_ExpSyn2(Prop * _prop) {
+        if(!_prop) {
+            return ExpSyn2_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return ExpSyn2_NodeData {
@@ -198,8 +206,7 @@ namespace neuron {
 
 
     static int ode_update_nonstiff_ExpSyn2(_nrn_mechanism_cache_range& _lmc, ExpSyn2_Instance& inst, ExpSyn2_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
-        int node_id = node_data.nodeindices[id];
-        auto v = node_data.node_voltages[node_id];
+        auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         inst.Dg[id] =  -inst.g[id] / inst.tau[id];
         return 0;
     }
@@ -207,20 +214,19 @@ namespace neuron {
 
     static void ode_setup_nonstiff_ExpSyn2(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_ExpSyn2(_lmc);
+        auto inst = make_instance_ExpSyn2(&_lmc);
         auto nodecount = _ml_arg->nodecount;
         auto node_data = make_node_data_ExpSyn2(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
-            int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
+            auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
             ode_update_nonstiff_ExpSyn2(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         }
     }
 
 
-    static void ode_setup_tolerance_ExpSyn2(Prop* _prop, int equation_index, neuron::container::data_handle<double>* _pv, neuron::container::data_handle<double>* _pvdot, double* _atol, int _type) {
+    static void ode_setup_tolerances_ExpSyn2(Prop* _prop, int equation_index, neuron::container::data_handle<double>* _pv, neuron::container::data_handle<double>* _pvdot, double* _atol, int _type) {
         auto* _ppvar = _nrn_mechanism_access_dparam(_prop);
         _ppvar[2].literal_value<int>() = equation_index;
         for (int i = 0; i < ode_count_ExpSyn2(0); i++) {
@@ -238,14 +244,13 @@ namespace neuron {
 
     static void ode_setup_stiff_ExpSyn2(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_ExpSyn2(_lmc);
+        auto inst = make_instance_ExpSyn2(&_lmc);
         auto nodecount = _ml_arg->nodecount;
         auto node_data = make_node_data_ExpSyn2(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         for (int id = 0; id < nodecount; id++) {
-            int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
+            auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
             ode_update_stiff_ExpSyn2(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         }
     }
@@ -305,7 +310,7 @@ namespace neuron {
 
     static void nrn_init_ExpSyn2(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_ExpSyn2(_lmc);
+        auto inst = make_instance_ExpSyn2(&_lmc);
         auto node_data = make_node_data_ExpSyn2(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -330,7 +335,7 @@ namespace neuron {
     /** update current */
     static void nrn_cur_ExpSyn2(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_ExpSyn2(_lmc);
+        auto inst = make_instance_ExpSyn2(&_lmc);
         auto node_data = make_node_data_ExpSyn2(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -353,7 +358,7 @@ namespace neuron {
 
     static void nrn_state_ExpSyn2(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_ExpSyn2(_lmc);
+        auto inst = make_instance_ExpSyn2(&_lmc);
         auto node_data = make_node_data_ExpSyn2(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -368,7 +373,7 @@ namespace neuron {
 
     static void nrn_jacob_ExpSyn2(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_ExpSyn2(_lmc);
+        auto inst = make_instance_ExpSyn2(&_lmc);
         auto node_data = make_node_data_ExpSyn2(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -381,7 +386,7 @@ namespace neuron {
         _nrn_mechanism_cache_instance _lmc{_pnt->prop};
         auto * nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto * _ppvar = _nrn_mechanism_access_dparam(_pnt->prop);
-        auto inst = make_instance_ExpSyn2(_lmc);
+        auto inst = make_instance_ExpSyn2(&_lmc);
         auto node_data = make_node_data_ExpSyn2(_pnt->prop);
         // nocmodl has a nullptr dereference for thread variables.
         // NMODL will fail to compile at a later point, because of
@@ -396,7 +401,7 @@ namespace neuron {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_ExpSyn2(_lmc);
+        auto inst = make_instance_ExpSyn2(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_ExpSyn2(prop);
 
     }
@@ -439,7 +444,7 @@ namespace neuron {
         pnt_receive[mech_type] = nrn_net_receive_ExpSyn2;
         pnt_receive_size[mech_type] = 1;
         hoc_register_dparam_semantics(mech_type, 2, "cvodeieq");
-        hoc_register_cvode(mech_type, ode_count_ExpSyn2, ode_setup_tolerance_ExpSyn2, ode_setup_nonstiff_ExpSyn2, ode_setup_stiff_ExpSyn2);
+        hoc_register_cvode(mech_type, ode_count_ExpSyn2, ode_setup_tolerances_ExpSyn2, ode_setup_nonstiff_ExpSyn2, ode_setup_stiff_ExpSyn2);
         hoc_register_tolerance(mech_type, _hoc_state_tol, &_atollist);
     }
 }

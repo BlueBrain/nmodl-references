@@ -134,10 +134,14 @@ namespace neuron {
     };
 
 
-    static ctor_Instance make_instance_ctor(_nrn_mechanism_cache_range& _lmc) {
+    static ctor_Instance make_instance_ctor(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return ctor_Instance();
+        }
+
         return ctor_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template dptr_field_ptr<0>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template dptr_field_ptr<0>()
         };
     }
 
@@ -152,6 +156,10 @@ namespace neuron {
         };
     }
     static ctor_NodeData make_node_data_ctor(Prop * _prop) {
+        if(!_prop) {
+            return ctor_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return ctor_NodeData {
@@ -267,7 +275,7 @@ namespace neuron {
 
     static void nrn_init_ctor(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_ctor(_lmc);
+        auto inst = make_instance_ctor(&_lmc);
         auto node_data = make_node_data_ctor(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto _thread_vars = ctor_ThreadVariables(_thread[0].get<double*>());
@@ -282,7 +290,7 @@ namespace neuron {
 
     static void nrn_jacob_ctor(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_ctor(_lmc);
+        auto inst = make_instance_ctor(&_lmc);
         auto node_data = make_node_data_ctor(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto _thread_vars = ctor_ThreadVariables(_thread[0].get<double*>());
@@ -294,7 +302,7 @@ namespace neuron {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_ctor(_lmc);
+        auto inst = make_instance_ctor(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_ctor(prop);
         auto _thread_vars = ctor_ThreadVariables(ctor_global.thread_data);
 
@@ -304,7 +312,7 @@ namespace neuron {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_ctor(_lmc);
+        auto inst = make_instance_ctor(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_ctor(prop);
         auto _thread_vars = ctor_ThreadVariables(ctor_global.thread_data);
 

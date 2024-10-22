@@ -112,9 +112,13 @@ namespace neuron {
     };
 
 
-    static src_Instance make_instance_src(_nrn_mechanism_cache_range& _lmc) {
+    static src_Instance make_instance_src(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return src_Instance();
+        }
+
         return src_Instance {
-            _lmc.template fpfield_ptr<0>()
+            _lmc->template fpfield_ptr<0>()
         };
     }
 
@@ -129,6 +133,10 @@ namespace neuron {
         };
     }
     static src_NodeData make_node_data_src(Prop * _prop) {
+        if(!_prop) {
+            return src_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return src_NodeData {
@@ -198,7 +206,7 @@ namespace neuron {
 
     static void nrn_init_src(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_src(_lmc);
+        auto inst = make_instance_src(&_lmc);
         auto node_data = make_node_data_src(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -212,7 +220,7 @@ namespace neuron {
 
     static void nrn_jacob_src(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_src(_lmc);
+        auto inst = make_instance_src(&_lmc);
         auto node_data = make_node_data_src(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -223,7 +231,7 @@ namespace neuron {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_src(_lmc);
+        auto inst = make_instance_src(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_src(prop);
 
     }

@@ -108,12 +108,16 @@ namespace neuron {
     };
 
 
-    static range_parameter_Instance make_instance_range_parameter(_nrn_mechanism_cache_range& _lmc) {
+    static range_parameter_Instance make_instance_range_parameter(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return range_parameter_Instance();
+        }
+
         return range_parameter_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template dptr_field_ptr<0>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template fpfield_ptr<2>(),
+            _lmc->template dptr_field_ptr<0>()
         };
     }
 
@@ -128,6 +132,10 @@ namespace neuron {
         };
     }
     static range_parameter_NodeData make_node_data_range_parameter(Prop * _prop) {
+        if(!_prop) {
+            return range_parameter_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return range_parameter_NodeData {
@@ -223,7 +231,7 @@ namespace neuron {
 
     static void nrn_init_range_parameter(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_range_parameter(_lmc);
+        auto inst = make_instance_range_parameter(&_lmc);
         auto node_data = make_node_data_range_parameter(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -238,7 +246,7 @@ namespace neuron {
 
     static void nrn_jacob_range_parameter(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_range_parameter(_lmc);
+        auto inst = make_instance_range_parameter(&_lmc);
         auto node_data = make_node_data_range_parameter(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -249,7 +257,7 @@ namespace neuron {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_range_parameter(_lmc);
+        auto inst = make_instance_range_parameter(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_range_parameter(prop);
 
     }
