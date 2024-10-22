@@ -113,18 +113,22 @@ namespace neuron {
     };
 
 
-    static style_ion_Instance make_instance_style_ion(_nrn_mechanism_cache_range& _lmc) {
+    static style_ion_Instance make_instance_style_ion(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return style_ion_Instance();
+        }
+
         return style_ion_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>(),
-            _lmc.template dptr_field_ptr<0>(),
-            _lmc.template dptr_field_ptr<1>(),
-            _lmc.template dptr_field_ptr<2>(),
-            _lmc.template dptr_field_ptr<3>(),
-            _lmc.template dptr_field_ptr<5>(),
-            _lmc.template dptr_field_ptr<6>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template fpfield_ptr<2>(),
+            _lmc->template fpfield_ptr<3>(),
+            _lmc->template dptr_field_ptr<0>(),
+            _lmc->template dptr_field_ptr<1>(),
+            _lmc->template dptr_field_ptr<2>(),
+            _lmc->template dptr_field_ptr<3>(),
+            _lmc->template dptr_field_ptr<5>(),
+            _lmc->template dptr_field_ptr<6>()
         };
     }
 
@@ -139,6 +143,10 @@ namespace neuron {
         };
     }
     static style_ion_NodeData make_node_data_style_ion(Prop * _prop) {
+        if(!_prop) {
+            return style_ion_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return style_ion_NodeData {
@@ -223,7 +231,7 @@ namespace neuron {
 
     static void nrn_init_style_ion(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_style_ion(_lmc);
+        auto inst = make_instance_style_ion(&_lmc);
         auto node_data = make_node_data_style_ion(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -244,7 +252,7 @@ namespace neuron {
 
     static void nrn_jacob_style_ion(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_style_ion(_lmc);
+        auto inst = make_instance_style_ion(&_lmc);
         auto node_data = make_node_data_style_ion(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -255,7 +263,7 @@ namespace neuron {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_style_ion(_lmc);
+        auto inst = make_instance_style_ion(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_style_ion(prop);
 
     }
