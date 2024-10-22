@@ -492,11 +492,15 @@ namespace neuron {
     };
 
 
-    static art_nonlin_Instance make_instance_art_nonlin(_nrn_mechanism_cache_range& _lmc) {
+    static art_nonlin_Instance make_instance_art_nonlin(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return art_nonlin_Instance();
+        }
+
         return art_nonlin_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template dptr_field_ptr<0>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template dptr_field_ptr<0>()
         };
     }
 
@@ -511,6 +515,10 @@ namespace neuron {
         };
     }
     static art_nonlin_NodeData make_node_data_art_nonlin(Prop * _prop) {
+        if(!_prop) {
+            return art_nonlin_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return art_nonlin_NodeData {
@@ -649,7 +657,7 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_p);
         _thread = _extcall_thread.data();
         nt = static_cast<NrnThread*>(_pnt->_vnt);
-        auto inst = make_instance_art_nonlin(_lmc);
+        auto inst = make_instance_art_nonlin(_p ? &_lmc : nullptr);
         double _r = 0.0;
         _r = solve_art_nonlin(_lmc, inst, id, _ppvar, _thread, nt);
         return(_r);
@@ -668,7 +676,7 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_p);
         _thread = _extcall_thread.data();
         nt = static_cast<NrnThread*>(_pnt->_vnt);
-        auto inst = make_instance_art_nonlin(_lmc);
+        auto inst = make_instance_art_nonlin(_p ? &_lmc : nullptr);
         double _r = 0.0;
         _r = residual_art_nonlin(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
@@ -706,7 +714,7 @@ namespace neuron {
 
     static void nrn_init_art_nonlin(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_art_nonlin(_lmc);
+        auto inst = make_instance_art_nonlin(&_lmc);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
@@ -718,7 +726,7 @@ namespace neuron {
 
     static void nrn_jacob_art_nonlin(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_art_nonlin(_lmc);
+        auto inst = make_instance_art_nonlin(&_lmc);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
@@ -728,7 +736,7 @@ namespace neuron {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_art_nonlin(_lmc);
+        auto inst = make_instance_art_nonlin(prop ? &_lmc : nullptr);
 
     }
 

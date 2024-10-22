@@ -119,9 +119,13 @@ namespace neuron {
     };
 
 
-    static function_table_Instance make_instance_function_table(_nrn_mechanism_cache_range& _lmc) {
+    static function_table_Instance make_instance_function_table(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return function_table_Instance();
+        }
+
         return function_table_Instance {
-            _lmc.template fpfield_ptr<0>()
+            _lmc->template fpfield_ptr<0>()
         };
     }
 
@@ -136,6 +140,10 @@ namespace neuron {
         };
     }
     static function_table_NodeData make_node_data_function_table(Prop * _prop) {
+        if(!_prop) {
+            return function_table_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return function_table_NodeData {
@@ -254,7 +262,7 @@ namespace neuron {
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_function_table(_lmc);
+        auto inst = make_instance_function_table(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_function_table(_local_prop);
         double _r = 0.0;
         _r = use_tau2_function_table(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1), *getarg(2));
@@ -269,7 +277,7 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_function_table(_lmc);
+        auto inst = make_instance_function_table(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_function_table(_prop);
         double _r = 0.0;
         _r = use_tau2_function_table(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1), *getarg(2));
@@ -335,7 +343,7 @@ namespace neuron {
 
     inline double use_tau2_function_table(_nrn_mechanism_cache_range& _lmc, function_table_Instance& inst, function_table_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv, double _lx) {
         double ret_use_tau2 = 0.0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         ret_use_tau2 = tau2_function_table(_lv, _lx);
         return ret_use_tau2;
     }
@@ -381,7 +389,7 @@ namespace neuron {
 
     static void nrn_init_function_table(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_function_table(_lmc);
+        auto inst = make_instance_function_table(&_lmc);
         auto node_data = make_node_data_function_table(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -395,7 +403,7 @@ namespace neuron {
 
     static void nrn_jacob_function_table(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_function_table(_lmc);
+        auto inst = make_instance_function_table(&_lmc);
         auto node_data = make_node_data_function_table(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -406,7 +414,7 @@ namespace neuron {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_function_table(_lmc);
+        auto inst = make_instance_function_table(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_function_table(prop);
 
     }
