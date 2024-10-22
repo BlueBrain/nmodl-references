@@ -196,7 +196,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static void _hoc_f() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -208,11 +207,11 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_example(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_example(_local_prop);
+        double _r = 0.0;
         _r = f_example(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_f(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -223,6 +222,7 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_example(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_example(_prop);
+        double _r = 0.0;
         _r = f_example(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }

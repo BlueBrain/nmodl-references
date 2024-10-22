@@ -707,7 +707,6 @@ namespace neuron {
         }
     }
     static void _hoc_factor() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -720,11 +719,11 @@ namespace neuron {
         auto inst = make_instance_heat_eqn_function(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_heat_eqn_function(_local_prop);
         auto _thread_vars = heat_eqn_function_ThreadVariables(_thread[0].get<double*>());
+        double _r = 0.0;
         _r = factor_heat_eqn_function(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_factor(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -736,11 +735,11 @@ namespace neuron {
         auto inst = make_instance_heat_eqn_function(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_heat_eqn_function(_prop);
         auto _thread_vars = heat_eqn_function_ThreadVariables(_thread[0].get<double*>());
+        double _r = 0.0;
         _r = factor_heat_eqn_function(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
         return(_r);
     }
     static void _hoc_vol() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -753,11 +752,11 @@ namespace neuron {
         auto inst = make_instance_heat_eqn_function(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_heat_eqn_function(_local_prop);
         auto _thread_vars = heat_eqn_function_ThreadVariables(_thread[0].get<double*>());
+        double _r = 0.0;
         _r = vol_heat_eqn_function(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_vol(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -769,11 +768,11 @@ namespace neuron {
         auto inst = make_instance_heat_eqn_function(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_heat_eqn_function(_prop);
         auto _thread_vars = heat_eqn_function_ThreadVariables(_thread[0].get<double*>());
+        double _r = 0.0;
         _r = vol_heat_eqn_function(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
         return(_r);
     }
     static void _hoc_mu() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -786,11 +785,11 @@ namespace neuron {
         auto inst = make_instance_heat_eqn_function(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_heat_eqn_function(_local_prop);
         auto _thread_vars = heat_eqn_function_ThreadVariables(_thread[0].get<double*>());
+        double _r = 0.0;
         _r = mu_heat_eqn_function(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_mu(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -802,6 +801,7 @@ namespace neuron {
         auto inst = make_instance_heat_eqn_function(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_heat_eqn_function(_prop);
         auto _thread_vars = heat_eqn_function_ThreadVariables(_thread[0].get<double*>());
+        double _r = 0.0;
         _r = mu_heat_eqn_function(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
         return(_r);
     }

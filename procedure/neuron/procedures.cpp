@@ -229,7 +229,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static void _hoc_set_x_42() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -244,12 +243,12 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_procedures(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_procedures(_local_prop);
+        double _r = 0.0;
         _r = 1.;
         set_x_42_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_set_x_42(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -260,12 +259,12 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_procedures(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_procedures(_prop);
+        double _r = 0.0;
         _r = 1.;
         set_x_42_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
     static void _hoc_set_x_a() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -280,12 +279,12 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_procedures(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_procedures(_local_prop);
+        double _r = 0.0;
         _r = 1.;
         set_x_a_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_set_x_a(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -296,12 +295,12 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_procedures(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_procedures(_prop);
+        double _r = 0.0;
         _r = 1.;
         set_x_a_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
     static void _hoc_set_a_x() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -316,12 +315,12 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_procedures(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_procedures(_local_prop);
+        double _r = 0.0;
         _r = 1.;
         set_a_x_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_set_a_x(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -332,12 +331,12 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_procedures(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_procedures(_prop);
+        double _r = 0.0;
         _r = 1.;
         set_a_x_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
     static void _hoc_set_x_v() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -352,12 +351,12 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_procedures(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_procedures(_local_prop);
+        double _r = 0.0;
         _r = 1.;
         set_x_v_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_set_x_v(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -368,12 +367,12 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_procedures(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_procedures(_prop);
+        double _r = 0.0;
         _r = 1.;
         set_x_v_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
     static void _hoc_set_x_just_v() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -388,12 +387,12 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_procedures(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_procedures(_local_prop);
+        double _r = 0.0;
         _r = 1.;
         set_x_just_v_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_set_x_just_v(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -404,12 +403,12 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_procedures(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_procedures(_prop);
+        double _r = 0.0;
         _r = 1.;
         set_x_just_v_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
     static void _hoc_set_x_just_vv() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -424,12 +423,12 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_procedures(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_procedures(_local_prop);
+        double _r = 0.0;
         _r = 1.;
         set_x_just_vv_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_set_x_just_vv(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -440,12 +439,12 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_procedures(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_procedures(_prop);
+        double _r = 0.0;
         _r = 1.;
         set_x_just_vv_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
     static void _hoc_identity() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -457,11 +456,11 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_procedures(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_procedures(_local_prop);
+        double _r = 0.0;
         _r = identity_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_identity(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -472,6 +471,7 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_procedures(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_procedures(_prop);
+        double _r = 0.0;
         _r = identity_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }

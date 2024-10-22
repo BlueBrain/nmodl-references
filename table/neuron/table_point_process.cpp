@@ -321,7 +321,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static double _hoc_sigmoidal(void * _vptr) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -338,12 +337,12 @@ namespace neuron {
         auto inst = make_instance_tbl_point_process(_p ? &_lmc : nullptr);
         auto node_data = make_node_data_tbl_point_process(_p);
         update_table_sigmoidal_tbl_point_process(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        double _r = 0.0;
         _r = 1.;
         sigmoidal_tbl_point_process(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
     static double _hoc_sinusoidal(void * _vptr) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -360,12 +359,12 @@ namespace neuron {
         auto inst = make_instance_tbl_point_process(_p ? &_lmc : nullptr);
         auto node_data = make_node_data_tbl_point_process(_p);
         update_table_sinusoidal_tbl_point_process(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        double _r = 0.0;
         _r = 1.;
         sinusoidal_tbl_point_process(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
     static double _hoc_quadratic(void * _vptr) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -382,6 +381,7 @@ namespace neuron {
         auto inst = make_instance_tbl_point_process(_p ? &_lmc : nullptr);
         auto node_data = make_node_data_tbl_point_process(_p);
         update_table_quadratic_tbl_point_process(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        double _r = 0.0;
         _r = quadratic_tbl_point_process(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }

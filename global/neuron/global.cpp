@@ -246,7 +246,6 @@ namespace neuron {
         }
     }
     static void _hoc_set_gbl() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -259,12 +258,12 @@ namespace neuron {
         auto inst = make_instance_global(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_global(_local_prop);
         auto _thread_vars = global_ThreadVariables(_thread[0].get<double*>());
+        double _r = 0.0;
         _r = 1.;
         set_gbl_global(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_set_gbl(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -276,12 +275,12 @@ namespace neuron {
         auto inst = make_instance_global(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_global(_prop);
         auto _thread_vars = global_ThreadVariables(_thread[0].get<double*>());
+        double _r = 0.0;
         _r = 1.;
         set_gbl_global(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
         return(_r);
     }
     static void _hoc_get_gbl() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -294,11 +293,11 @@ namespace neuron {
         auto inst = make_instance_global(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_global(_local_prop);
         auto _thread_vars = global_ThreadVariables(_thread[0].get<double*>());
+        double _r = 0.0;
         _r = get_gbl_global(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt);
         hoc_retpushx(_r);
     }
     static double _npy_get_gbl(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -310,6 +309,7 @@ namespace neuron {
         auto inst = make_instance_global(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_global(_prop);
         auto _thread_vars = global_ThreadVariables(_thread[0].get<double*>());
+        double _r = 0.0;
         _r = get_gbl_global(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt);
         return(_r);
     }

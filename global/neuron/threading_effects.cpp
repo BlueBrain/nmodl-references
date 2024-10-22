@@ -303,7 +303,6 @@ namespace neuron {
         }
     }
     static void _hoc_set_g_w() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -316,12 +315,12 @@ namespace neuron {
         auto inst = make_instance_threading_effects(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_threading_effects(_local_prop);
         auto _thread_vars = threading_effects_ThreadVariables(_thread[0].get<double*>());
+        double _r = 0.0;
         _r = 1.;
         set_g_w_threading_effects(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_set_g_w(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -333,12 +332,12 @@ namespace neuron {
         auto inst = make_instance_threading_effects(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_threading_effects(_prop);
         auto _thread_vars = threading_effects_ThreadVariables(_thread[0].get<double*>());
+        double _r = 0.0;
         _r = 1.;
         set_g_w_threading_effects(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
         return(_r);
     }
     static void _hoc_compute_g_v1() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -352,12 +351,12 @@ namespace neuron {
         auto node_data = make_node_data_threading_effects(_local_prop);
         auto _thread_vars = threading_effects_ThreadVariables(_thread[0].get<double*>());
         update_table_compute_g_v1_threading_effects(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt);
+        double _r = 0.0;
         _r = 1.;
         compute_g_v1_threading_effects(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_compute_g_v1(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -370,12 +369,12 @@ namespace neuron {
         auto node_data = make_node_data_threading_effects(_prop);
         auto _thread_vars = threading_effects_ThreadVariables(_thread[0].get<double*>());
         update_table_compute_g_v1_threading_effects(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt);
+        double _r = 0.0;
         _r = 1.;
         compute_g_v1_threading_effects(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
         return(_r);
     }
     static void _hoc_sum_arr() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -388,11 +387,11 @@ namespace neuron {
         auto inst = make_instance_threading_effects(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_threading_effects(_local_prop);
         auto _thread_vars = threading_effects_ThreadVariables(_thread[0].get<double*>());
+        double _r = 0.0;
         _r = sum_arr_threading_effects(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt);
         hoc_retpushx(_r);
     }
     static double _npy_sum_arr(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -404,6 +403,7 @@ namespace neuron {
         auto inst = make_instance_threading_effects(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_threading_effects(_prop);
         auto _thread_vars = threading_effects_ThreadVariables(_thread[0].get<double*>());
+        double _r = 0.0;
         _r = sum_arr_threading_effects(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt);
         return(_r);
     }

@@ -301,7 +301,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static void _hoc_sigmoidal() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -314,12 +313,12 @@ namespace neuron {
         auto inst = make_instance_tbl(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_tbl(_local_prop);
         update_table_sigmoidal_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        double _r = 0.0;
         _r = 1.;
         sigmoidal_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_sigmoidal(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -331,12 +330,12 @@ namespace neuron {
         auto inst = make_instance_tbl(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_tbl(_prop);
         update_table_sigmoidal_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        double _r = 0.0;
         _r = 1.;
         sigmoidal_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
     static void _hoc_sinusoidal() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -352,12 +351,12 @@ namespace neuron {
         auto inst = make_instance_tbl(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_tbl(_local_prop);
         update_table_sinusoidal_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        double _r = 0.0;
         _r = 1.;
         sinusoidal_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_sinusoidal(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -369,12 +368,12 @@ namespace neuron {
         auto inst = make_instance_tbl(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_tbl(_prop);
         update_table_sinusoidal_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        double _r = 0.0;
         _r = 1.;
         sinusoidal_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
     static void _hoc_quadratic() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -387,11 +386,11 @@ namespace neuron {
         auto inst = make_instance_tbl(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_tbl(_local_prop);
         update_table_quadratic_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        double _r = 0.0;
         _r = quadratic_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_quadratic(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -403,6 +402,7 @@ namespace neuron {
         auto inst = make_instance_tbl(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_tbl(_prop);
         update_table_quadratic_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        double _r = 0.0;
         _r = quadratic_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }

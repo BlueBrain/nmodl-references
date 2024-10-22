@@ -241,7 +241,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static double _hoc_set_x_42(void * _vptr) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -257,12 +256,12 @@ namespace neuron {
         nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto inst = make_instance_point_procedures(_p ? &_lmc : nullptr);
         auto node_data = make_node_data_point_procedures(_p);
+        double _r = 0.0;
         _r = 1.;
         set_x_42_point_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
     static double _hoc_set_x_a(void * _vptr) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -278,12 +277,12 @@ namespace neuron {
         nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto inst = make_instance_point_procedures(_p ? &_lmc : nullptr);
         auto node_data = make_node_data_point_procedures(_p);
+        double _r = 0.0;
         _r = 1.;
         set_x_a_point_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
     static double _hoc_set_a_x(void * _vptr) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -299,12 +298,12 @@ namespace neuron {
         nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto inst = make_instance_point_procedures(_p ? &_lmc : nullptr);
         auto node_data = make_node_data_point_procedures(_p);
+        double _r = 0.0;
         _r = 1.;
         set_a_x_point_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
     static double _hoc_set_x_v(void * _vptr) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -320,12 +319,12 @@ namespace neuron {
         nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto inst = make_instance_point_procedures(_p ? &_lmc : nullptr);
         auto node_data = make_node_data_point_procedures(_p);
+        double _r = 0.0;
         _r = 1.;
         set_x_v_point_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
     static double _hoc_set_x_just_v(void * _vptr) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -341,12 +340,12 @@ namespace neuron {
         nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto inst = make_instance_point_procedures(_p ? &_lmc : nullptr);
         auto node_data = make_node_data_point_procedures(_p);
+        double _r = 0.0;
         _r = 1.;
         set_x_just_v_point_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
     static double _hoc_set_x_just_vv(void * _vptr) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -362,12 +361,12 @@ namespace neuron {
         nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto inst = make_instance_point_procedures(_p ? &_lmc : nullptr);
         auto node_data = make_node_data_point_procedures(_p);
+        double _r = 0.0;
         _r = 1.;
         set_x_just_vv_point_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
     static double _hoc_identity(void * _vptr) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -383,6 +382,7 @@ namespace neuron {
         nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto inst = make_instance_point_procedures(_p ? &_lmc : nullptr);
         auto node_data = make_node_data_point_procedures(_p);
+        double _r = 0.0;
         _r = identity_point_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }

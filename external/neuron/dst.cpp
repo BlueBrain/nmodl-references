@@ -204,7 +204,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static void _hoc_get_gbl() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -216,11 +215,11 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_dst(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_dst(_local_prop);
+        double _r = 0.0;
         _r = get_gbl_dst(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_get_gbl(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -231,11 +230,11 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_dst(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_dst(_prop);
+        double _r = 0.0;
         _r = get_gbl_dst(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
     static void _hoc_get_param() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -247,11 +246,11 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_dst(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_dst(_local_prop);
+        double _r = 0.0;
         _r = get_param_dst(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_get_param(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -262,6 +261,7 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_dst(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_dst(_prop);
+        double _r = 0.0;
         _r = get_param_dst(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }

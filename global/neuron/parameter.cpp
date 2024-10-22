@@ -202,7 +202,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static void _hoc_get_gbl() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -214,11 +213,11 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_parameter(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_parameter(_local_prop);
+        double _r = 0.0;
         _r = get_gbl_parameter(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_get_gbl(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -229,6 +228,7 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_parameter(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_parameter(_prop);
+        double _r = 0.0;
         _r = get_gbl_parameter(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }

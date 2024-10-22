@@ -196,7 +196,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static void _hoc_fibonacci() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -208,11 +207,11 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_recursion(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_recursion(_local_prop);
+        double _r = 0.0;
         _r = fibonacci_recursion(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_fibonacci(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -223,6 +222,7 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_recursion(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_recursion(_prop);
+        double _r = 0.0;
         _r = fibonacci_recursion(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }

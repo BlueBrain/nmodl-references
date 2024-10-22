@@ -231,7 +231,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static double _hoc_increment_c2(void * _vptr) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -247,12 +246,12 @@ namespace neuron {
         nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto inst = make_instance_NetReceiveCalls(_p ? &_lmc : nullptr);
         auto node_data = make_node_data_NetReceiveCalls(_p);
+        double _r = 0.0;
         _r = 1.;
         increment_c2_NetReceiveCalls(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
     static double _hoc_one(void * _vptr) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -268,6 +267,7 @@ namespace neuron {
         nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto inst = make_instance_NetReceiveCalls(_p ? &_lmc : nullptr);
         auto node_data = make_node_data_NetReceiveCalls(_p);
+        double _r = 0.0;
         _r = one_NetReceiveCalls(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }

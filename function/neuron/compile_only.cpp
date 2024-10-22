@@ -217,7 +217,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static void _hoc_func() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -229,12 +228,12 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_func_in_breakpoint(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_func_in_breakpoint(_local_prop);
+        double _r = 0.0;
         _r = 1.;
         func_func_in_breakpoint(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_func(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -245,12 +244,12 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_func_in_breakpoint(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_func_in_breakpoint(_prop);
+        double _r = 0.0;
         _r = 1.;
         func_func_in_breakpoint(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
     static void _hoc_func_with_v() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -262,12 +261,12 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_func_in_breakpoint(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_func_in_breakpoint(_local_prop);
+        double _r = 0.0;
         _r = 1.;
         func_with_v_func_in_breakpoint(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_func_with_v(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -278,12 +277,12 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_func_in_breakpoint(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_func_in_breakpoint(_prop);
+        double _r = 0.0;
         _r = 1.;
         func_with_v_func_in_breakpoint(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
     static void _hoc_func_with_other() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -295,12 +294,12 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_func_in_breakpoint(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_func_in_breakpoint(_local_prop);
+        double _r = 0.0;
         _r = 1.;
         func_with_other_func_in_breakpoint(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_func_with_other(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -311,6 +310,7 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_func_in_breakpoint(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_func_in_breakpoint(_prop);
+        double _r = 0.0;
         _r = 1.;
         func_with_other_func_in_breakpoint(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);

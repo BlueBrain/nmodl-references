@@ -624,7 +624,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static void _hoc_solve() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -636,11 +635,11 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_nonlin(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_nonlin(_local_prop);
+        double _r = 0.0;
         _r = solve_nonlin(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_solve(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -651,11 +650,11 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_nonlin(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_nonlin(_prop);
+        double _r = 0.0;
         _r = solve_nonlin(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
     static void _hoc_residual() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -667,11 +666,11 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_nonlin(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_nonlin(_local_prop);
+        double _r = 0.0;
         _r = residual_nonlin(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_residual(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -682,6 +681,7 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_nonlin(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_nonlin(_prop);
+        double _r = 0.0;
         _r = residual_nonlin(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }

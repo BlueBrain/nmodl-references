@@ -239,7 +239,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static double _hoc_x_plus_a(void * _vptr) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -254,11 +253,11 @@ namespace neuron {
         _thread = _extcall_thread.data();
         nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto inst = make_instance_art_functions(_p ? &_lmc : nullptr);
+        double _r = 0.0;
         _r = x_plus_a_art_functions(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
     static double _hoc_identity(void * _vptr) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -273,6 +272,7 @@ namespace neuron {
         _thread = _extcall_thread.data();
         nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto inst = make_instance_art_functions(_p ? &_lmc : nullptr);
+        double _r = 0.0;
         _r = identity_art_functions(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }

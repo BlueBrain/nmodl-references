@@ -261,7 +261,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static double _hoc_use_tau2(void * _vptr) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -277,6 +276,7 @@ namespace neuron {
         nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto inst = make_instance_point_function_table(_p ? &_lmc : nullptr);
         auto node_data = make_node_data_point_function_table(_p);
+        double _r = 0.0;
         _r = use_tau2_point_function_table(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1), *getarg(2));
         return(_r);
     }

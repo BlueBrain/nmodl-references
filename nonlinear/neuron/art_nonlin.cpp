@@ -644,7 +644,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static double _hoc_solve(void * _vptr) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -659,11 +658,11 @@ namespace neuron {
         _thread = _extcall_thread.data();
         nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto inst = make_instance_art_nonlin(_p ? &_lmc : nullptr);
+        double _r = 0.0;
         _r = solve_art_nonlin(_lmc, inst, id, _ppvar, _thread, nt);
         return(_r);
     }
     static double _hoc_residual(void * _vptr) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -678,6 +677,7 @@ namespace neuron {
         _thread = _extcall_thread.data();
         nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto inst = make_instance_art_nonlin(_p ? &_lmc : nullptr);
+        double _r = 0.0;
         _r = residual_art_nonlin(_lmc, inst, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
