@@ -102,9 +102,13 @@ namespace neuron {
     };
 
 
-    static compile_only_Instance make_instance_compile_only(_nrn_mechanism_cache_range& _lmc) {
+    static compile_only_Instance make_instance_compile_only(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return compile_only_Instance();
+        }
+
         return compile_only_Instance {
-            _lmc.template fpfield_ptr<0>()
+            _lmc->template fpfield_ptr<0>()
         };
     }
 
@@ -119,6 +123,10 @@ namespace neuron {
         };
     }
     static compile_only_NodeData make_node_data_compile_only(Prop * _prop) {
+        if(!_prop) {
+            return compile_only_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return compile_only_NodeData {
@@ -197,7 +205,7 @@ namespace neuron {
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_compile_only(_lmc);
+        auto inst = make_instance_compile_only(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_compile_only(_local_prop);
         double _r = 0.0;
         _r = call_nrn_ghk_compile_only(_lmc, inst, node_data, id, _ppvar, _thread, nt);
@@ -212,7 +220,7 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_compile_only(_lmc);
+        auto inst = make_instance_compile_only(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_compile_only(_prop);
         double _r = 0.0;
         _r = call_nrn_ghk_compile_only(_lmc, inst, node_data, id, _ppvar, _thread, nt);
@@ -222,7 +230,7 @@ namespace neuron {
 
     inline double call_nrn_ghk_compile_only(_nrn_mechanism_cache_range& _lmc, compile_only_Instance& inst, compile_only_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         double ret_call_nrn_ghk = 0.0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         ret_call_nrn_ghk = nrn_ghk(1.0, 2.0, 3.0, 4.0);
         return ret_call_nrn_ghk;
     }
@@ -230,7 +238,7 @@ namespace neuron {
 
     static void nrn_init_compile_only(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_compile_only(_lmc);
+        auto inst = make_instance_compile_only(&_lmc);
         auto node_data = make_node_data_compile_only(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -244,7 +252,7 @@ namespace neuron {
 
     static void nrn_jacob_compile_only(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_compile_only(_lmc);
+        auto inst = make_instance_compile_only(&_lmc);
         auto node_data = make_node_data_compile_only(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -255,7 +263,7 @@ namespace neuron {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_compile_only(_lmc);
+        auto inst = make_instance_compile_only(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_compile_only(prop);
 
     }
