@@ -646,6 +646,7 @@ namespace neuron {
 
 
     static void ode_update_stiff_minipump(_nrn_mechanism_cache_range& _lmc, minipump_Instance& inst, minipump_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+        auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         double kf0_, kb0_;
         kf0_ = inst.global->kf;
         kb0_ = inst.global->kb;
@@ -919,7 +920,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _minipump_reg() {
         _initlists();
 

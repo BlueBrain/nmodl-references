@@ -626,6 +626,7 @@ namespace neuron {
 
 
     static void ode_update_stiff_finite_difference(_nrn_mechanism_cache_range& _lmc, finite_difference_Instance& inst, finite_difference_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, finite_difference_ThreadVariables& _thread_vars) {
+        auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         inst.Dx[id] = inst.Dx[id] / (1.0 - nt->_dt * (1000.0 * f_finite_difference(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, inst.x[id] - 0.00050000000000000001) - 1000.0 * f_finite_difference(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, inst.x[id] + 0.00050000000000000001)));
     }
 
@@ -856,7 +857,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _finite_difference_reg() {
         _initlists();
 

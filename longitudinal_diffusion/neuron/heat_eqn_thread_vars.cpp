@@ -651,6 +651,7 @@ namespace neuron {
 
 
     static void ode_update_stiff_heat_eqn_thread_vars(_nrn_mechanism_cache_range& _lmc, heat_eqn_thread_vars_Instance& inst, heat_eqn_thread_vars_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, heat_eqn_thread_vars_ThreadVariables& _thread_vars) {
+        auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         double source0_;
         ;
         source0_ = 0.0;
@@ -847,7 +848,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _heat_eqn_thread_vars_reg() {
         _initlists();
 

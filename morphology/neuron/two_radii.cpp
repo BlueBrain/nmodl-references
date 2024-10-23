@@ -383,7 +383,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _two_radii_reg() {
         _initlists();
 

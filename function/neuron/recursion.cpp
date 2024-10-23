@@ -278,7 +278,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _recursion_reg() {
         _initlists();
 

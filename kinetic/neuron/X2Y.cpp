@@ -626,6 +626,7 @@ namespace neuron {
 
 
     static void ode_update_stiff_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, X2Y_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+        auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         double kf0_, kb0_;
         rates_X2Y(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         kf0_ = inst.c1[id];
@@ -889,7 +890,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _X2Y_reg() {
         _initlists();
 

@@ -422,7 +422,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _point_function_table_reg() {
         _initlists();
 

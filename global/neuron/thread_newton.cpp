@@ -630,6 +630,7 @@ namespace neuron {
 
 
     static void ode_update_stiff_thread_newton(_nrn_mechanism_cache_range& _lmc, thread_newton_Instance& inst, thread_newton_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, thread_newton_ThreadVariables& _thread_vars) {
+        auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         double source0_;
         source0_ = _thread_vars.c(id);
         inst.DX[id] = inst.DX[id] / (1.0 - nt->_dt * (0.0));
@@ -820,7 +821,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _thread_newton_reg() {
         _initlists();
 

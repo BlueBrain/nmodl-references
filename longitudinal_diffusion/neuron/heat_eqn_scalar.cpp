@@ -622,6 +622,7 @@ namespace neuron {
 
 
     static void ode_update_stiff_heat_eqn_scalar(_nrn_mechanism_cache_range& _lmc, heat_eqn_scalar_Instance& inst, heat_eqn_scalar_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+        auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         double source0_;
         ;
         source0_ = 0.0;
@@ -792,7 +793,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _heat_eqn_scalar_reg() {
         _initlists();
 

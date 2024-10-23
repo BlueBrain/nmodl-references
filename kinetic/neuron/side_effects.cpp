@@ -627,6 +627,7 @@ namespace neuron {
 
 
     static void ode_update_stiff_side_effects(_nrn_mechanism_cache_range& _lmc, side_effects_Instance& inst, side_effects_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+        auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         double kf0_, kb0_;
         kf0_ = 0.4;
         kb0_ = 0.5;
@@ -841,7 +842,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _side_effects_reg() {
         _initlists();
 

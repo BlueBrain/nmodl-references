@@ -611,6 +611,7 @@ namespace neuron {
 
 
     static void ode_update_stiff_derivimplicit_array(_nrn_mechanism_cache_range& _lmc, derivimplicit_array_Instance& inst, derivimplicit_array_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+        auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         inst.Dx[id] = inst.Dx[id] / (1.0 - nt->_dt * (((inst.s+id*2)[static_cast<int>(0)] + (inst.s+id*2)[static_cast<int>(1)]) * (inst.z+id*3)[static_cast<int>(0)] * (inst.z+id*3)[static_cast<int>(1)] * (inst.z+id*3)[static_cast<int>(2)]));
     }
 
@@ -777,7 +778,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _derivimplicit_array_reg() {
         _initlists();
 

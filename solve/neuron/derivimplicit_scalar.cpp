@@ -599,6 +599,7 @@ namespace neuron {
 
 
     static void ode_update_stiff_derivimplicit_scalar(_nrn_mechanism_cache_range& _lmc, derivimplicit_scalar_Instance& inst, derivimplicit_scalar_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+        auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         inst.Dx[id] = inst.Dx[id] / (1.0 - nt->_dt * ( -1.0));
     }
 
@@ -758,7 +759,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _derivimplicit_scalar_reg() {
         _initlists();
 

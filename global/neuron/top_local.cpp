@@ -431,7 +431,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _top_local_reg() {
         _initlists();
 

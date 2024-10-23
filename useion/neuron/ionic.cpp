@@ -270,7 +270,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _ionic_reg() {
         _initlists();
 

@@ -238,6 +238,7 @@ namespace neuron {
 
 
     static void ode_update_stiff_ExpSyn2(_nrn_mechanism_cache_range& _lmc, ExpSyn2_Instance& inst, ExpSyn2_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+        auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         inst.Dg[id] = inst.Dg[id] / (1.0 - nt->_dt * ( -1.0 / inst.tau[id]));
     }
 
@@ -415,7 +416,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _expsyn2_reg() {
         _initlists();
 

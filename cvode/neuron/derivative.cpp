@@ -655,6 +655,7 @@ namespace neuron {
 
 
     static void ode_update_stiff_scalar(_nrn_mechanism_cache_range& _lmc, scalar_Instance& inst, scalar_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+        auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         inst.Dvar1[id] = inst.Dvar1[id] / (1.0 - nt->_dt * (0.0));
         inst.Dvar2[id] = inst.Dvar2[id] / (1.0 - nt->_dt * ( -inst.global->a));
         inst.Dvar3[id] = inst.Dvar3[id] / (1.0 - nt->_dt * (inst.global->r * (inst.global->k - 2.0 * inst.var3[id]) / inst.global->k));
@@ -855,7 +856,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _derivative_reg() {
         _initlists();
 
