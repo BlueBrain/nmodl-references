@@ -107,9 +107,13 @@ namespace neuron {
     };
 
 
-    static constant_mod_Instance make_instance_constant_mod(_nrn_mechanism_cache_range& _lmc) {
+    static constant_mod_Instance make_instance_constant_mod(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return constant_mod_Instance();
+        }
+
         return constant_mod_Instance {
-            _lmc.template fpfield_ptr<0>()
+            _lmc->template fpfield_ptr<0>()
         };
     }
 
@@ -124,6 +128,10 @@ namespace neuron {
         };
     }
     static constant_mod_NodeData make_node_data_constant_mod(Prop * _prop) {
+        if(!_prop) {
+            return constant_mod_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return constant_mod_NodeData {
@@ -193,7 +201,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static void _hoc_foo() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -203,13 +210,13 @@ namespace neuron {
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_constant_mod(_lmc);
+        auto inst = make_instance_constant_mod(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_constant_mod(_local_prop);
+        double _r = 0.0;
         _r = foo_constant_mod(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_foo(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -218,8 +225,9 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_constant_mod(_lmc);
+        auto inst = make_instance_constant_mod(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_constant_mod(_prop);
+        double _r = 0.0;
         _r = foo_constant_mod(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
@@ -227,7 +235,7 @@ namespace neuron {
 
     inline double foo_constant_mod(_nrn_mechanism_cache_range& _lmc, constant_mod_Instance& inst, constant_mod_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         double ret_foo = 0.0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         ret_foo = inst.global->a;
         return ret_foo;
     }
@@ -235,7 +243,7 @@ namespace neuron {
 
     static void nrn_init_constant_mod(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_constant_mod(_lmc);
+        auto inst = make_instance_constant_mod(&_lmc);
         auto node_data = make_node_data_constant_mod(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -249,7 +257,7 @@ namespace neuron {
 
     static void nrn_jacob_constant_mod(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_constant_mod(_lmc);
+        auto inst = make_instance_constant_mod(&_lmc);
         auto node_data = make_node_data_constant_mod(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -260,7 +268,7 @@ namespace neuron {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_constant_mod(_lmc);
+        auto inst = make_instance_constant_mod(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_constant_mod(prop);
 
     }
@@ -270,7 +278,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _constant_reg() {
         _initlists();
 

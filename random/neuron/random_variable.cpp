@@ -103,9 +103,13 @@ namespace neuron {
     };
 
 
-    static random_variable_Instance make_instance_random_variable(_nrn_mechanism_cache_range& _lmc) {
+    static random_variable_Instance make_instance_random_variable(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return random_variable_Instance();
+        }
+
         return random_variable_Instance {
-            _lmc.template fpfield_ptr<0>()
+            _lmc->template fpfield_ptr<0>()
         };
     }
 
@@ -120,6 +124,10 @@ namespace neuron {
         };
     }
     static random_variable_NodeData make_node_data_random_variable(Prop * _prop) {
+        if(!_prop) {
+            return random_variable_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return random_variable_NodeData {
@@ -194,7 +202,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static void _hoc_negexp() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -204,13 +211,13 @@ namespace neuron {
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_random_variable(_lmc);
+        auto inst = make_instance_random_variable(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_random_variable(_local_prop);
+        double _r = 0.0;
         _r = negexp_random_variable(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_negexp(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -219,8 +226,9 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_random_variable(_lmc);
+        auto inst = make_instance_random_variable(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_random_variable(_prop);
+        double _r = 0.0;
         _r = negexp_random_variable(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
@@ -228,7 +236,7 @@ namespace neuron {
 
     inline double negexp_random_variable(_nrn_mechanism_cache_range& _lmc, random_variable_Instance& inst, random_variable_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         double ret_negexp = 0.0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         ret_negexp = nrnran123_negexp((nrnran123_State*)_ppvar[0].literal_value<void*>());
         return ret_negexp;
     }
@@ -236,7 +244,7 @@ namespace neuron {
 
     static void nrn_init_random_variable(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_random_variable(_lmc);
+        auto inst = make_instance_random_variable(&_lmc);
         auto node_data = make_node_data_random_variable(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -250,7 +258,7 @@ namespace neuron {
 
     static void nrn_jacob_random_variable(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_random_variable(_lmc);
+        auto inst = make_instance_random_variable(&_lmc);
         auto node_data = make_node_data_random_variable(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -261,7 +269,7 @@ namespace neuron {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_random_variable(_lmc);
+        auto inst = make_instance_random_variable(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_random_variable(prop);
 
         nrnran123_deletestream((nrnran123_State*) _ppvar[0].literal_value<void*>());
@@ -272,7 +280,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _random_variable_reg() {
         _initlists();
 

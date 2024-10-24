@@ -510,18 +510,22 @@ namespace neuron {
     };
 
 
-    static X2Y_Instance make_instance_X2Y(_nrn_mechanism_cache_range& _lmc) {
+    static X2Y_Instance make_instance_X2Y(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return X2Y_Instance();
+        }
+
         return X2Y_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>(),
-            _lmc.template fpfield_ptr<4>(),
-            _lmc.template fpfield_ptr<5>(),
-            _lmc.template fpfield_ptr<6>(),
-            _lmc.template fpfield_ptr<7>(),
-            _lmc.template fpfield_ptr<8>(),
-            _lmc.template fpfield_ptr<9>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template fpfield_ptr<2>(),
+            _lmc->template fpfield_ptr<3>(),
+            _lmc->template fpfield_ptr<4>(),
+            _lmc->template fpfield_ptr<5>(),
+            _lmc->template fpfield_ptr<6>(),
+            _lmc->template fpfield_ptr<7>(),
+            _lmc->template fpfield_ptr<8>(),
+            _lmc->template fpfield_ptr<9>()
         };
     }
 
@@ -536,6 +540,10 @@ namespace neuron {
         };
     }
     static X2Y_NodeData make_node_data_X2Y(Prop * _prop) {
+        if(!_prop) {
+            return X2Y_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return X2Y_NodeData {
@@ -648,7 +656,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static void _hoc_rates() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -661,14 +668,14 @@ namespace neuron {
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_X2Y(_lmc);
+        auto inst = make_instance_X2Y(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_X2Y(_local_prop);
+        double _r = 0.0;
         _r = 1.;
         rates_X2Y(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_rates(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -677,8 +684,9 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_X2Y(_lmc);
+        auto inst = make_instance_X2Y(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_X2Y(_prop);
+        double _r = 0.0;
         _r = 1.;
         rates_X2Y(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
@@ -687,7 +695,7 @@ namespace neuron {
 
     inline int rates_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, X2Y_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         int ret_rates = 0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         inst.c1[id] = 0.4;
         inst.c2[id] = 0.5;
         return ret_rates;
@@ -696,7 +704,7 @@ namespace neuron {
 
     static void nrn_init_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_X2Y(_lmc);
+        auto inst = make_instance_X2Y(&_lmc);
         auto node_data = make_node_data_X2Y(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -725,7 +733,7 @@ namespace neuron {
     /** update current */
     static void nrn_cur_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_X2Y(_lmc);
+        auto inst = make_instance_X2Y(&_lmc);
         auto node_data = make_node_data_X2Y(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -745,7 +753,7 @@ namespace neuron {
 
     static void nrn_state_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_X2Y(_lmc);
+        auto inst = make_instance_X2Y(&_lmc);
         auto node_data = make_node_data_X2Y(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -774,7 +782,7 @@ namespace neuron {
 
     static void nrn_jacob_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_X2Y(_lmc);
+        auto inst = make_instance_X2Y(&_lmc);
         auto node_data = make_node_data_X2Y(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -787,7 +795,7 @@ namespace neuron {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_X2Y(_lmc);
+        auto inst = make_instance_X2Y(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_X2Y(prop);
 
     }
@@ -805,7 +813,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _X2Y_reg() {
         _initlists();
 

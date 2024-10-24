@@ -102,9 +102,13 @@ namespace neuron {
     };
 
 
-    static example_Instance make_instance_example(_nrn_mechanism_cache_range& _lmc) {
+    static example_Instance make_instance_example(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return example_Instance();
+        }
+
         return example_Instance {
-            _lmc.template fpfield_ptr<0>()
+            _lmc->template fpfield_ptr<0>()
         };
     }
 
@@ -119,6 +123,10 @@ namespace neuron {
         };
     }
     static example_NodeData make_node_data_example(Prop * _prop) {
+        if(!_prop) {
+            return example_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return example_NodeData {
@@ -188,7 +196,6 @@ namespace neuron {
         {nullptr, nullptr}
     };
     static void _hoc_f() {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -198,13 +205,13 @@ namespace neuron {
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_example(_lmc);
+        auto inst = make_instance_example(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_example(_local_prop);
+        double _r = 0.0;
         _r = f_example(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_f(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -213,8 +220,9 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_example(_lmc);
+        auto inst = make_instance_example(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_example(_prop);
+        double _r = 0.0;
         _r = f_example(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
@@ -222,7 +230,7 @@ namespace neuron {
 
     inline double f_example(_nrn_mechanism_cache_range& _lmc, example_Instance& inst, example_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx) {
         double ret_f = 0.0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         ret_f = at_time(nt, _lx);
         return ret_f;
     }
@@ -230,7 +238,7 @@ namespace neuron {
 
     static void nrn_init_example(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_example(_lmc);
+        auto inst = make_instance_example(&_lmc);
         auto node_data = make_node_data_example(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -244,7 +252,7 @@ namespace neuron {
 
     static void nrn_jacob_example(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_example(_lmc);
+        auto inst = make_instance_example(&_lmc);
         auto node_data = make_node_data_example(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -255,7 +263,7 @@ namespace neuron {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_example(_lmc);
+        auto inst = make_instance_example(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_example(prop);
 
     }
@@ -265,7 +273,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _example_reg() {
         _initlists();
 

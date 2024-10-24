@@ -112,12 +112,16 @@ namespace neuron {
     };
 
 
-    static cnexp_scalar_Instance make_instance_cnexp_scalar(_nrn_mechanism_cache_range& _lmc) {
+    static cnexp_scalar_Instance make_instance_cnexp_scalar(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return cnexp_scalar_Instance();
+        }
+
         return cnexp_scalar_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template fpfield_ptr<2>(),
+            _lmc->template fpfield_ptr<3>()
         };
     }
 
@@ -132,6 +136,10 @@ namespace neuron {
         };
     }
     static cnexp_scalar_NodeData make_node_data_cnexp_scalar(Prop * _prop) {
+        if(!_prop) {
+            return cnexp_scalar_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return cnexp_scalar_NodeData {
@@ -199,7 +207,7 @@ namespace neuron {
 
     static void nrn_init_cnexp_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_cnexp_scalar(_lmc);
+        auto inst = make_instance_cnexp_scalar(&_lmc);
         auto node_data = make_node_data_cnexp_scalar(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -215,7 +223,7 @@ namespace neuron {
 
     static void nrn_state_cnexp_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_cnexp_scalar(_lmc);
+        auto inst = make_instance_cnexp_scalar(&_lmc);
         auto node_data = make_node_data_cnexp_scalar(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -230,7 +238,7 @@ namespace neuron {
 
     static void nrn_jacob_cnexp_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_cnexp_scalar(_lmc);
+        auto inst = make_instance_cnexp_scalar(&_lmc);
         auto node_data = make_node_data_cnexp_scalar(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -243,7 +251,7 @@ namespace neuron {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_cnexp_scalar(_lmc);
+        auto inst = make_instance_cnexp_scalar(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_cnexp_scalar(prop);
 
     }
@@ -257,7 +265,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _cnexp_scalar_reg() {
         _initlists();
 

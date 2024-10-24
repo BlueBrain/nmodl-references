@@ -109,15 +109,19 @@ namespace neuron {
     };
 
 
-    static SnapSyn_Instance make_instance_SnapSyn(_nrn_mechanism_cache_range& _lmc) {
+    static SnapSyn_Instance make_instance_SnapSyn(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return SnapSyn_Instance();
+        }
+
         return SnapSyn_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>(),
-            _lmc.template fpfield_ptr<4>(),
-            _lmc.template fpfield_ptr<5>(),
-            _lmc.template dptr_field_ptr<0>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template fpfield_ptr<2>(),
+            _lmc->template fpfield_ptr<3>(),
+            _lmc->template fpfield_ptr<4>(),
+            _lmc->template fpfield_ptr<5>(),
+            _lmc->template dptr_field_ptr<0>()
         };
     }
 
@@ -132,6 +136,10 @@ namespace neuron {
         };
     }
     static SnapSyn_NodeData make_node_data_SnapSyn(Prop * _prop) {
+        if(!_prop) {
+            return SnapSyn_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return SnapSyn_NodeData {
@@ -226,7 +234,7 @@ namespace neuron {
 
     static void nrn_init_SnapSyn(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_SnapSyn(_lmc);
+        auto inst = make_instance_SnapSyn(&_lmc);
         auto node_data = make_node_data_SnapSyn(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -250,7 +258,7 @@ namespace neuron {
     /** update current */
     static void nrn_cur_SnapSyn(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_SnapSyn(_lmc);
+        auto inst = make_instance_SnapSyn(&_lmc);
         auto node_data = make_node_data_SnapSyn(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -273,7 +281,7 @@ namespace neuron {
 
     static void nrn_state_SnapSyn(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_SnapSyn(_lmc);
+        auto inst = make_instance_SnapSyn(&_lmc);
         auto node_data = make_node_data_SnapSyn(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -287,7 +295,7 @@ namespace neuron {
 
     static void nrn_jacob_SnapSyn(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_SnapSyn(_lmc);
+        auto inst = make_instance_SnapSyn(&_lmc);
         auto node_data = make_node_data_SnapSyn(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -300,7 +308,7 @@ namespace neuron {
         _nrn_mechanism_cache_instance _lmc{_pnt->prop};
         auto * nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto * _ppvar = _nrn_mechanism_access_dparam(_pnt->prop);
-        auto inst = make_instance_SnapSyn(_lmc);
+        auto inst = make_instance_SnapSyn(&_lmc);
         auto node_data = make_node_data_SnapSyn(_pnt->prop);
         // nocmodl has a nullptr dereference for thread variables.
         // NMODL will fail to compile at a later point, because of
@@ -315,7 +323,7 @@ namespace neuron {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_SnapSyn(_lmc);
+        auto inst = make_instance_SnapSyn(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_SnapSyn(prop);
 
     }
@@ -325,7 +333,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _snapsyn_reg() {
         _initlists();
 

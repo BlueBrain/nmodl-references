@@ -127,9 +127,13 @@ namespace neuron {
     };
 
 
-    static limits_mod_Instance make_instance_limits_mod(_nrn_mechanism_cache_range& _lmc) {
+    static limits_mod_Instance make_instance_limits_mod(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return limits_mod_Instance();
+        }
+
         return limits_mod_Instance {
-            _lmc.template fpfield_ptr<0>()
+            _lmc->template fpfield_ptr<0>()
         };
     }
 
@@ -144,6 +148,10 @@ namespace neuron {
         };
     }
     static limits_mod_NodeData make_node_data_limits_mod(Prop * _prop) {
+        if(!_prop) {
+            return limits_mod_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return limits_mod_NodeData {
@@ -217,7 +225,7 @@ namespace neuron {
 
     static void nrn_init_limits_mod(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_limits_mod(_lmc);
+        auto inst = make_instance_limits_mod(&_lmc);
         auto node_data = make_node_data_limits_mod(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -231,7 +239,7 @@ namespace neuron {
 
     static void nrn_jacob_limits_mod(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_limits_mod(_lmc);
+        auto inst = make_instance_limits_mod(&_lmc);
         auto node_data = make_node_data_limits_mod(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -242,7 +250,7 @@ namespace neuron {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_limits_mod(_lmc);
+        auto inst = make_instance_limits_mod(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_limits_mod(prop);
 
     }
@@ -252,7 +260,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _limits_reg() {
         _initlists();
 

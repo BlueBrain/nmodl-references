@@ -104,12 +104,16 @@ namespace neuron {
     };
 
 
-    static art_toggle_Instance make_instance_art_toggle(_nrn_mechanism_cache_range& _lmc) {
+    static art_toggle_Instance make_instance_art_toggle(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return art_toggle_Instance();
+        }
+
         return art_toggle_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template dptr_field_ptr<0>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template fpfield_ptr<2>(),
+            _lmc->template dptr_field_ptr<0>()
         };
     }
 
@@ -124,6 +128,10 @@ namespace neuron {
         };
     }
     static art_toggle_NodeData make_node_data_art_toggle(Prop * _prop) {
+        if(!_prop) {
+            return art_toggle_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return art_toggle_NodeData {
@@ -217,7 +225,7 @@ namespace neuron {
 
     static void nrn_init_art_toggle(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_art_toggle(_lmc);
+        auto inst = make_instance_art_toggle(&_lmc);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
@@ -230,7 +238,7 @@ namespace neuron {
 
     static void nrn_jacob_art_toggle(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_art_toggle(_lmc);
+        auto inst = make_instance_art_toggle(&_lmc);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
@@ -240,7 +248,7 @@ namespace neuron {
         _nrn_mechanism_cache_instance _lmc{_pnt->prop};
         auto * nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto * _ppvar = _nrn_mechanism_access_dparam(_pnt->prop);
-        auto inst = make_instance_art_toggle(_lmc);
+        auto inst = make_instance_art_toggle(&_lmc);
         // nocmodl has a nullptr dereference for thread variables.
         // NMODL will fail to compile at a later point, because of
         // missing '_thread_vars'.
@@ -257,7 +265,7 @@ namespace neuron {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_art_toggle(_lmc);
+        auto inst = make_instance_art_toggle(prop ? &_lmc : nullptr);
 
     }
 
@@ -266,7 +274,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _art_toggle_reg() {
         _initlists();
 

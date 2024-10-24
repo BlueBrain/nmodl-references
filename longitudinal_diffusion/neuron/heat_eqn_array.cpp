@@ -508,15 +508,19 @@ namespace neuron {
     };
 
 
-    static heat_eqn_array_Instance make_instance_heat_eqn_array(_nrn_mechanism_cache_range& _lmc) {
+    static heat_eqn_array_Instance make_instance_heat_eqn_array(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return heat_eqn_array_Instance();
+        }
+
         return heat_eqn_array_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template data_array_ptr<1, 4>(),
-            _lmc.template data_array_ptr<2, 4>(),
-            _lmc.template data_array_ptr<3, 4>(),
-            _lmc.template data_array_ptr<4, 4>(),
-            _lmc.template fpfield_ptr<5>(),
-            _lmc.template fpfield_ptr<6>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template data_array_ptr<1, 4>(),
+            _lmc->template data_array_ptr<2, 4>(),
+            _lmc->template data_array_ptr<3, 4>(),
+            _lmc->template data_array_ptr<4, 4>(),
+            _lmc->template fpfield_ptr<5>(),
+            _lmc->template fpfield_ptr<6>()
         };
     }
 
@@ -531,6 +535,10 @@ namespace neuron {
         };
     }
     static heat_eqn_array_NodeData make_node_data_heat_eqn_array(Prop * _prop) {
+        if(!_prop) {
+            return heat_eqn_array_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return heat_eqn_array_NodeData {
@@ -558,7 +566,7 @@ namespace neuron {
     static void* _diffusion_space_X;
     static double _diffusion_coefficient_X(int _i, Memb_list* _ml_arg, size_t id, Datum* _ppvar, double* _pdvol, double* _pdfcdc, Datum* /* _thread */, NrnThread* nt, const _nrn_model_sorted_token& _sorted_token) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_heat_eqn_array(_lmc);
+        auto inst = make_instance_heat_eqn_array(&_lmc);
         auto node_data = make_node_data_heat_eqn_array(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         *_pdvol= (inst.vol+id*4)[static_cast<int>(_i)];
@@ -679,7 +687,7 @@ namespace neuron {
 
     static void nrn_init_heat_eqn_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_heat_eqn_array(_lmc);
+        auto inst = make_instance_heat_eqn_array(&_lmc);
         auto node_data = make_node_data_heat_eqn_array(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -706,7 +714,7 @@ namespace neuron {
 
     static void nrn_state_heat_eqn_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_heat_eqn_array(_lmc);
+        auto inst = make_instance_heat_eqn_array(&_lmc);
         auto node_data = make_node_data_heat_eqn_array(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -739,7 +747,7 @@ namespace neuron {
 
     static void nrn_jacob_heat_eqn_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_heat_eqn_array(_lmc);
+        auto inst = make_instance_heat_eqn_array(&_lmc);
         auto node_data = make_node_data_heat_eqn_array(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -752,7 +760,7 @@ namespace neuron {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_heat_eqn_array(_lmc);
+        auto inst = make_instance_heat_eqn_array(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_heat_eqn_array(prop);
 
     }
@@ -768,7 +776,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _heat_eqn_array_reg() {
         _initlists();
 

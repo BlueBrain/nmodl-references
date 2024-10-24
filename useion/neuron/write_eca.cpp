@@ -105,11 +105,15 @@ namespace neuron {
     };
 
 
-    static write_eca_Instance make_instance_write_eca(_nrn_mechanism_cache_range& _lmc) {
+    static write_eca_Instance make_instance_write_eca(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return write_eca_Instance();
+        }
+
         return write_eca_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template dptr_field_ptr<0>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template dptr_field_ptr<0>()
         };
     }
 
@@ -124,6 +128,10 @@ namespace neuron {
         };
     }
     static write_eca_NodeData make_node_data_write_eca(Prop * _prop) {
+        if(!_prop) {
+            return write_eca_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return write_eca_NodeData {
@@ -198,7 +206,7 @@ namespace neuron {
 
     static void nrn_init_write_eca(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_write_eca(_lmc);
+        auto inst = make_instance_write_eca(&_lmc);
         auto node_data = make_node_data_write_eca(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -214,7 +222,7 @@ namespace neuron {
 
     static void nrn_jacob_write_eca(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_write_eca(_lmc);
+        auto inst = make_instance_write_eca(&_lmc);
         auto node_data = make_node_data_write_eca(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -225,7 +233,7 @@ namespace neuron {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_write_eca(_lmc);
+        auto inst = make_instance_write_eca(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_write_eca(prop);
 
     }
@@ -235,7 +243,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _write_eca_reg() {
         _initlists();
 
