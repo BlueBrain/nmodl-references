@@ -27,7 +27,7 @@ NMODL Compiler  : VERSION
 #define NRN_VECTORIZED 0
 
 static constexpr auto number_of_datum_variables = 0;
-static constexpr auto number_of_floating_point_variables = 4;
+static constexpr auto number_of_floating_point_variables = 5;
 
 namespace {
 template <typename T>
@@ -119,6 +119,7 @@ namespace neuron {
         double* yy{};
         double* Dxx{};
         double* Dyy{};
+        double* v_unused{};
         lin_Store* global{&lin_global};
     };
 
@@ -141,7 +142,8 @@ namespace neuron {
             _lmc->template fpfield_ptr<0>(),
             _lmc->template fpfield_ptr<1>(),
             _lmc->template fpfield_ptr<2>(),
-            _lmc->template fpfield_ptr<3>()
+            _lmc->template fpfield_ptr<3>(),
+            _lmc->template fpfield_ptr<4>()
         };
     }
 
@@ -178,7 +180,7 @@ namespace neuron {
         Datum *_ppvar = nullptr;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const _iml = 0;
-        assert(_nrn_mechanism_get_num_vars(_prop) == 4);
+        assert(_nrn_mechanism_get_num_vars(_prop) == 5);
         /*initialize range parameters*/
     }
 
@@ -282,10 +284,11 @@ namespace neuron {
             _nrn_mechanism_field<double>{"xx"} /* 0 */,
             _nrn_mechanism_field<double>{"yy"} /* 1 */,
             _nrn_mechanism_field<double>{"Dxx"} /* 2 */,
-            _nrn_mechanism_field<double>{"Dyy"} /* 3 */
+            _nrn_mechanism_field<double>{"Dyy"} /* 3 */,
+            _nrn_mechanism_field<double>{"v_unused"} /* 4 */
         );
 
-        hoc_register_prop_size(mech_type, 4, 0);
+        hoc_register_prop_size(mech_type, 5, 0);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
     }
