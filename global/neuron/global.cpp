@@ -21,7 +21,6 @@ NMODL Compiler  : VERSION
 #include "neuron/cache/mechanism_range.hpp"
 #include "nrniv_mf.h"
 #include "section_fwd.hpp"
-extern void _nrn_thread_reg(int, int, void(*)(Datum*));
 
 /* NEURON global macro definitions */
 /* VECTORIZED */
@@ -76,8 +75,7 @@ namespace neuron {
 
     /** all global variables */
     struct global_Store {
-        double thread_data_in_use{0};
-        double thread_data[1] /* TODO init const-array */;
+        double gbl{0};
     };
     static_assert(std::is_trivially_copy_constructible_v<global_Store>);
     static_assert(std::is_trivially_move_constructible_v<global_Store>);
@@ -85,11 +83,8 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<global_Store>);
     static_assert(std::is_trivially_destructible_v<global_Store>);
     static global_Store global_global;
-    auto thread_data_in_use_global() -> std::decay<decltype(global_global.thread_data_in_use)>::type  {
-        return global_global.thread_data_in_use;
-    }
-    auto thread_data_global() -> std::decay<decltype(global_global.thread_data)>::type  {
-        return global_global.thread_data;
+    auto gbl_global() -> std::decay<decltype(global_global.gbl)>::type  {
+        return global_global.gbl;
     }
 
     static std::vector<double> _parameter_defaults = {
@@ -109,22 +104,6 @@ namespace neuron {
         double * node_diagonal;
         double * node_rhs;
         int nodecount;
-    };
-
-
-    struct global_ThreadVariables  {
-        double * thread_data;
-
-        double * gbl_ptr(size_t id) {
-            return thread_data + 0 + (id % 1);
-        }
-        double & gbl(size_t id) {
-            return thread_data[0 + (id % 1)];
-        }
-
-        global_ThreadVariables(double * const thread_data) {
-            this->thread_data = thread_data;
-        }
     };
 
 
@@ -177,8 +156,8 @@ namespace neuron {
 
 
     /* Mechanism procedures and functions */
-    inline static double get_gbl_global(_nrn_mechanism_cache_range& _lmc, global_Instance& inst, global_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, global_ThreadVariables& _thread_vars, NrnThread* nt);
-    inline static int set_gbl_global(_nrn_mechanism_cache_range& _lmc, global_Instance& inst, global_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, global_ThreadVariables& _thread_vars, NrnThread* nt, double _lvalue);
+    inline static double get_gbl_global(_nrn_mechanism_cache_range& _lmc, global_Instance& inst, global_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static int set_gbl_global(_nrn_mechanism_cache_range& _lmc, global_Instance& inst, global_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lvalue);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
 
@@ -197,7 +176,7 @@ namespace neuron {
 
     /** connect global (scalar) variables to hoc -- */
     static DoubScal hoc_scalar_double[] = {
-        {"gbl_global", &global_global.thread_data[0]},
+        {"gbl_global", &global_global.gbl},
         {nullptr, nullptr}
     };
 
@@ -227,24 +206,6 @@ namespace neuron {
         {"get_gbl", _npy_get_gbl},
         {nullptr, nullptr}
     };
-    static void thread_mem_init(Datum* _thread)  {
-        if(global_global.thread_data_in_use) {
-            _thread[0] = {neuron::container::do_not_search, new double[1]{}};
-        }
-        else {
-            _thread[0] = {neuron::container::do_not_search, global_global.thread_data};
-            global_global.thread_data_in_use = 1;
-        }
-    }
-    static void thread_mem_cleanup(Datum* _thread)  {
-        double * _thread_data_ptr = _thread[0].get<double*>();
-        if(_thread_data_ptr == global_global.thread_data) {
-            global_global.thread_data_in_use = 0;
-        }
-        else {
-            delete[] _thread_data_ptr;
-        }
-    }
     static void _hoc_set_gbl() {
         Datum* _ppvar;
         Datum* _thread;
@@ -257,10 +218,9 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_global(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_global(_local_prop);
-        auto _thread_vars = global_ThreadVariables(_thread[0].get<double*>());
         double _r = 0.0;
         _r = 1.;
-        set_gbl_global(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
+        set_gbl_global(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         hoc_retpushx(_r);
     }
     static double _npy_set_gbl(Prop* _prop) {
@@ -274,10 +234,9 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_global(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_global(_prop);
-        auto _thread_vars = global_ThreadVariables(_thread[0].get<double*>());
         double _r = 0.0;
         _r = 1.;
-        set_gbl_global(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
+        set_gbl_global(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
     static void _hoc_get_gbl() {
@@ -292,9 +251,8 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_global(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_global(_local_prop);
-        auto _thread_vars = global_ThreadVariables(_thread[0].get<double*>());
         double _r = 0.0;
-        _r = get_gbl_global(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt);
+        _r = get_gbl_global(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_get_gbl(Prop* _prop) {
@@ -308,25 +266,24 @@ namespace neuron {
         nt = nrn_threads;
         auto inst = make_instance_global(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_global(_prop);
-        auto _thread_vars = global_ThreadVariables(_thread[0].get<double*>());
         double _r = 0.0;
-        _r = get_gbl_global(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt);
+        _r = get_gbl_global(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
 
 
-    inline int set_gbl_global(_nrn_mechanism_cache_range& _lmc, global_Instance& inst, global_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, global_ThreadVariables& _thread_vars, NrnThread* nt, double _lvalue) {
+    inline int set_gbl_global(_nrn_mechanism_cache_range& _lmc, global_Instance& inst, global_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lvalue) {
         int ret_set_gbl = 0;
         double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
-        _thread_vars.gbl(id) = _lvalue;
+        inst.global->gbl = _lvalue;
         return ret_set_gbl;
     }
 
 
-    inline double get_gbl_global(_nrn_mechanism_cache_range& _lmc, global_Instance& inst, global_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, global_ThreadVariables& _thread_vars, NrnThread* nt) {
+    inline double get_gbl_global(_nrn_mechanism_cache_range& _lmc, global_Instance& inst, global_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         double ret_get_gbl = 0.0;
         double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
-        ret_get_gbl = _thread_vars.gbl(id);
+        ret_get_gbl = inst.global->gbl;
         return ret_get_gbl;
     }
 
@@ -336,7 +293,6 @@ namespace neuron {
         auto inst = make_instance_global(&_lmc);
         auto node_data = make_node_data_global(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
-        auto _thread_vars = global_ThreadVariables(_thread[0].get<double*>());
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
@@ -351,7 +307,6 @@ namespace neuron {
         auto inst = make_instance_global(&_lmc);
         auto node_data = make_node_data_global(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
-        auto _thread_vars = global_ThreadVariables(_thread[0].get<double*>());
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
@@ -362,7 +317,6 @@ namespace neuron {
         const size_t id = 0;
         auto inst = make_instance_global(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_global(prop);
-        auto _thread_vars = global_ThreadVariables(global_global.thread_data);
 
     }
 
@@ -374,10 +328,7 @@ namespace neuron {
     extern "C" void _global_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_global, nullptr, nullptr, nullptr, nrn_init_global, -1, 2);
-        _extcall_thread.resize(2);
-        thread_mem_init(_extcall_thread.data());
-        global_global.thread_data_in_use = 0;
+        register_mech(mechanism_info, nrn_alloc_global, nullptr, nullptr, nullptr, nrn_init_global, -1, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);
@@ -388,7 +339,5 @@ namespace neuron {
         hoc_register_prop_size(mech_type, 1, 0);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
-        _nrn_thread_reg(mech_type, 1, thread_mem_init);
-        _nrn_thread_reg(mech_type, 0, thread_mem_cleanup);
     }
 }
