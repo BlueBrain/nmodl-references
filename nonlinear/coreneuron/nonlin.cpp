@@ -2,7 +2,7 @@
 Model Name      : nonlin
 Filename        : nonlin.mod
 NMODL Version   : 7.7.0
-Vectorized      : true
+Vectorized      : false
 Threadsafe      : true
 Created         : DATE
 Simulator       : CoreNEURON
@@ -447,7 +447,6 @@ namespace coreneuron {
     struct nonlin_Instance  {
         double* x{};
         double* Dx{};
-        double* v_unused{};
         nonlin_Store* global{&nonlin_global};
     };
 
@@ -475,7 +474,7 @@ namespace coreneuron {
 
 
     static inline int float_variables_size() {
-        return 3;
+        return 2;
     }
 
 
@@ -552,7 +551,6 @@ namespace coreneuron {
         Datum* indexes = ml->pdata;
         inst->x = ml->data+0*pnodecount;
         inst->Dx = ml->data+1*pnodecount;
-        inst->v_unused = ml->data+2*pnodecount;
     }
 
 
@@ -675,9 +673,6 @@ namespace coreneuron {
             for (int id = 0; id < nodecount; id++) {
                 int node_id = node_index[id];
                 double v = voltage[node_id];
-                #if NRN_PRCELLSTATE
-                inst->v_unused[id] = v;
-                #endif
                 inst->x[id] = inst->global->x0;
             }
         }
@@ -694,7 +689,7 @@ namespace coreneuron {
         }
 
         _nrn_layout_reg(mech_type, 0);
-        register_mech(mechanism_info, nrn_alloc_nonlin, nullptr, nullptr, nullptr, nrn_init_nonlin, nrn_private_constructor_nonlin, nrn_private_destructor_nonlin, first_pointer_var_index(), 1);
+        register_mech(mechanism_info, nrn_alloc_nonlin, nullptr, nullptr, nullptr, nrn_init_nonlin, nrn_private_constructor_nonlin, nrn_private_destructor_nonlin, first_pointer_var_index(), 0);
 
         hoc_register_prop_size(mech_type, float_variables_size(), int_variables_size());
         hoc_register_var(hoc_scalar_double, hoc_vector_double, NULL);

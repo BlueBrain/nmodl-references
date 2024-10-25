@@ -2,7 +2,7 @@
 Model Name      : state_ode
 Filename        : state_ode.mod
 NMODL Version   : 7.7.0
-Vectorized      : true
+Vectorized      : false
 Threadsafe      : true
 Created         : DATE
 Simulator       : NEURON
@@ -407,8 +407,8 @@ EIGEN_DEVICE_FUNC int newton_solver(Eigen::Matrix<double, 4, 1>& X,
 #include "section_fwd.hpp"
 
 /* NEURON global macro definitions */
-/* VECTORIZED */
-#define NRN_VECTORIZED 1
+/* NOT VECTORIZED */
+#define NRN_VECTORIZED 0
 
 static constexpr auto number_of_datum_variables = 0;
 static constexpr auto number_of_floating_point_variables = 5;
@@ -483,7 +483,7 @@ namespace neuron {
         double* X{};
         double* DX{};
         double* v_unused{};
-        double* g_unused{};
+        double* g{};
         state_ode_Store* global{&state_ode_global};
     };
 
@@ -708,7 +708,7 @@ namespace neuron {
             double rhs = I0;
             double g = (I1-I0)/0.001;
             node_data.node_rhs[node_id] -= rhs;
-            inst.g_unused[id] = g;
+            inst.g[id] = g;
         }
     }
 
@@ -748,7 +748,7 @@ namespace neuron {
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
-            node_data.node_diagonal[node_id] += inst.g_unused[id];
+            node_data.node_diagonal[node_id] += inst.g[id];
         }
     }
     static void nrn_destructor_state_ode(Prop* prop) {
@@ -777,7 +777,7 @@ namespace neuron {
             _nrn_mechanism_field<double>{"X"} /* 1 */,
             _nrn_mechanism_field<double>{"DX"} /* 2 */,
             _nrn_mechanism_field<double>{"v_unused"} /* 3 */,
-            _nrn_mechanism_field<double>{"g_unused"} /* 4 */
+            _nrn_mechanism_field<double>{"g"} /* 4 */
         );
 
         hoc_register_prop_size(mech_type, 5, 0);
