@@ -241,15 +241,16 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.g[id] = 0.0;
         }
     }
 
 
     static inline double nrn_current_SnapSyn(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, SnapSyn_Instance& inst, SnapSyn_NodeData& node_data, double v) {
+        inst.v_unused[id] = v;
         double current = 0.0;
-        inst.i[id] = inst.g[id] * (v - inst.e[id]);
+        inst.i[id] = inst.g[id] * (inst.v_unused[id] - inst.e[id]);
         current += inst.i[id];
         return current;
     }
@@ -288,7 +289,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
         }
     }
 

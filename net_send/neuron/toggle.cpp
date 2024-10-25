@@ -232,7 +232,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.y[id] = 0.0;
             net_send(/* tqitem */ &_ppvar[2], nullptr, _ppvar[1].get<Point_process*>(), nt->_t + 2.001, 1.0);
         }

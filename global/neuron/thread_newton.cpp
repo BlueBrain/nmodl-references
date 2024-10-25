@@ -601,7 +601,6 @@ namespace neuron {
         Datum* _thread;
         thread_newton_ThreadVariables& _thread_vars;
         NrnThread* nt;
-        double v;
         double source0_, old_X;
 
         void initialize() {
@@ -609,8 +608,8 @@ namespace neuron {
             old_X = inst.X[id];
         }
 
-        functor_thread_newton_0(_nrn_mechanism_cache_range& _lmc, thread_newton_Instance& inst, thread_newton_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, thread_newton_ThreadVariables& _thread_vars, NrnThread* nt, double v)
-            : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), _thread_vars(_thread_vars), nt(nt), v(v)
+        functor_thread_newton_0(_nrn_mechanism_cache_range& _lmc, thread_newton_Instance& inst, thread_newton_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, thread_newton_ThreadVariables& _thread_vars, NrnThread* nt)
+            : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), _thread_vars(_thread_vars), nt(nt)
         {}
         void operator()(const Eigen::Matrix<double, 1, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_dxm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
@@ -681,7 +680,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.X[id] = inst.global->X0;
             double total;
             inst.X[id] = 0.0;
@@ -700,13 +699,13 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             
             Eigen::Matrix<double, 1, 1> nmodl_eigen_xm;
             double* nmodl_eigen_x = nmodl_eigen_xm.data();
             nmodl_eigen_x[static_cast<int>(0)] = inst.X[id];
             // call newton solver
-            functor_thread_newton_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, v);
+            functor_thread_newton_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");

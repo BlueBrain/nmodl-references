@@ -347,15 +347,16 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
         }
     }
 
 
     static inline double nrn_current_func_in_breakpoint(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, func_in_breakpoint_Instance& inst, func_in_breakpoint_NodeData& node_data, double v) {
+        inst.v_unused[id] = v;
         double current = 0.0;
         func_func_in_breakpoint(_lmc, inst, node_data, id, _ppvar, _thread, nt);
-        func_with_v_func_in_breakpoint(_lmc, inst, node_data, id, _ppvar, _thread, nt, v);
+        func_with_v_func_in_breakpoint(_lmc, inst, node_data, id, _ppvar, _thread, nt, inst.v_unused[id]);
         func_with_other_func_in_breakpoint(_lmc, inst, node_data, id, _ppvar, _thread, nt, inst.global->c);
         current += inst.il[id];
         return current;
@@ -392,7 +393,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
         }
     }
 

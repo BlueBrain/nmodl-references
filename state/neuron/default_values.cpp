@@ -251,7 +251,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.X[id] = inst.global->X0;
             inst.Y[id] = inst.global->Y0;
             inst.Z[id] = inst.global->Z0;
