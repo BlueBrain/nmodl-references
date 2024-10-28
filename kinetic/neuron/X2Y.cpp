@@ -911,7 +911,7 @@ namespace neuron {
             _nrn_mechanism_field<double>{"i"} /* 7 */,
             _nrn_mechanism_field<double>{"v_unused"} /* 8 */,
             _nrn_mechanism_field<double>{"g_unused"} /* 9 */,
-            _nrn_mechanism_field<int>{"_cvode_ieq", "cvodeieq"} /* 0 */
+            _nrn_mechanism_field<int>{"cvode_ieq", "cvodeieq"} /* 0 */
         );
 
         hoc_register_prop_size(mech_type, 10, 1);

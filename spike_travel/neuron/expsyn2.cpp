@@ -437,7 +437,7 @@ namespace neuron {
             _nrn_mechanism_field<double>{"tsave"} /* 7 */,
             _nrn_mechanism_field<double*>{"node_area", "area"} /* 0 */,
             _nrn_mechanism_field<Point_process*>{"point_process", "pntproc"} /* 1 */,
-            _nrn_mechanism_field<int>{"_cvode_ieq", "cvodeieq"} /* 2 */
+            _nrn_mechanism_field<int>{"cvode_ieq", "cvodeieq"} /* 2 */
         );
 
         hoc_register_prop_size(mech_type, 8, 3);
