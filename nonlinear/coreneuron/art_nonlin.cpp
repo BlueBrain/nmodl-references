@@ -2,7 +2,7 @@
 Model Name      : art_nonlin
 Filename        : art_nonlin.mod
 NMODL Version   : 7.7.0
-Vectorized      : false
+Vectorized      : true
 Threadsafe      : true
 Created         : DATE
 Simulator       : CoreNEURON
@@ -448,6 +448,7 @@ namespace coreneuron {
     struct art_nonlin_Instance  {
         double* x{};
         double* Dx{};
+        double* v_unused{};
         const double* node_area{};
         void** point_process{};
         art_nonlin_Store* global{&art_nonlin_global};
@@ -477,7 +478,7 @@ namespace coreneuron {
 
 
     static inline int float_variables_size() {
-        return 2;
+        return 3;
     }
 
 
@@ -554,6 +555,7 @@ namespace coreneuron {
         Datum* indexes = ml->pdata;
         inst->x = ml->data+0*pnodecount;
         inst->Dx = ml->data+1*pnodecount;
+        inst->v_unused = ml->data+2*pnodecount;
         inst->node_area = nt->_data;
         inst->point_process = nt->_vdata;
     }
@@ -693,7 +695,7 @@ namespace coreneuron {
         }
 
         _nrn_layout_reg(mech_type, 0);
-        point_register_mech(mechanism_info, nrn_alloc_art_nonlin, nullptr, nullptr, nullptr, nrn_init_art_nonlin, nrn_private_constructor_art_nonlin, nrn_private_destructor_art_nonlin, first_pointer_var_index(), nullptr, nullptr, 0);
+        point_register_mech(mechanism_info, nrn_alloc_art_nonlin, nullptr, nullptr, nullptr, nrn_init_art_nonlin, nrn_private_constructor_art_nonlin, nrn_private_destructor_art_nonlin, first_pointer_var_index(), nullptr, nullptr, 1);
 
         hoc_register_prop_size(mech_type, float_variables_size(), int_variables_size());
         hoc_register_dparam_semantics(mech_type, 0, "area");
