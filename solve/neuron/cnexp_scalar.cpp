@@ -231,7 +231,7 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages[node_id];
-            inst.x[id] = inst.x[id] + (1.0 - exp(nt->_dt * ( -1.0))) * ( -(0.0) / ( -1.0) - inst.x[id]);
+            inst.x[id] = inst.x[id] * exp( -nt->_dt);
         }
     }
 
