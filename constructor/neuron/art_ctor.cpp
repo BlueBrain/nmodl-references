@@ -21,7 +21,6 @@ NMODL Compiler  : VERSION
 #include "neuron/cache/mechanism_range.hpp"
 #include "nrniv_mf.h"
 #include "section_fwd.hpp"
-extern void _nrn_thread_reg(int, int, void(*)(Datum*));
 
 /* NEURON global macro definitions */
 /* VECTORIZED */
@@ -75,8 +74,8 @@ namespace neuron {
 
     /** all global variables */
     struct art_ctor_Store {
-        double thread_data_in_use{0};
-        double thread_data[2] /* TODO init const-array */;
+        double ctor_calls{0};
+        double dtor_calls{0};
     };
     static_assert(std::is_trivially_copy_constructible_v<art_ctor_Store>);
     static_assert(std::is_trivially_move_constructible_v<art_ctor_Store>);
@@ -84,11 +83,11 @@ namespace neuron {
     static_assert(std::is_trivially_move_assignable_v<art_ctor_Store>);
     static_assert(std::is_trivially_destructible_v<art_ctor_Store>);
     static art_ctor_Store art_ctor_global;
-    auto thread_data_in_use_art_ctor() -> std::decay<decltype(art_ctor_global.thread_data_in_use)>::type  {
-        return art_ctor_global.thread_data_in_use;
+    auto ctor_calls_art_ctor() -> std::decay<decltype(art_ctor_global.ctor_calls)>::type  {
+        return art_ctor_global.ctor_calls;
     }
-    auto thread_data_art_ctor() -> std::decay<decltype(art_ctor_global.thread_data)>::type  {
-        return art_ctor_global.thread_data;
+    auto dtor_calls_art_ctor() -> std::decay<decltype(art_ctor_global.dtor_calls)>::type  {
+        return art_ctor_global.dtor_calls;
     }
 
     static std::vector<double> _parameter_defaults = {
@@ -109,28 +108,6 @@ namespace neuron {
         double * node_diagonal;
         double * node_rhs;
         int nodecount;
-    };
-
-
-    struct art_ctor_ThreadVariables  {
-        double * thread_data;
-
-        double * ctor_calls_ptr(size_t id) {
-            return thread_data + 0 + (id % 1);
-        }
-        double & ctor_calls(size_t id) {
-            return thread_data[0 + (id % 1)];
-        }
-        double * dtor_calls_ptr(size_t id) {
-            return thread_data + 1 + (id % 1);
-        }
-        double & dtor_calls(size_t id) {
-            return thread_data[1 + (id % 1)];
-        }
-
-        art_ctor_ThreadVariables(double * const thread_data) {
-            this->thread_data = thread_data;
-        }
     };
 
 
@@ -228,8 +205,8 @@ namespace neuron {
 
     /** connect global (scalar) variables to hoc -- */
     static DoubScal hoc_scalar_double[] = {
-        {"ctor_calls_art_ctor", &art_ctor_global.thread_data[0]},
-        {"dtor_calls_art_ctor", &art_ctor_global.thread_data[1]},
+        {"ctor_calls_art_ctor", &art_ctor_global.ctor_calls},
+        {"dtor_calls_art_ctor", &art_ctor_global.dtor_calls},
         {nullptr, nullptr}
     };
 
@@ -253,31 +230,12 @@ namespace neuron {
         {"get_loc", _hoc_get_loc_pnt},
         {nullptr, nullptr}
     };
-    static void thread_mem_init(Datum* _thread)  {
-        if(art_ctor_global.thread_data_in_use) {
-            _thread[0] = {neuron::container::do_not_search, new double[2]{}};
-        }
-        else {
-            _thread[0] = {neuron::container::do_not_search, art_ctor_global.thread_data};
-            art_ctor_global.thread_data_in_use = 1;
-        }
-    }
-    static void thread_mem_cleanup(Datum* _thread)  {
-        double * _thread_data_ptr = _thread[0].get<double*>();
-        if(_thread_data_ptr == art_ctor_global.thread_data) {
-            art_ctor_global.thread_data_in_use = 0;
-        }
-        else {
-            delete[] _thread_data_ptr;
-        }
-    }
 
 
     static void nrn_init_art_ctor(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_art_ctor(&_lmc);
         auto* _thread = _ml_arg->_thread;
-        auto _thread_vars = art_ctor_ThreadVariables(_thread[0].get<double*>());
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
@@ -289,7 +247,6 @@ namespace neuron {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_art_ctor(&_lmc);
         auto* _thread = _ml_arg->_thread;
-        auto _thread_vars = art_ctor_ThreadVariables(_thread[0].get<double*>());
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
@@ -299,18 +256,16 @@ namespace neuron {
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
         auto inst = make_instance_art_ctor(prop ? &_lmc : nullptr);
-        auto _thread_vars = art_ctor_ThreadVariables(art_ctor_global.thread_data);
 
-        _thread_vars.ctor_calls(id) = _thread_vars.ctor_calls(id) + 1.0;
+        inst.global->ctor_calls = inst.global->ctor_calls + 1.0;
     }
     static void nrn_destructor_art_ctor(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
         auto inst = make_instance_art_ctor(prop ? &_lmc : nullptr);
-        auto _thread_vars = art_ctor_ThreadVariables(art_ctor_global.thread_data);
 
-        _thread_vars.dtor_calls(id) = _thread_vars.dtor_calls(id) + 1.0;
+        inst.global->dtor_calls = inst.global->dtor_calls + 1.0;
     }
 
 
@@ -321,11 +276,8 @@ namespace neuron {
     extern "C" void _art_ctor_reg() {
         _initlists();
 
-        _pointtype = point_register_mech(mechanism_info, nrn_alloc_art_ctor, nullptr, nullptr, nullptr, nrn_init_art_ctor, -1, 2, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
+        _pointtype = point_register_mech(mechanism_info, nrn_alloc_art_ctor, nullptr, nullptr, nullptr, nrn_init_art_ctor, -1, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
         register_destructor(nrn_destructor_art_ctor);
-        _extcall_thread.resize(2);
-        thread_mem_init(_extcall_thread.data());
-        art_ctor_global.thread_data_in_use = 0;
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);
@@ -340,7 +292,5 @@ namespace neuron {
         hoc_register_dparam_semantics(mech_type, 1, "pntproc");
         add_nrn_artcell(mech_type, 0);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
-        _nrn_thread_reg(mech_type, 1, thread_mem_init);
-        _nrn_thread_reg(mech_type, 0, thread_mem_cleanup);
     }
 }

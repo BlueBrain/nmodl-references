@@ -594,6 +594,17 @@ namespace neuron {
     }
 
 
+    static void ode_setup_tolerances_heat_eqn_array(Prop* _prop, int equation_index, neuron::container::data_handle<double>* _pv, neuron::container::data_handle<double>* _pvdot, double* _atol, int _type) {
+        auto* _ppvar = _nrn_mechanism_access_dparam(_prop);
+        _ppvar[0].literal_value<int>() = equation_index;
+        for (int i = 0; i < ode_count_heat_eqn_array(0); i++) {
+            _pv[i] = _nrn_mechanism_get_param_handle(_prop, _slist1[i]);
+            _pvdot[i] = _nrn_mechanism_get_param_handle(_prop, _dlist1[i]);
+            _cvode_abstol(_atollist, _atol, i);
+        }
+    }
+
+
     static int ode_update_nonstiff_heat_eqn_array(_nrn_mechanism_cache_range& _lmc, heat_eqn_array_Instance& inst, heat_eqn_array_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         double kf0_, kb0_, kf1_, kb1_, kf2_, kb2_;
@@ -614,32 +625,7 @@ namespace neuron {
     }
 
 
-    static void ode_setup_nonstiff_heat_eqn_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_heat_eqn_array(&_lmc);
-        auto nodecount = _ml_arg->nodecount;
-        auto node_data = make_node_data_heat_eqn_array(*nt, *_ml_arg);
-        auto* _thread = _ml_arg->_thread;
-        for (int id = 0; id < nodecount; id++) {
-            auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
-            ode_update_nonstiff_heat_eqn_array(_lmc, inst, node_data, id, _ppvar, _thread, nt);
-        }
-    }
-
-
-    static void ode_setup_tolerances_heat_eqn_array(Prop* _prop, int equation_index, neuron::container::data_handle<double>* _pv, neuron::container::data_handle<double>* _pvdot, double* _atol, int _type) {
-        auto* _ppvar = _nrn_mechanism_access_dparam(_prop);
-        _ppvar[0].literal_value<int>() = equation_index;
-        for (int i = 0; i < ode_count_heat_eqn_array(0); i++) {
-            _pv[i] = _nrn_mechanism_get_param_handle(_prop, _slist1[i]);
-            _pvdot[i] = _nrn_mechanism_get_param_handle(_prop, _dlist1[i]);
-            _cvode_abstol(_atollist, _atol, i);
-        }
-    }
-
-
-    static void ode_update_stiff_heat_eqn_array(_nrn_mechanism_cache_range& _lmc, heat_eqn_array_Instance& inst, heat_eqn_array_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+    static int ode_update_stiff_heat_eqn_array(_nrn_mechanism_cache_range& _lmc, heat_eqn_array_Instance& inst, heat_eqn_array_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         double kf0_, kb0_, kf1_, kb1_, kf2_, kb2_;
         ;
@@ -655,21 +641,38 @@ namespace neuron {
         (inst.DX+id*4)[static_cast<int>(1)] = (inst.DX+id*4)[static_cast<int>(1)] / (1.0 - nt->_dt * (( -kb0_ - kf1_) / (inst.vol+id*4)[static_cast<int>(1)]));
         (inst.DX+id*4)[static_cast<int>(2)] = (inst.DX+id*4)[static_cast<int>(2)] / (1.0 - nt->_dt * (( -kb1_ - kf2_) / (inst.vol+id*4)[static_cast<int>(2)]));
         (inst.DX+id*4)[static_cast<int>(3)] = (inst.DX+id*4)[static_cast<int>(3)] / (1.0 - nt->_dt * ( -kb2_ / (inst.vol+id*4)[static_cast<int>(3)]));
+        return 0;
+    }
+
+
+    static void ode_setup_nonstiff_heat_eqn_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_heat_eqn_array(&_lmc);
+        auto node_data = make_node_data_heat_eqn_array(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
+        for (int id = 0; id < nodecount; id++) {
+            auto* _ppvar = _ml_arg->pdata[id];
+            auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
+            ode_update_nonstiff_heat_eqn_array(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        }
     }
 
 
     static void ode_setup_stiff_heat_eqn_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_heat_eqn_array(&_lmc);
-        auto nodecount = _ml_arg->nodecount;
         auto node_data = make_node_data_heat_eqn_array(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
             ode_update_stiff_heat_eqn_array(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         }
     }
+
+
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {

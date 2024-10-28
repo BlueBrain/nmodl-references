@@ -594,30 +594,6 @@ namespace neuron {
     }
 
 
-    static int ode_update_nonstiff_thread_newton(_nrn_mechanism_cache_range& _lmc, thread_newton_Instance& inst, thread_newton_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, thread_newton_ThreadVariables& _thread_vars) {
-        auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
-        double source0_;
-        source0_ = _thread_vars.c(id);
-        inst.DX[id] = (source0_);
-        return 0;
-    }
-
-
-    static void ode_setup_nonstiff_thread_newton(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_thread_newton(&_lmc);
-        auto nodecount = _ml_arg->nodecount;
-        auto node_data = make_node_data_thread_newton(*nt, *_ml_arg);
-        auto* _thread = _ml_arg->_thread;
-        auto _thread_vars = thread_newton_ThreadVariables(_thread[0].get<double*>());
-        for (int id = 0; id < nodecount; id++) {
-            auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
-            ode_update_nonstiff_thread_newton(_lmc, inst, node_data, id, _ppvar, _thread, nt, _thread_vars);
-        }
-    }
-
-
     static void ode_setup_tolerances_thread_newton(Prop* _prop, int equation_index, neuron::container::data_handle<double>* _pv, neuron::container::data_handle<double>* _pvdot, double* _atol, int _type) {
         auto* _ppvar = _nrn_mechanism_access_dparam(_prop);
         _ppvar[0].literal_value<int>() = equation_index;
@@ -629,27 +605,54 @@ namespace neuron {
     }
 
 
-    static void ode_update_stiff_thread_newton(_nrn_mechanism_cache_range& _lmc, thread_newton_Instance& inst, thread_newton_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, thread_newton_ThreadVariables& _thread_vars) {
+    static int ode_update_nonstiff_thread_newton(_nrn_mechanism_cache_range& _lmc, thread_newton_Instance& inst, thread_newton_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, thread_newton_ThreadVariables& _thread_vars) {
+        auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
+        double source0_;
+        source0_ = _thread_vars.c(id);
+        inst.DX[id] = (source0_);
+        return 0;
+    }
+
+
+    static int ode_update_stiff_thread_newton(_nrn_mechanism_cache_range& _lmc, thread_newton_Instance& inst, thread_newton_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, thread_newton_ThreadVariables& _thread_vars) {
         auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         double source0_;
         source0_ = _thread_vars.c(id);
         inst.DX[id] = inst.DX[id] / (1.0 - nt->_dt * (0.0));
+        return 0;
+    }
+
+
+    static void ode_setup_nonstiff_thread_newton(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_thread_newton(&_lmc);
+        auto node_data = make_node_data_thread_newton(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
+        auto _thread_vars = thread_newton_ThreadVariables(_thread[0].get<double*>());
+        auto nodecount = _ml_arg->nodecount;
+        for (int id = 0; id < nodecount; id++) {
+            auto* _ppvar = _ml_arg->pdata[id];
+            auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
+            ode_update_nonstiff_thread_newton(_lmc, inst, node_data, id, _ppvar, _thread, nt, _thread_vars);
+        }
     }
 
 
     static void ode_setup_stiff_thread_newton(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_thread_newton(&_lmc);
-        auto nodecount = _ml_arg->nodecount;
         auto node_data = make_node_data_thread_newton(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto _thread_vars = thread_newton_ThreadVariables(_thread[0].get<double*>());
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
             ode_update_stiff_thread_newton(_lmc, inst, node_data, id, _ppvar, _thread, nt, _thread_vars);
         }
     }
+
+
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {

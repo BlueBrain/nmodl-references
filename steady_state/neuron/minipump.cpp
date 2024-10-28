@@ -608,6 +608,17 @@ namespace neuron {
     }
 
 
+    static void ode_setup_tolerances_minipump(Prop* _prop, int equation_index, neuron::container::data_handle<double>* _pv, neuron::container::data_handle<double>* _pvdot, double* _atol, int _type) {
+        auto* _ppvar = _nrn_mechanism_access_dparam(_prop);
+        _ppvar[0].literal_value<int>() = equation_index;
+        for (int i = 0; i < ode_count_minipump(0); i++) {
+            _pv[i] = _nrn_mechanism_get_param_handle(_prop, _slist1[i]);
+            _pvdot[i] = _nrn_mechanism_get_param_handle(_prop, _dlist1[i]);
+            _cvode_abstol(_atollist, _atol, i);
+        }
+    }
+
+
     static int ode_update_nonstiff_minipump(_nrn_mechanism_cache_range& _lmc, minipump_Instance& inst, minipump_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         double kf0_, kb0_;
@@ -620,12 +631,24 @@ namespace neuron {
     }
 
 
+    static int ode_update_stiff_minipump(_nrn_mechanism_cache_range& _lmc, minipump_Instance& inst, minipump_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+        auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
+        double kf0_, kb0_;
+        kf0_ = inst.global->kf;
+        kb0_ = inst.global->kb;
+        inst.DX[id] = inst.DX[id] / (1.0 - nt->_dt * ( -inst.Y[id] * kf0_ / inst.global->volA));
+        inst.DY[id] = inst.DY[id] / (1.0 - nt->_dt * ( -inst.X[id] * kf0_ / inst.global->volB));
+        inst.DZ[id] = inst.DZ[id] / (1.0 - nt->_dt * ( -kb0_ / inst.global->volC));
+        return 0;
+    }
+
+
     static void ode_setup_nonstiff_minipump(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_minipump(&_lmc);
-        auto nodecount = _ml_arg->nodecount;
         auto node_data = make_node_data_minipump(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
@@ -634,40 +657,20 @@ namespace neuron {
     }
 
 
-    static void ode_setup_tolerances_minipump(Prop* _prop, int equation_index, neuron::container::data_handle<double>* _pv, neuron::container::data_handle<double>* _pvdot, double* _atol, int _type) {
-        auto* _ppvar = _nrn_mechanism_access_dparam(_prop);
-        _ppvar[0].literal_value<int>() = equation_index;
-        for (int i = 0; i < ode_count_minipump(0); i++) {
-            _pv[i] = _nrn_mechanism_get_param_handle(_prop, _slist1[i]);
-            _pvdot[i] = _nrn_mechanism_get_param_handle(_prop, _dlist1[i]);
-            _cvode_abstol(_atollist, _atol, i);
-        }
-    }
-
-
-    static void ode_update_stiff_minipump(_nrn_mechanism_cache_range& _lmc, minipump_Instance& inst, minipump_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
-        auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
-        double kf0_, kb0_;
-        kf0_ = inst.global->kf;
-        kb0_ = inst.global->kb;
-        inst.DX[id] = inst.DX[id] / (1.0 - nt->_dt * ( -inst.Y[id] * kf0_ / inst.global->volA));
-        inst.DY[id] = inst.DY[id] / (1.0 - nt->_dt * ( -inst.X[id] * kf0_ / inst.global->volB));
-        inst.DZ[id] = inst.DZ[id] / (1.0 - nt->_dt * ( -kb0_ / inst.global->volC));
-    }
-
-
     static void ode_setup_stiff_minipump(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
         auto inst = make_instance_minipump(&_lmc);
-        auto nodecount = _ml_arg->nodecount;
         auto node_data = make_node_data_minipump(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
             ode_update_stiff_minipump(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         }
     }
+
+
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {
