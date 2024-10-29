@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : leonhard
-Filename        : leonhard.mod
+Model Name      : ode
+Filename        : ode.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -27,7 +27,7 @@ NMODL Compiler  : VERSION
 #define NRN_VECTORIZED 1
 
 static constexpr auto number_of_datum_variables = 0;
-static constexpr auto number_of_floating_point_variables = 4;
+static constexpr auto number_of_floating_point_variables = 3;
 
 namespace {
 template <typename T>
@@ -57,10 +57,9 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "leonhard",
-        "c_leonhard",
+        "ode",
         0,
-        "il_leonhard",
+        "il_ode",
         0,
         0,
         0
@@ -76,30 +75,28 @@ namespace neuron {
 
 
     /** all global variables */
-    struct leonhard_Store {
+    struct ode_Store {
     };
-    static_assert(std::is_trivially_copy_constructible_v<leonhard_Store>);
-    static_assert(std::is_trivially_move_constructible_v<leonhard_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<leonhard_Store>);
-    static_assert(std::is_trivially_move_assignable_v<leonhard_Store>);
-    static_assert(std::is_trivially_destructible_v<leonhard_Store>);
-    static leonhard_Store leonhard_global;
+    static_assert(std::is_trivially_copy_constructible_v<ode_Store>);
+    static_assert(std::is_trivially_move_constructible_v<ode_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<ode_Store>);
+    static_assert(std::is_trivially_move_assignable_v<ode_Store>);
+    static_assert(std::is_trivially_destructible_v<ode_Store>);
+    static ode_Store ode_global;
     static std::vector<double> _parameter_defaults = {
-        0.005 /* c */
     };
 
 
     /** all mechanism instance variables and global variables */
-    struct leonhard_Instance  {
-        double* c{};
+    struct ode_Instance  {
         double* il{};
         double* v_unused{};
         double* g_unused{};
-        leonhard_Store* global{&leonhard_global};
+        ode_Store* global{&ode_global};
     };
 
 
-    struct leonhard_NodeData  {
+    struct ode_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -108,22 +105,21 @@ namespace neuron {
     };
 
 
-    static leonhard_Instance make_instance_leonhard(_nrn_mechanism_cache_range* _lmc) {
+    static ode_Instance make_instance_ode(_nrn_mechanism_cache_range* _lmc) {
         if(_lmc == nullptr) {
-            return leonhard_Instance();
+            return ode_Instance();
         }
 
-        return leonhard_Instance {
+        return ode_Instance {
             _lmc->template fpfield_ptr<0>(),
             _lmc->template fpfield_ptr<1>(),
-            _lmc->template fpfield_ptr<2>(),
-            _lmc->template fpfield_ptr<3>()
+            _lmc->template fpfield_ptr<2>()
         };
     }
 
 
-    static leonhard_NodeData make_node_data_leonhard(NrnThread& nt, Memb_list& _ml_arg) {
-        return leonhard_NodeData {
+    static ode_NodeData make_node_data_ode(NrnThread& nt, Memb_list& _ml_arg) {
+        return ode_NodeData {
             _ml_arg.nodeindices,
             nt.node_voltage_storage(),
             nt.node_d_storage(),
@@ -131,14 +127,14 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
-    static leonhard_NodeData make_node_data_leonhard(Prop * _prop) {
+    static ode_NodeData make_node_data_ode(Prop * _prop) {
         if(!_prop) {
-            return leonhard_NodeData();
+            return ode_NodeData();
         }
 
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
-        return leonhard_NodeData {
+        return ode_NodeData {
             node_index.data(),
             &_nrn_mechanism_access_voltage(_node),
             &_nrn_mechanism_access_d(_node),
@@ -147,20 +143,20 @@ namespace neuron {
         };
     }
 
-    static void nrn_destructor_leonhard(Prop* prop);
+    static void nrn_destructor_ode(Prop* prop);
 
 
-    static void nrn_alloc_leonhard(Prop* _prop) {
+    static void nrn_alloc_ode(Prop* _prop) {
         Datum *_ppvar = nullptr;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const _iml = 0;
-        assert(_nrn_mechanism_get_num_vars(_prop) == 4);
+        assert(_nrn_mechanism_get_num_vars(_prop) == 3);
         /*initialize range parameters*/
-        _lmc.template fpfield<0>(_iml) = _parameter_defaults[0]; /* c */
     }
 
 
     /* Mechanism procedures and functions */
+    inline static double voltage_ode(_nrn_mechanism_cache_range& _lmc, ode_Instance& inst, ode_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
 
@@ -190,22 +186,65 @@ namespace neuron {
 
 
     /* declaration of user functions */
+    static void _hoc_voltage();
+    static double _npy_voltage(Prop* _prop);
 
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
-        {"setdata_leonhard", _hoc_setdata},
+        {"setdata_ode", _hoc_setdata},
+        {"voltage_ode", _hoc_voltage},
         {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
+        {"voltage", _npy_voltage},
         {nullptr, nullptr}
     };
+    static void _hoc_voltage() {
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
+        _nrn_mechanism_cache_instance _lmc{_local_prop};
+        size_t const id{};
+        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
+        _thread = _extcall_thread.data();
+        nt = nrn_threads;
+        auto inst = make_instance_ode(_local_prop ? &_lmc : nullptr);
+        auto node_data = make_node_data_ode(_local_prop);
+        double _r = 0.0;
+        _r = voltage_ode(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        hoc_retpushx(_r);
+    }
+    static double _npy_voltage(Prop* _prop) {
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        _nrn_mechanism_cache_instance _lmc{_prop};
+        size_t const id = 0;
+        _ppvar = _nrn_mechanism_access_dparam(_prop);
+        _thread = _extcall_thread.data();
+        nt = nrn_threads;
+        auto inst = make_instance_ode(_prop ? &_lmc : nullptr);
+        auto node_data = make_node_data_ode(_prop);
+        double _r = 0.0;
+        _r = voltage_ode(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        return(_r);
+    }
 
 
-    static void nrn_init_leonhard(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    inline double voltage_ode(_nrn_mechanism_cache_range& _lmc, ode_Instance& inst, ode_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+        double ret_voltage = 0.0;
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
+        ret_voltage = 0.001 * inst.v_unused[id];
+        return ret_voltage;
+    }
+
+
+    static void nrn_init_ode(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_leonhard(&_lmc);
-        auto node_data = make_node_data_leonhard(*nt, *_ml_arg);
+        auto inst = make_instance_ode(&_lmc);
+        auto node_data = make_node_data_ode(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         #pragma omp simd
@@ -218,20 +257,20 @@ namespace neuron {
     }
 
 
-    static inline double nrn_current_leonhard(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, leonhard_Instance& inst, leonhard_NodeData& node_data, double v) {
+    static inline double nrn_current_ode(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, ode_Instance& inst, ode_NodeData& node_data, double v) {
         inst.v_unused[id] = v;
         double current = 0.0;
-        inst.il[id] = inst.c[id] * (inst.v_unused[id] - 1.5);
+        inst.il[id] = voltage_ode(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         current += inst.il[id];
         return current;
     }
 
 
     /** update current */
-    static void nrn_cur_leonhard(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_cur_ode(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_leonhard(&_lmc);
-        auto node_data = make_node_data_leonhard(*nt, *_ml_arg);
+        auto inst = make_instance_ode(&_lmc);
+        auto node_data = make_node_data_ode(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         #pragma omp simd
@@ -240,8 +279,8 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             double v = node_data.node_voltages[node_id];
             auto* _ppvar = _ml_arg->pdata[id];
-            double I1 = nrn_current_leonhard(_lmc, nt, _ppvar, _thread, id, inst, node_data, v+0.001);
-            double I0 = nrn_current_leonhard(_lmc, nt, _ppvar, _thread, id, inst, node_data, v);
+            double I1 = nrn_current_ode(_lmc, nt, _ppvar, _thread, id, inst, node_data, v+0.001);
+            double I0 = nrn_current_ode(_lmc, nt, _ppvar, _thread, id, inst, node_data, v);
             double rhs = I0;
             double g = (I1-I0)/0.001;
             node_data.node_rhs[node_id] -= rhs;
@@ -250,10 +289,10 @@ namespace neuron {
     }
 
 
-    static void nrn_state_leonhard(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_state_ode(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_leonhard(&_lmc);
-        auto node_data = make_node_data_leonhard(*nt, *_ml_arg);
+        auto inst = make_instance_ode(&_lmc);
+        auto node_data = make_node_data_ode(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         #pragma omp simd
@@ -266,10 +305,10 @@ namespace neuron {
     }
 
 
-    static void nrn_jacob_leonhard(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_jacob_ode(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_leonhard(&_lmc);
-        auto node_data = make_node_data_leonhard(*nt, *_ml_arg);
+        auto inst = make_instance_ode(&_lmc);
+        auto node_data = make_node_data_ode(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         #pragma omp simd
@@ -279,12 +318,12 @@ namespace neuron {
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
-    static void nrn_destructor_leonhard(Prop* prop) {
+    static void nrn_destructor_ode(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_leonhard(prop ? &_lmc : nullptr);
-        auto node_data = make_node_data_leonhard(prop);
+        auto inst = make_instance_ode(prop ? &_lmc : nullptr);
+        auto node_data = make_node_data_ode(prop);
 
     }
 
@@ -293,21 +332,20 @@ namespace neuron {
     }
 
 
-    extern "C" void _leonhard_reg() {
+    extern "C" void _ode_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_leonhard, nrn_cur_leonhard, nrn_jacob_leonhard, nrn_state_leonhard, nrn_init_leonhard, -1, 1);
+        register_mech(mechanism_info, nrn_alloc_ode, nrn_cur_ode, nrn_jacob_ode, nrn_state_ode, nrn_init_ode, -1, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
-            _nrn_mechanism_field<double>{"c"} /* 0 */,
-            _nrn_mechanism_field<double>{"il"} /* 1 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 2 */,
-            _nrn_mechanism_field<double>{"g_unused"} /* 3 */
+            _nrn_mechanism_field<double>{"il"} /* 0 */,
+            _nrn_mechanism_field<double>{"v_unused"} /* 1 */,
+            _nrn_mechanism_field<double>{"g_unused"} /* 2 */
         );
 
-        hoc_register_prop_size(mech_type, 4, 0);
+        hoc_register_prop_size(mech_type, 3, 0);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
     }

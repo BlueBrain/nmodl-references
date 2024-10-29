@@ -614,7 +614,6 @@ namespace neuron {
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
-        double v;
         double kf0_, kb0_, old_X, old_Y;
 
         void initialize() {
@@ -624,8 +623,8 @@ namespace neuron {
             old_Y = inst.Y[id];
         }
 
-        functor_minipump_1(_nrn_mechanism_cache_range& _lmc, minipump_Instance& inst, minipump_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v)
-            : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt), v(v)
+        functor_minipump_1(_nrn_mechanism_cache_range& _lmc, minipump_Instance& inst, minipump_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt)
+            : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt)
         {}
         void operator()(const Eigen::Matrix<double, 3, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 3, 1>& nmodl_eigen_dxm, Eigen::Matrix<double, 3, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 3, 3>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
@@ -662,7 +661,6 @@ namespace neuron {
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
-        double v;
         double kf0_, kb0_, old_X, old_Y;
 
         void initialize() {
@@ -673,8 +671,8 @@ namespace neuron {
             old_Y = inst.Y[id];
         }
 
-        functor_minipump_0(_nrn_mechanism_cache_range& _lmc, minipump_Instance& inst, minipump_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v)
-            : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt), v(v)
+        functor_minipump_0(_nrn_mechanism_cache_range& _lmc, minipump_Instance& inst, minipump_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt)
+            : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt)
         {}
         void operator()(const Eigen::Matrix<double, 3, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 3, 1>& nmodl_eigen_dxm, Eigen::Matrix<double, 3, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 3, 3>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
@@ -745,7 +743,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.X[id] = inst.global->X0;
             inst.Y[id] = inst.global->Y0;
             inst.Z[id] = inst.global->Z0;
@@ -762,7 +760,7 @@ namespace neuron {
                 nmodl_eigen_x[static_cast<int>(1)] = inst.Y[id];
                 nmodl_eigen_x[static_cast<int>(2)] = inst.Z[id];
                 // call newton solver
-                functor_minipump_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, nt, v);
+                functor_minipump_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, nt);
                 newton_functor.initialize();
                 int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
                 if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
@@ -790,7 +788,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             
             Eigen::Matrix<double, 3, 1> nmodl_eigen_xm;
             double* nmodl_eigen_x = nmodl_eigen_xm.data();
@@ -798,7 +796,7 @@ namespace neuron {
             nmodl_eigen_x[static_cast<int>(1)] = inst.Y[id];
             nmodl_eigen_x[static_cast<int>(2)] = inst.Z[id];
             // call newton solver
-            functor_minipump_1 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, nt, v);
+            functor_minipump_1 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, nt);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");

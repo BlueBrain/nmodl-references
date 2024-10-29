@@ -424,7 +424,7 @@ namespace neuron {
     inline int states_hodhux(_nrn_mechanism_cache_range& _lmc, hodhux_Instance& inst, hodhux_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         int ret_states = 0;
         double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
-        rates_hodhux(_lmc, inst, node_data, id, _ppvar, _thread, nt, v);
+        rates_hodhux(_lmc, inst, node_data, id, _ppvar, _thread, nt, inst.v_unused[id]);
         inst.m[id] = inst.m[id] + inst.mexp[id] * (inst.minf[id] - inst.m[id]);
         inst.h[id] = inst.h[id] + inst.hexp[id] * (inst.hinf[id] - inst.h[id]);
         inst.n[id] = inst.n[id] + inst.nexp[id] * (inst.ninf[id] - inst.n[id]);
@@ -480,13 +480,13 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.m[id] = inst.global->m0;
             inst.h[id] = inst.global->h0;
             inst.n[id] = inst.global->n0;
             inst.ena[id] = (*inst.ion_ena[id]);
             inst.ek[id] = (*inst.ion_ek[id]);
-            rates_hodhux(_lmc, inst, node_data, id, _ppvar, _thread, nt, v);
+            rates_hodhux(_lmc, inst, node_data, id, _ppvar, _thread, nt, inst.v_unused[id]);
             inst.m[id] = inst.minf[id];
             inst.h[id] = inst.hinf[id];
             inst.n[id] = inst.ninf[id];
@@ -495,10 +495,11 @@ namespace neuron {
 
 
     static inline double nrn_current_hodhux(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, hodhux_Instance& inst, hodhux_NodeData& node_data, double v) {
+        inst.v_unused[id] = v;
         double current = 0.0;
-        inst.ina[id] = inst.gnabar[id] * inst.m[id] * inst.m[id] * inst.m[id] * inst.h[id] * (v - inst.ena[id]);
-        inst.ik[id] = inst.gkbar[id] * inst.n[id] * inst.n[id] * inst.n[id] * inst.n[id] * (v - inst.ek[id]);
-        inst.il[id] = inst.gl[id] * (v - inst.el[id]);
+        inst.ina[id] = inst.gnabar[id] * inst.m[id] * inst.m[id] * inst.m[id] * inst.h[id] * (inst.v_unused[id] - inst.ena[id]);
+        inst.ik[id] = inst.gkbar[id] * inst.n[id] * inst.n[id] * inst.n[id] * inst.n[id] * (inst.v_unused[id] - inst.ek[id]);
+        inst.il[id] = inst.gl[id] * (inst.v_unused[id] - inst.el[id]);
         current += inst.il[id];
         current += inst.ina[id];
         current += inst.ik[id];
@@ -548,7 +549,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.ena[id] = (*inst.ion_ena[id]);
             inst.ek[id] = (*inst.ion_ek[id]);
             states_hodhux(_lmc, inst, node_data, id, _ppvar, _thread, nt);

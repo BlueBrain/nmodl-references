@@ -317,7 +317,7 @@ namespace neuron {
     inline double v_plus_a_functions(_nrn_mechanism_cache_range& _lmc, functions_Instance& inst, functions_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la) {
         double ret_v_plus_a = 0.0;
         double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
-        ret_v_plus_a = v + _la;
+        ret_v_plus_a = inst.v_unused[id] + _la;
         return ret_v_plus_a;
     }
 
@@ -341,7 +341,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.x[id] = 1.0;
         }
     }

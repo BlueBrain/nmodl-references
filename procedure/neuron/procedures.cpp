@@ -505,7 +505,7 @@ namespace neuron {
     inline int set_x_v_procedures(_nrn_mechanism_cache_range& _lmc, procedures_Instance& inst, procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         int ret_set_x_v = 0;
         double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
-        inst.x[id] = v;
+        inst.x[id] = inst.v_unused[id];
         return ret_set_x_v;
     }
 
@@ -513,7 +513,7 @@ namespace neuron {
     inline int set_x_just_v_procedures(_nrn_mechanism_cache_range& _lmc, procedures_Instance& inst, procedures_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         int ret_set_x_just_v = 0;
         double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
-        inst.x[id] = identity_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt, v);
+        inst.x[id] = identity_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt, inst.v_unused[id]);
         return ret_set_x_just_v;
     }
 
@@ -545,7 +545,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             set_a_x_procedures(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         }
     }

@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : lin
-Filename        : lin.mod
+Model Name      : ode
+Filename        : ode.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -36,52 +36,39 @@ namespace coreneuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "lin",
+        "ode",
         0,
+        "il_ode",
         0,
-        "xx_lin",
-        "yy_lin",
         0,
         0
     };
 
 
     /** all global variables */
-    struct lin_Store {
-        double xx0{};
-        double yy0{};
+    struct ode_Store {
         int reset{};
         int mech_type{};
-        double a{2};
-        double b{3};
-        double c{4};
-        double d{5};
     };
-    static_assert(std::is_trivially_copy_constructible_v<lin_Store>);
-    static_assert(std::is_trivially_move_constructible_v<lin_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<lin_Store>);
-    static_assert(std::is_trivially_move_assignable_v<lin_Store>);
-    static_assert(std::is_trivially_destructible_v<lin_Store>);
-    static lin_Store lin_global;
+    static_assert(std::is_trivially_copy_constructible_v<ode_Store>);
+    static_assert(std::is_trivially_move_constructible_v<ode_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<ode_Store>);
+    static_assert(std::is_trivially_move_assignable_v<ode_Store>);
+    static_assert(std::is_trivially_destructible_v<ode_Store>);
+    static ode_Store ode_global;
 
 
     /** all mechanism instance variables and global variables */
-    struct lin_Instance  {
-        double* xx{};
-        double* yy{};
-        double* Dxx{};
-        double* Dyy{};
+    struct ode_Instance  {
+        double* il{};
         double* v_unused{};
-        lin_Store* global{&lin_global};
+        double* g_unused{};
+        ode_Store* global{&ode_global};
     };
 
 
     /** connect global (scalar) variables to hoc -- */
     static DoubScal hoc_scalar_double[] = {
-        {"a_lin", &lin_global.a},
-        {"b_lin", &lin_global.b},
-        {"c_lin", &lin_global.c},
-        {"d_lin", &lin_global.d},
         {nullptr, nullptr}
     };
 
@@ -103,7 +90,7 @@ namespace coreneuron {
 
 
     static inline int float_variables_size() {
-        return 5;
+        return 3;
     }
 
 
@@ -113,7 +100,7 @@ namespace coreneuron {
 
 
     static inline int get_mech_type() {
-        return lin_global.mech_type;
+        return ode_global.mech_type;
     }
 
 
@@ -143,25 +130,25 @@ namespace coreneuron {
     }
 
     // Allocate instance structure
-    static void nrn_private_constructor_lin(NrnThread* nt, Memb_list* ml, int type) {
+    static void nrn_private_constructor_ode(NrnThread* nt, Memb_list* ml, int type) {
         assert(!ml->instance);
         assert(!ml->global_variables);
         assert(ml->global_variables_size == 0);
-        auto* const inst = new lin_Instance{};
-        assert(inst->global == &lin_global);
+        auto* const inst = new ode_Instance{};
+        assert(inst->global == &ode_global);
         ml->instance = inst;
         ml->global_variables = inst->global;
-        ml->global_variables_size = sizeof(lin_Store);
+        ml->global_variables_size = sizeof(ode_Store);
     }
 
     // Deallocate the instance structure
-    static void nrn_private_destructor_lin(NrnThread* nt, Memb_list* ml, int type) {
-        auto* const inst = static_cast<lin_Instance*>(ml->instance);
+    static void nrn_private_destructor_ode(NrnThread* nt, Memb_list* ml, int type) {
+        auto* const inst = static_cast<ode_Instance*>(ml->instance);
         assert(inst);
         assert(inst->global);
-        assert(inst->global == &lin_global);
+        assert(inst->global == &ode_global);
         assert(inst->global == ml->global_variables);
-        assert(ml->global_variables_size == sizeof(lin_Store));
+        assert(ml->global_variables_size == sizeof(ode_Store));
         delete inst;
         ml->instance = nullptr;
         ml->global_variables = nullptr;
@@ -170,29 +157,27 @@ namespace coreneuron {
 
     /** initialize mechanism instance variables */
     static inline void setup_instance(NrnThread* nt, Memb_list* ml) {
-        auto* const inst = static_cast<lin_Instance*>(ml->instance);
+        auto* const inst = static_cast<ode_Instance*>(ml->instance);
         assert(inst);
         assert(inst->global);
-        assert(inst->global == &lin_global);
+        assert(inst->global == &ode_global);
         assert(inst->global == ml->global_variables);
-        assert(ml->global_variables_size == sizeof(lin_Store));
+        assert(ml->global_variables_size == sizeof(ode_Store));
         int pnodecount = ml->_nodecount_padded;
         Datum* indexes = ml->pdata;
-        inst->xx = ml->data+0*pnodecount;
-        inst->yy = ml->data+1*pnodecount;
-        inst->Dxx = ml->data+2*pnodecount;
-        inst->Dyy = ml->data+3*pnodecount;
-        inst->v_unused = ml->data+4*pnodecount;
+        inst->il = ml->data+0*pnodecount;
+        inst->v_unused = ml->data+1*pnodecount;
+        inst->g_unused = ml->data+2*pnodecount;
     }
 
 
 
-    static void nrn_alloc_lin(double* data, Datum* indexes, int type) {
+    static void nrn_alloc_ode(double* data, Datum* indexes, int type) {
         // do nothing
     }
 
 
-    void nrn_constructor_lin(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_constructor_ode(NrnThread* nt, Memb_list* ml, int type) {
         #ifndef CORENEURON_BUILD
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
@@ -201,13 +186,13 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<lin_Instance*>(ml->instance);
+        auto* const inst = static_cast<ode_Instance*>(ml->instance);
 
         #endif
     }
 
 
-    void nrn_destructor_lin(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_destructor_ode(NrnThread* nt, Memb_list* ml, int type) {
         #ifndef CORENEURON_BUILD
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
@@ -216,14 +201,24 @@ namespace coreneuron {
         const double* voltage = nt->_actual_v;
         Datum* indexes = ml->pdata;
         ThreadDatum* thread = ml->_thread;
-        auto* const inst = static_cast<lin_Instance*>(ml->instance);
+        auto* const inst = static_cast<ode_Instance*>(ml->instance);
 
         #endif
+    }
+
+
+    inline static double voltage_ode(int id, int pnodecount, ode_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+
+
+    inline double voltage_ode(int id, int pnodecount, ode_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
+        double ret_voltage = 0.0;
+        ret_voltage = 0.001 * v;
+        return ret_voltage;
     }
 
 
     /** initialize channel */
-    void nrn_init_lin(NrnThread* nt, Memb_list* ml, int type) {
+    void nrn_init_ode(NrnThread* nt, Memb_list* ml, int type) {
         int nodecount = ml->nodecount;
         int pnodecount = ml->_nodecount_padded;
         const int* node_index = ml->nodeindices;
@@ -233,7 +228,7 @@ namespace coreneuron {
         ThreadDatum* thread = ml->_thread;
 
         setup_instance(nt, ml);
-        auto* const inst = static_cast<lin_Instance*>(ml->instance);
+        auto* const inst = static_cast<ode_Instance*>(ml->instance);
 
         if (_nrn_skip_initmodel == 0) {
             #pragma omp simd
@@ -244,27 +239,86 @@ namespace coreneuron {
                 #if NRN_PRCELLSTATE
                 inst->v_unused[id] = v;
                 #endif
-                inst->xx[id] = inst->global->xx0;
-                inst->yy[id] = inst->global->yy0;
-                                inst->xx[id] = 0.0;
-                inst->yy[id] = 0.0;
-
             }
         }
     }
 
 
-    /** register channel with the simulator */
-    void _lin_reg() {
+    inline double nrn_current_ode(int id, int pnodecount, ode_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
+        double current = 0.0;
+        inst->il[id] = voltage_ode(id, pnodecount, inst, data, indexes, thread, nt, v);
+        current += inst->il[id];
+        return current;
+    }
 
-        int mech_type = nrn_get_mechtype("lin");
-        lin_global.mech_type = mech_type;
+
+    /** update current */
+    void nrn_cur_ode(NrnThread* nt, Memb_list* ml, int type) {
+        int nodecount = ml->nodecount;
+        int pnodecount = ml->_nodecount_padded;
+        const int* node_index = ml->nodeindices;
+        double* data = ml->data;
+        const double* voltage = nt->_actual_v;
+        double* vec_rhs = nt->_actual_rhs;
+        double* vec_d = nt->_actual_d;
+        Datum* indexes = ml->pdata;
+        ThreadDatum* thread = ml->_thread;
+        auto* const inst = static_cast<ode_Instance*>(ml->instance);
+
+        #pragma omp simd
+        #pragma ivdep
+        for (int id = 0; id < nodecount; id++) {
+            int node_id = node_index[id];
+            double v = voltage[node_id];
+            #if NRN_PRCELLSTATE
+            inst->v_unused[id] = v;
+            #endif
+            double g = nrn_current_ode(id, pnodecount, inst, data, indexes, thread, nt, v+0.001);
+            double rhs = nrn_current_ode(id, pnodecount, inst, data, indexes, thread, nt, v);
+            g = (g-rhs)/0.001;
+            #if NRN_PRCELLSTATE
+            inst->g_unused[id] = g;
+            #endif
+            vec_rhs[node_id] -= rhs;
+            vec_d[node_id] += g;
+        }
+    }
+
+
+    /** update state */
+    void nrn_state_ode(NrnThread* nt, Memb_list* ml, int type) {
+        int nodecount = ml->nodecount;
+        int pnodecount = ml->_nodecount_padded;
+        const int* node_index = ml->nodeindices;
+        double* data = ml->data;
+        const double* voltage = nt->_actual_v;
+        Datum* indexes = ml->pdata;
+        ThreadDatum* thread = ml->_thread;
+        auto* const inst = static_cast<ode_Instance*>(ml->instance);
+
+        #pragma omp simd
+        #pragma ivdep
+        for (int id = 0; id < nodecount; id++) {
+            int node_id = node_index[id];
+            double v = voltage[node_id];
+            #if NRN_PRCELLSTATE
+            inst->v_unused[id] = v;
+            #endif
+        }
+    }
+
+
+    /** register channel with the simulator */
+    void _ode_reg() {
+
+        int mech_type = nrn_get_mechtype("ode");
+        ode_global.mech_type = mech_type;
         if (mech_type == -1) {
             return;
         }
 
         _nrn_layout_reg(mech_type, 0);
-        register_mech(mechanism_info, nrn_alloc_lin, nullptr, nullptr, nullptr, nrn_init_lin, nrn_private_constructor_lin, nrn_private_destructor_lin, first_pointer_var_index(), 1);
+        register_mech(mechanism_info, nrn_alloc_ode, nrn_cur_ode, nullptr, nrn_state_ode, nrn_init_ode, nrn_private_constructor_ode, nrn_private_destructor_ode, first_pointer_var_index(), 1);
 
         hoc_register_prop_size(mech_type, float_variables_size(), int_variables_size());
         hoc_register_var(hoc_scalar_double, hoc_vector_double, NULL);

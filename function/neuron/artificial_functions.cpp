@@ -2,7 +2,7 @@
 Model Name      : art_functions
 Filename        : artificial_functions.mod
 NMODL Version   : 7.7.0
-Vectorized      : false
+Vectorized      : true
 Threadsafe      : true
 Created         : DATE
 Simulator       : NEURON
@@ -23,11 +23,11 @@ NMODL Compiler  : VERSION
 #include "section_fwd.hpp"
 
 /* NEURON global macro definitions */
-/* NOT VECTORIZED */
-#define NRN_VECTORIZED 0
+/* VECTORIZED */
+#define NRN_VECTORIZED 1
 
 static constexpr auto number_of_datum_variables = 2;
-static constexpr auto number_of_floating_point_variables = 4;
+static constexpr auto number_of_floating_point_variables = 2;
 
 namespace {
 template <typename T>
@@ -61,7 +61,6 @@ namespace neuron {
         0,
         "x",
         0,
-        "z",
         0,
         0
     };
@@ -76,7 +75,6 @@ namespace neuron {
     /** all global variables */
     struct art_functions_Store {
         double gbl{0};
-        double z0{0};
     };
     static_assert(std::is_trivially_copy_constructible_v<art_functions_Store>);
     static_assert(std::is_trivially_move_constructible_v<art_functions_Store>);
@@ -87,9 +85,6 @@ namespace neuron {
     auto gbl_art_functions() -> std::decay<decltype(art_functions_global.gbl)>::type  {
         return art_functions_global.gbl;
     }
-    auto z0_art_functions() -> std::decay<decltype(art_functions_global.z0)>::type  {
-        return art_functions_global.z0;
-    }
 
     static std::vector<double> _parameter_defaults = {
     };
@@ -98,8 +93,6 @@ namespace neuron {
     /** all mechanism instance variables and global variables */
     struct art_functions_Instance  {
         double* x{};
-        double* z{};
-        double* Dz{};
         double* v_unused{};
         const double* const* node_area{};
         art_functions_Store* global{&art_functions_global};
@@ -123,8 +116,6 @@ namespace neuron {
         return art_functions_Instance {
             _lmc->template fpfield_ptr<0>(),
             _lmc->template fpfield_ptr<1>(),
-            _lmc->template fpfield_ptr<2>(),
-            _lmc->template fpfield_ptr<3>(),
             _lmc->template dptr_field_ptr<0>()
         };
     }
@@ -168,7 +159,7 @@ namespace neuron {
             _nrn_mechanism_access_dparam(_prop) = _ppvar;
             _nrn_mechanism_cache_instance _lmc{_prop};
             size_t const _iml = 0;
-            assert(_nrn_mechanism_get_num_vars(_prop) == 4);
+            assert(_nrn_mechanism_get_num_vars(_prop) == 2);
             /*initialize range parameters*/
         }
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
@@ -303,7 +294,6 @@ namespace neuron {
         #pragma ivdep
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
-            inst.z[id] = inst.global->z0;
             inst.x[id] = 1.0;
             inst.global->gbl = 42.0;
         }
@@ -342,14 +332,12 @@ namespace neuron {
         hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
             _nrn_mechanism_field<double>{"x"} /* 0 */,
-            _nrn_mechanism_field<double>{"z"} /* 1 */,
-            _nrn_mechanism_field<double>{"Dz"} /* 2 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 3 */,
+            _nrn_mechanism_field<double>{"v_unused"} /* 1 */,
             _nrn_mechanism_field<double*>{"node_area", "area"} /* 0 */,
             _nrn_mechanism_field<Point_process*>{"point_process", "pntproc"} /* 1 */
         );
 
-        hoc_register_prop_size(mech_type, 4, 2);
+        hoc_register_prop_size(mech_type, 2, 2);
         hoc_register_dparam_semantics(mech_type, 0, "area");
         hoc_register_dparam_semantics(mech_type, 1, "pntproc");
         add_nrn_artcell(mech_type, 0);

@@ -212,14 +212,15 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
         }
     }
 
 
     static inline double nrn_current_leonhard(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, leonhard_Instance& inst, leonhard_NodeData& node_data, double v) {
+        inst.v_unused[id] = v;
         double current = 0.0;
-        inst.il[id] =  -inst.c[id] * (v - 1.5);
+        inst.il[id] =  -inst.c[id] * (inst.v_unused[id] - 1.5);
         current += inst.il[id];
         return current;
     }
@@ -259,7 +260,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
         }
     }
 
