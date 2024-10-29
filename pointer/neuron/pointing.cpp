@@ -90,7 +90,6 @@ namespace neuron {
     /** all mechanism instance variables and global variables */
     struct pointing_Instance  {
         double* v_unused{};
-        double* const* ptr{};
         pointing_Store* global{&pointing_global};
     };
 
@@ -110,8 +109,7 @@ namespace neuron {
         }
 
         return pointing_Instance {
-            _lmc->template fpfield_ptr<0>(),
-            _lmc->template dptr_field_ptr<0>()
+            _lmc->template fpfield_ptr<0>()
         };
     }
 

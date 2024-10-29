@@ -2,7 +2,7 @@
 Model Name      : state_ode
 Filename        : state_ode.mod
 NMODL Version   : 7.7.0
-Vectorized      : false
+Vectorized      : true
 Threadsafe      : true
 Created         : DATE
 Simulator       : CoreNEURON
@@ -449,7 +449,8 @@ namespace coreneuron {
         double* il{};
         double* X{};
         double* DX{};
-        double* g{};
+        double* v_unused{};
+        double* g_unused{};
         state_ode_Store* global{&state_ode_global};
     };
 
@@ -477,7 +478,7 @@ namespace coreneuron {
 
 
     static inline int float_variables_size() {
-        return 4;
+        return 5;
     }
 
 
@@ -555,7 +556,8 @@ namespace coreneuron {
         inst->il = ml->data+0*pnodecount;
         inst->X = ml->data+1*pnodecount;
         inst->DX = ml->data+2*pnodecount;
-        inst->g = ml->data+3*pnodecount;
+        inst->v_unused = ml->data+3*pnodecount;
+        inst->g_unused = ml->data+4*pnodecount;
     }
 
 
@@ -657,6 +659,9 @@ namespace coreneuron {
             for (int id = 0; id < nodecount; id++) {
                 int node_id = node_index[id];
                 double v = voltage[node_id];
+                #if NRN_PRCELLSTATE
+                inst->v_unused[id] = v;
+                #endif
                 inst->X[id] = inst->global->X0;
                 inst->X[id] = v;
             }
@@ -690,6 +695,9 @@ namespace coreneuron {
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_index[id];
             double v = voltage[node_id];
+            #if NRN_PRCELLSTATE
+            inst->v_unused[id] = v;
+            #endif
             double g = nrn_current_state_ode(id, pnodecount, inst, data, indexes, thread, nt, v+0.001);
             double rhs = nrn_current_state_ode(id, pnodecount, inst, data, indexes, thread, nt, v);
             g = (g-rhs)/0.001;
@@ -718,6 +726,9 @@ namespace coreneuron {
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_index[id];
             double v = voltage[node_id];
+            #if NRN_PRCELLSTATE
+            inst->v_unused[id] = v;
+            #endif
             
             Eigen::Matrix<double, 1, 1> nmodl_eigen_xm;
             double* nmodl_eigen_x = nmodl_eigen_xm.data();
@@ -745,7 +756,7 @@ namespace coreneuron {
         }
 
         _nrn_layout_reg(mech_type, 0);
-        register_mech(mechanism_info, nrn_alloc_state_ode, nrn_cur_state_ode, nullptr, nrn_state_state_ode, nrn_init_state_ode, nrn_private_constructor_state_ode, nrn_private_destructor_state_ode, first_pointer_var_index(), 0);
+        register_mech(mechanism_info, nrn_alloc_state_ode, nrn_cur_state_ode, nullptr, nrn_state_state_ode, nrn_init_state_ode, nrn_private_constructor_state_ode, nrn_private_destructor_state_ode, first_pointer_var_index(), 1);
 
         hoc_register_prop_size(mech_type, float_variables_size(), int_variables_size());
         hoc_register_var(hoc_scalar_double, hoc_vector_double, NULL);

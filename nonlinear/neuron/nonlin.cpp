@@ -2,7 +2,7 @@
 Model Name      : nonlin
 Filename        : nonlin.mod
 NMODL Version   : 7.7.0
-Vectorized      : false
+Vectorized      : true
 Threadsafe      : true
 Created         : DATE
 Simulator       : NEURON
@@ -407,8 +407,8 @@ EIGEN_DEVICE_FUNC int newton_solver(Eigen::Matrix<double, 4, 1>& X,
 #include "section_fwd.hpp"
 
 /* NEURON global macro definitions */
-/* NOT VECTORIZED */
-#define NRN_VECTORIZED 0
+/* VECTORIZED */
+#define NRN_VECTORIZED 1
 
 static constexpr auto number_of_datum_variables = 0;
 static constexpr auto number_of_floating_point_variables = 3;
