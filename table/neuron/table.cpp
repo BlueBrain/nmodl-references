@@ -597,16 +597,17 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
         }
     }
 
 
     static inline double nrn_current_tbl(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, tbl_Instance& inst, tbl_NodeData& node_data, double v) {
+        inst.v_unused[id] = v;
         double current = 0.0;
-        sigmoidal_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt, v);
+        sigmoidal_tbl(_lmc, inst, node_data, id, _ppvar, _thread, nt, inst.v_unused[id]);
         inst.g[id] = 0.001 * inst.sig[id];
-        inst.i[id] = inst.g[id] * (v - 30.0);
+        inst.i[id] = inst.g[id] * (inst.v_unused[id] - 30.0);
         current += inst.i[id];
         return current;
     }
@@ -642,7 +643,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
         }
     }
 

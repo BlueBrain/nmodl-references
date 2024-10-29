@@ -220,7 +220,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.ina[id] = (*inst.ion_ina[id]);
             (*inst.ion_ena[id]) = inst.ena[id];
         }
@@ -236,7 +236,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.ina[id] = (*inst.ion_ina[id]);
             inst.ena[id] = 42.0;
             (*inst.ion_ena[id]) = inst.ena[id];

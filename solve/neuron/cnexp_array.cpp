@@ -226,7 +226,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.x[id] = inst.global->x0;
             (inst.s+id*2)[0] = inst.global->s0;
             (inst.s+id*2)[1] = inst.global->s0;
@@ -249,7 +249,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.x[id] = inst.x[id] * exp(nt->_dt * ((inst.s+id*2)[static_cast<int>(0)] + (inst.s+id*2)[static_cast<int>(1)]) * (inst.z+id*3)[static_cast<int>(0)] * (inst.z+id*3)[static_cast<int>(1)] * (inst.z+id*3)[static_cast<int>(2)]);
         }
     }

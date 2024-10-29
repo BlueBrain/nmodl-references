@@ -348,19 +348,20 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             _thread_vars.gbl(id) = 2.0;
         }
     }
 
 
     static inline double nrn_current_top_local(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, top_local_ThreadVariables& _thread_vars, size_t id, top_local_Instance& inst, top_local_NodeData& node_data, double v) {
+        inst.v_unused[id] = v;
         double current = 0.0;
         if (nt->_t > 0.33) {
             _thread_vars.gbl(id) = 3.0;
         }
         inst.y[id] = _thread_vars.gbl(id);
-        inst.il[id] = 0.0000001 * (v - 10.0);
+        inst.il[id] = 0.0000001 * (inst.v_unused[id] - 10.0);
         current += inst.il[id];
         return current;
     }
@@ -398,7 +399,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
         }
     }
 
