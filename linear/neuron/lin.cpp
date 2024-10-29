@@ -2,7 +2,7 @@
 Model Name      : lin
 Filename        : lin.mod
 NMODL Version   : 7.7.0
-Vectorized      : false
+Vectorized      : true
 Threadsafe      : true
 Created         : DATE
 Simulator       : NEURON
@@ -23,8 +23,8 @@ NMODL Compiler  : VERSION
 #include "section_fwd.hpp"
 
 /* NEURON global macro definitions */
-/* NOT VECTORIZED */
-#define NRN_VECTORIZED 0
+/* VECTORIZED */
+#define NRN_VECTORIZED 1
 
 static constexpr auto number_of_datum_variables = 0;
 static constexpr auto number_of_floating_point_variables = 5;
@@ -240,7 +240,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.xx[id] = inst.global->xx0;
             inst.yy[id] = inst.global->yy0;
                         inst.xx[id] = 0.0;
