@@ -99,8 +99,6 @@ namespace neuron {
         double* v_unused{};
         const double* const* node_area{};
         const double* const* ion_ica{};
-        double* const* p1{};
-        double* const* p2{};
         point_basic_Store* global{&point_basic_global};
     };
 
@@ -126,9 +124,7 @@ namespace neuron {
             _lmc->template fpfield_ptr<3>(),
             _lmc->template fpfield_ptr<4>(),
             _lmc->template dptr_field_ptr<0>(),
-            _lmc->template dptr_field_ptr<2>(),
-            _lmc->template dptr_field_ptr<3>(),
-            _lmc->template dptr_field_ptr<4>()
+            _lmc->template dptr_field_ptr<2>()
         };
     }
 
