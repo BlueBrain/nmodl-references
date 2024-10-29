@@ -678,6 +678,8 @@ namespace neuron {
         auto* _thread = _ml_arg->_thread;
         auto _thread_vars = thread_newton_ThreadVariables(_thread[0].get<double*>());
         auto nodecount = _ml_arg->nodecount;
+        #pragma omp simd
+        #pragma ivdep
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
@@ -697,6 +699,8 @@ namespace neuron {
         auto* _thread = _ml_arg->_thread;
         auto _thread_vars = thread_newton_ThreadVariables(_thread[0].get<double*>());
         auto nodecount = _ml_arg->nodecount;
+        #pragma omp simd
+        #pragma ivdep
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
@@ -726,6 +730,8 @@ namespace neuron {
         auto* _thread = _ml_arg->_thread;
         auto _thread_vars = thread_newton_ThreadVariables(_thread[0].get<double*>());
         auto nodecount = _ml_arg->nodecount;
+        #pragma omp simd
+        #pragma ivdep
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             node_data.node_diagonal[node_id] += inst.g_unused[id];

@@ -295,6 +295,8 @@ namespace neuron {
         auto node_data = make_node_data_NetReceiveCalls(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
+        #pragma omp simd
+        #pragma ivdep
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
@@ -311,6 +313,8 @@ namespace neuron {
         auto node_data = make_node_data_NetReceiveCalls(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
+        #pragma omp simd
+        #pragma ivdep
         for (int id = 0; id < nodecount; id++) {
         }
     }
