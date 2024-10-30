@@ -471,7 +471,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<derivimplicit_array_Store>);
     static_assert(std::is_trivially_move_assignable_v<derivimplicit_array_Store>);
     static_assert(std::is_trivially_destructible_v<derivimplicit_array_Store>);
-    derivimplicit_array_Store derivimplicit_array_global;
+    static derivimplicit_array_Store derivimplicit_array_global;
     auto x0_derivimplicit_array() -> std::decay<decltype(derivimplicit_array_global.x0)>::type  {
         return derivimplicit_array_global.x0;
     }
@@ -505,15 +505,19 @@ namespace neuron {
     };
 
 
-    static derivimplicit_array_Instance make_instance_derivimplicit_array(_nrn_mechanism_cache_range& _lmc) {
+    static derivimplicit_array_Instance make_instance_derivimplicit_array(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return derivimplicit_array_Instance();
+        }
+
         return derivimplicit_array_Instance {
-            _lmc.template data_array_ptr<0, 3>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template data_array_ptr<2, 2>(),
-            _lmc.template fpfield_ptr<3>(),
-            _lmc.template data_array_ptr<4, 2>(),
-            _lmc.template fpfield_ptr<5>(),
-            _lmc.template fpfield_ptr<6>()
+            _lmc->template data_array_ptr<0, 3>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template data_array_ptr<2, 2>(),
+            _lmc->template fpfield_ptr<3>(),
+            _lmc->template data_array_ptr<4, 2>(),
+            _lmc->template fpfield_ptr<5>(),
+            _lmc->template fpfield_ptr<6>()
         };
     }
 
@@ -528,6 +532,10 @@ namespace neuron {
         };
     }
     static derivimplicit_array_NodeData make_node_data_derivimplicit_array(Prop * _prop) {
+        if(!_prop) {
+            return derivimplicit_array_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return derivimplicit_array_NodeData {
@@ -539,7 +547,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_derivimplicit_array(Prop* prop);
+    static void nrn_destructor_derivimplicit_array(Prop* prop);
 
 
     static void nrn_alloc_derivimplicit_array(Prop* _prop) {
@@ -576,15 +584,14 @@ namespace neuron {
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
-        double v;
         double old_x;
 
         void initialize() {
             old_x = inst.x[id];
         }
 
-        functor_derivimplicit_array_0(_nrn_mechanism_cache_range& _lmc, derivimplicit_array_Instance& inst, derivimplicit_array_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v)
-            : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt), v(v)
+        functor_derivimplicit_array_0(_nrn_mechanism_cache_range& _lmc, derivimplicit_array_Instance& inst, derivimplicit_array_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt)
+            : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt)
         {}
         void operator()(const Eigen::Matrix<double, 1, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_dxm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
@@ -626,16 +633,16 @@ namespace neuron {
     };
 
 
-    void nrn_init_derivimplicit_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_derivimplicit_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_derivimplicit_array(_lmc);
+        auto inst = make_instance_derivimplicit_array(&_lmc);
         auto node_data = make_node_data_derivimplicit_array(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.x[id] = inst.global->x0;
             (inst.s+id*2)[0] = inst.global->s0;
             (inst.s+id*2)[1] = inst.global->s0;
@@ -649,22 +656,22 @@ namespace neuron {
     }
 
 
-    void nrn_state_derivimplicit_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_state_derivimplicit_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_derivimplicit_array(_lmc);
+        auto inst = make_instance_derivimplicit_array(&_lmc);
         auto node_data = make_node_data_derivimplicit_array(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             
             Eigen::Matrix<double, 1, 1> nmodl_eigen_xm;
             double* nmodl_eigen_x = nmodl_eigen_xm.data();
             nmodl_eigen_x[static_cast<int>(0)] = inst.x[id];
             // call newton solver
-            functor_derivimplicit_array_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, nt, v);
+            functor_derivimplicit_array_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, nt);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
@@ -678,7 +685,7 @@ namespace neuron {
 
     static void nrn_jacob_derivimplicit_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_derivimplicit_array(_lmc);
+        auto inst = make_instance_derivimplicit_array(&_lmc);
         auto node_data = make_node_data_derivimplicit_array(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -687,11 +694,11 @@ namespace neuron {
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
-    void nrn_destructor_derivimplicit_array(Prop* prop) {
+    static void nrn_destructor_derivimplicit_array(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_derivimplicit_array(_lmc);
+        auto inst = make_instance_derivimplicit_array(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_derivimplicit_array(prop);
 
     }
@@ -705,7 +712,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _derivimplicit_array_reg() {
         _initlists();
 

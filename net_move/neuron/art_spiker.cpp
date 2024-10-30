@@ -81,7 +81,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<art_spiker_Store>);
     static_assert(std::is_trivially_move_assignable_v<art_spiker_Store>);
     static_assert(std::is_trivially_destructible_v<art_spiker_Store>);
-    art_spiker_Store art_spiker_global;
+    static art_spiker_Store art_spiker_global;
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -106,13 +106,17 @@ namespace neuron {
     };
 
 
-    static art_spiker_Instance make_instance_art_spiker(_nrn_mechanism_cache_range& _lmc) {
+    static art_spiker_Instance make_instance_art_spiker(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return art_spiker_Instance();
+        }
+
         return art_spiker_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>(),
-            _lmc.template dptr_field_ptr<0>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template fpfield_ptr<2>(),
+            _lmc->template fpfield_ptr<3>(),
+            _lmc->template dptr_field_ptr<0>()
         };
     }
 
@@ -127,6 +131,10 @@ namespace neuron {
         };
     }
     static art_spiker_NodeData make_node_data_art_spiker(Prop * _prop) {
+        if(!_prop) {
+            return art_spiker_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return art_spiker_NodeData {
@@ -138,7 +146,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_art_spiker(Prop* prop);
+    static void nrn_destructor_art_spiker(Prop* prop);
 
 
     static void nrn_alloc_art_spiker(Prop* _prop) {
@@ -218,9 +226,9 @@ namespace neuron {
     };
 
 
-    void nrn_init_art_spiker(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_art_spiker(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_art_spiker(_lmc);
+        auto inst = make_instance_art_spiker(&_lmc);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
@@ -234,7 +242,7 @@ namespace neuron {
 
     static void nrn_jacob_art_spiker(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_art_spiker(_lmc);
+        auto inst = make_instance_art_spiker(&_lmc);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
@@ -244,7 +252,7 @@ namespace neuron {
         _nrn_mechanism_cache_instance _lmc{_pnt->prop};
         auto * nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto * _ppvar = _nrn_mechanism_access_dparam(_pnt->prop);
-        auto inst = make_instance_art_spiker(_lmc);
+        auto inst = make_instance_art_spiker(&_lmc);
         // nocmodl has a nullptr dereference for thread variables.
         // NMODL will fail to compile at a later point, because of
         // missing '_thread_vars'.
@@ -260,11 +268,11 @@ namespace neuron {
         }
 
     }
-    void nrn_destructor_art_spiker(Prop* prop) {
+    static void nrn_destructor_art_spiker(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_art_spiker(_lmc);
+        auto inst = make_instance_art_spiker(prop ? &_lmc : nullptr);
 
     }
 
@@ -273,7 +281,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _art_spiker_reg() {
         _initlists();
 

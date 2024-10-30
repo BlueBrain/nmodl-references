@@ -2,7 +2,7 @@
 Model Name      : lin
 Filename        : lin.mod
 NMODL Version   : 7.7.0
-Vectorized      : false
+Vectorized      : true
 Threadsafe      : true
 Created         : DATE
 Simulator       : NEURON
@@ -23,11 +23,11 @@ NMODL Compiler  : VERSION
 #include "section_fwd.hpp"
 
 /* NEURON global macro definitions */
-/* NOT VECTORIZED */
-#define NRN_VECTORIZED 0
+/* VECTORIZED */
+#define NRN_VECTORIZED 1
 
 static constexpr auto number_of_datum_variables = 0;
-static constexpr auto number_of_floating_point_variables = 4;
+static constexpr auto number_of_floating_point_variables = 5;
 
 namespace {
 template <typename T>
@@ -89,7 +89,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<lin_Store>);
     static_assert(std::is_trivially_move_assignable_v<lin_Store>);
     static_assert(std::is_trivially_destructible_v<lin_Store>);
-    lin_Store lin_global;
+    static lin_Store lin_global;
     auto a_lin() -> std::decay<decltype(lin_global.a)>::type  {
         return lin_global.a;
     }
@@ -119,6 +119,7 @@ namespace neuron {
         double* yy{};
         double* Dxx{};
         double* Dyy{};
+        double* v_unused{};
         lin_Store* global{&lin_global};
     };
 
@@ -132,12 +133,17 @@ namespace neuron {
     };
 
 
-    static lin_Instance make_instance_lin(_nrn_mechanism_cache_range& _lmc) {
+    static lin_Instance make_instance_lin(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return lin_Instance();
+        }
+
         return lin_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template fpfield_ptr<2>(),
+            _lmc->template fpfield_ptr<3>(),
+            _lmc->template fpfield_ptr<4>()
         };
     }
 
@@ -152,6 +158,10 @@ namespace neuron {
         };
     }
     static lin_NodeData make_node_data_lin(Prop * _prop) {
+        if(!_prop) {
+            return lin_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return lin_NodeData {
@@ -163,14 +173,14 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_lin(Prop* prop);
+    static void nrn_destructor_lin(Prop* prop);
 
 
     static void nrn_alloc_lin(Prop* _prop) {
         Datum *_ppvar = nullptr;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const _iml = 0;
-        assert(_nrn_mechanism_get_num_vars(_prop) == 4);
+        assert(_nrn_mechanism_get_num_vars(_prop) == 5);
         /*initialize range parameters*/
     }
 
@@ -221,16 +231,16 @@ namespace neuron {
     };
 
 
-    void nrn_init_lin(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_lin(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_lin(_lmc);
+        auto inst = make_instance_lin(&_lmc);
         auto node_data = make_node_data_lin(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.xx[id] = inst.global->xx0;
             inst.yy[id] = inst.global->yy0;
                         inst.xx[id] = 0.0;
@@ -242,18 +252,18 @@ namespace neuron {
 
     static void nrn_jacob_lin(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_lin(_lmc);
+        auto inst = make_instance_lin(&_lmc);
         auto node_data = make_node_data_lin(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
     }
-    void nrn_destructor_lin(Prop* prop) {
+    static void nrn_destructor_lin(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_lin(_lmc);
+        auto inst = make_instance_lin(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_lin(prop);
 
     }
@@ -263,7 +273,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _lin_reg() {
         _initlists();
 
@@ -275,10 +284,11 @@ namespace neuron {
             _nrn_mechanism_field<double>{"xx"} /* 0 */,
             _nrn_mechanism_field<double>{"yy"} /* 1 */,
             _nrn_mechanism_field<double>{"Dxx"} /* 2 */,
-            _nrn_mechanism_field<double>{"Dyy"} /* 3 */
+            _nrn_mechanism_field<double>{"Dyy"} /* 3 */,
+            _nrn_mechanism_field<double>{"v_unused"} /* 4 */
         );
 
-        hoc_register_prop_size(mech_type, 4, 0);
+        hoc_register_prop_size(mech_type, 5, 0);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
     }

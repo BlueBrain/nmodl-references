@@ -81,7 +81,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<NetReceiveCalls_Store>);
     static_assert(std::is_trivially_move_assignable_v<NetReceiveCalls_Store>);
     static_assert(std::is_trivially_destructible_v<NetReceiveCalls_Store>);
-    NetReceiveCalls_Store NetReceiveCalls_global;
+    static NetReceiveCalls_Store NetReceiveCalls_global;
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -106,13 +106,17 @@ namespace neuron {
     };
 
 
-    static NetReceiveCalls_Instance make_instance_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc) {
+    static NetReceiveCalls_Instance make_instance_NetReceiveCalls(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return NetReceiveCalls_Instance();
+        }
+
         return NetReceiveCalls_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>(),
-            _lmc.template dptr_field_ptr<0>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template fpfield_ptr<2>(),
+            _lmc->template fpfield_ptr<3>(),
+            _lmc->template dptr_field_ptr<0>()
         };
     }
 
@@ -127,6 +131,10 @@ namespace neuron {
         };
     }
     static NetReceiveCalls_NodeData make_node_data_NetReceiveCalls(Prop * _prop) {
+        if(!_prop) {
+            return NetReceiveCalls_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return NetReceiveCalls_NodeData {
@@ -138,7 +146,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_NetReceiveCalls(Prop* prop);
+    static void nrn_destructor_NetReceiveCalls(Prop* prop);
 
 
     static void nrn_alloc_NetReceiveCalls(Prop* _prop) {
@@ -161,8 +169,8 @@ namespace neuron {
 
 
     /* Mechanism procedures and functions */
-    inline double one_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, NetReceiveCalls_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline int increment_c2_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, NetReceiveCalls_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static double one_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, NetReceiveCalls_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static int increment_c2_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, NetReceiveCalls_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
 
@@ -206,8 +214,8 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static double _hoc_one(void*);
-    static double _hoc_increment_c2(void*);
+    static double _hoc_one(void * _vptr);
+    static double _hoc_increment_c2(void * _vptr);
 
 
     /* connect user functions to hoc names */
@@ -222,8 +230,7 @@ namespace neuron {
         {"one", _hoc_one},
         {nullptr, nullptr}
     };
-    static double _hoc_increment_c2(void* _vptr) {
-        double _r{};
+    static double _hoc_increment_c2(void * _vptr) {
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -237,14 +244,14 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_p);
         _thread = _extcall_thread.data();
         nt = static_cast<NrnThread*>(_pnt->_vnt);
-        auto inst = make_instance_NetReceiveCalls(_lmc);
+        auto inst = make_instance_NetReceiveCalls(_p ? &_lmc : nullptr);
         auto node_data = make_node_data_NetReceiveCalls(_p);
+        double _r = 0.0;
         _r = 1.;
         increment_c2_NetReceiveCalls(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static double _hoc_one(void* _vptr) {
-        double _r{};
+    static double _hoc_one(void * _vptr) {
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -258,8 +265,9 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_p);
         _thread = _extcall_thread.data();
         nt = static_cast<NrnThread*>(_pnt->_vnt);
-        auto inst = make_instance_NetReceiveCalls(_lmc);
+        auto inst = make_instance_NetReceiveCalls(_p ? &_lmc : nullptr);
         auto node_data = make_node_data_NetReceiveCalls(_p);
+        double _r = 0.0;
         _r = one_NetReceiveCalls(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
@@ -267,7 +275,7 @@ namespace neuron {
 
     inline int increment_c2_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, NetReceiveCalls_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         int ret_increment_c2 = 0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         inst.c2[id] = inst.c2[id] + 2.0;
         return ret_increment_c2;
     }
@@ -275,22 +283,22 @@ namespace neuron {
 
     inline double one_NetReceiveCalls(_nrn_mechanism_cache_range& _lmc, NetReceiveCalls_Instance& inst, NetReceiveCalls_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         double ret_one = 0.0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         ret_one = 1.0;
         return ret_one;
     }
 
 
-    void nrn_init_NetReceiveCalls(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_NetReceiveCalls(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_NetReceiveCalls(_lmc);
+        auto inst = make_instance_NetReceiveCalls(&_lmc);
         auto node_data = make_node_data_NetReceiveCalls(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.c1[id] = 0.0;
             inst.c2[id] = 0.0;
         }
@@ -299,7 +307,7 @@ namespace neuron {
 
     static void nrn_jacob_NetReceiveCalls(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_NetReceiveCalls(_lmc);
+        auto inst = make_instance_NetReceiveCalls(&_lmc);
         auto node_data = make_node_data_NetReceiveCalls(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -310,7 +318,7 @@ namespace neuron {
         _nrn_mechanism_cache_instance _lmc{_pnt->prop};
         auto * nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto * _ppvar = _nrn_mechanism_access_dparam(_pnt->prop);
-        auto inst = make_instance_NetReceiveCalls(_lmc);
+        auto inst = make_instance_NetReceiveCalls(&_lmc);
         auto node_data = make_node_data_NetReceiveCalls(_pnt->prop);
         // nocmodl has a nullptr dereference for thread variables.
         // NMODL will fail to compile at a later point, because of
@@ -322,11 +330,11 @@ namespace neuron {
         increment_c2_NetReceiveCalls(_lmc, inst, node_data, id, _ppvar, _thread, nt);
 
     }
-    void nrn_destructor_NetReceiveCalls(Prop* prop) {
+    static void nrn_destructor_NetReceiveCalls(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_NetReceiveCalls(_lmc);
+        auto inst = make_instance_NetReceiveCalls(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_NetReceiveCalls(prop);
 
     }
@@ -336,7 +344,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _NetReceiveCalls_reg() {
         _initlists();
 

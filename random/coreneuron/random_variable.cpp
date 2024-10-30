@@ -54,7 +54,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<random_variable_Store>);
     static_assert(std::is_trivially_move_assignable_v<random_variable_Store>);
     static_assert(std::is_trivially_destructible_v<random_variable_Store>);
-    random_variable_Store random_variable_global;
+    static random_variable_Store random_variable_global;
 
 
     /** all mechanism instance variables and global variables */
@@ -210,7 +210,7 @@ namespace coreneuron {
     }
 
 
-    inline double negexp_random_variable(int id, int pnodecount, random_variable_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static double negexp_random_variable(int id, int pnodecount, random_variable_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
 
 
     inline double negexp_random_variable(int id, int pnodecount, random_variable_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {

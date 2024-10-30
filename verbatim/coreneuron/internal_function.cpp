@@ -54,7 +54,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<internal_function_Store>);
     static_assert(std::is_trivially_move_assignable_v<internal_function_Store>);
     static_assert(std::is_trivially_destructible_v<internal_function_Store>);
-    internal_function_Store internal_function_global;
+    static internal_function_Store internal_function_global;
 
 
     /** all mechanism instance variables and global variables */
@@ -202,8 +202,8 @@ namespace coreneuron {
     }
 
 
-    inline double f_internal_function(int id, int pnodecount, internal_function_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
-    inline double g_internal_function(int id, int pnodecount, internal_function_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static double f_internal_function(int id, int pnodecount, internal_function_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static double g_internal_function(int id, int pnodecount, internal_function_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
 
 
     inline double f_internal_function(int id, int pnodecount, internal_function_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {

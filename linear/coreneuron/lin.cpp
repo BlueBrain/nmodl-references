@@ -2,7 +2,7 @@
 Model Name      : lin
 Filename        : lin.mod
 NMODL Version   : 7.7.0
-Vectorized      : false
+Vectorized      : true
 Threadsafe      : true
 Created         : DATE
 Simulator       : CoreNEURON
@@ -62,7 +62,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<lin_Store>);
     static_assert(std::is_trivially_move_assignable_v<lin_Store>);
     static_assert(std::is_trivially_destructible_v<lin_Store>);
-    lin_Store lin_global;
+    static lin_Store lin_global;
 
 
     /** all mechanism instance variables and global variables */
@@ -71,6 +71,7 @@ namespace coreneuron {
         double* yy{};
         double* Dxx{};
         double* Dyy{};
+        double* v_unused{};
         lin_Store* global{&lin_global};
     };
 
@@ -102,7 +103,7 @@ namespace coreneuron {
 
 
     static inline int float_variables_size() {
-        return 4;
+        return 5;
     }
 
 
@@ -181,6 +182,7 @@ namespace coreneuron {
         inst->yy = ml->data+1*pnodecount;
         inst->Dxx = ml->data+2*pnodecount;
         inst->Dyy = ml->data+3*pnodecount;
+        inst->v_unused = ml->data+4*pnodecount;
     }
 
 
@@ -239,6 +241,9 @@ namespace coreneuron {
             for (int id = 0; id < nodecount; id++) {
                 int node_id = node_index[id];
                 double v = voltage[node_id];
+                #if NRN_PRCELLSTATE
+                inst->v_unused[id] = v;
+                #endif
                 inst->xx[id] = inst->global->xx0;
                 inst->yy[id] = inst->global->yy0;
                                 inst->xx[id] = 0.0;
@@ -259,7 +264,7 @@ namespace coreneuron {
         }
 
         _nrn_layout_reg(mech_type, 0);
-        register_mech(mechanism_info, nrn_alloc_lin, nullptr, nullptr, nullptr, nrn_init_lin, nrn_private_constructor_lin, nrn_private_destructor_lin, first_pointer_var_index(), 0);
+        register_mech(mechanism_info, nrn_alloc_lin, nullptr, nullptr, nullptr, nrn_init_lin, nrn_private_constructor_lin, nrn_private_destructor_lin, first_pointer_var_index(), 1);
 
         hoc_register_prop_size(mech_type, float_variables_size(), int_variables_size());
         hoc_register_var(hoc_scalar_double, hoc_vector_double, NULL);

@@ -56,7 +56,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<read_eca_Store>);
     static_assert(std::is_trivially_move_assignable_v<read_eca_Store>);
     static_assert(std::is_trivially_destructible_v<read_eca_Store>);
-    read_eca_Store read_eca_global;
+    static read_eca_Store read_eca_global;
 
 
     /** all mechanism instance variables and global variables */

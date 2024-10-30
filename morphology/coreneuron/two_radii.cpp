@@ -56,7 +56,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<two_radii_Store>);
     static_assert(std::is_trivially_move_assignable_v<two_radii_Store>);
     static_assert(std::is_trivially_destructible_v<two_radii_Store>);
-    two_radii_Store two_radii_global;
+    static two_radii_Store two_radii_global;
 
 
     /** all mechanism instance variables and global variables */
@@ -214,8 +214,8 @@ namespace coreneuron {
     }
 
 
-    inline double square_diam_two_radii(int id, int pnodecount, two_radii_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
-    inline double square_area_two_radii(int id, int pnodecount, two_radii_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static double square_diam_two_radii(int id, int pnodecount, two_radii_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static double square_area_two_radii(int id, int pnodecount, two_radii_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
 
 
     inline double square_diam_two_radii(int id, int pnodecount, two_radii_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {

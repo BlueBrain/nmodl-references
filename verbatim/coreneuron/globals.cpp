@@ -55,7 +55,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<globals_Store>);
     static_assert(std::is_trivially_move_assignable_v<globals_Store>);
     static_assert(std::is_trivially_destructible_v<globals_Store>);
-    globals_Store globals_global;
+    static globals_Store globals_global;
 
 
     /** all mechanism instance variables and global variables */
@@ -204,7 +204,7 @@ namespace coreneuron {
     }
 
 
-    inline double get_gbl_globals(int id, int pnodecount, globals_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static double get_gbl_globals(int id, int pnodecount, globals_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
 
 
     inline double get_gbl_globals(int id, int pnodecount, globals_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {

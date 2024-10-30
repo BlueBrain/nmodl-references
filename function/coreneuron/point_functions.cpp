@@ -56,7 +56,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<point_functions_Store>);
     static_assert(std::is_trivially_move_assignable_v<point_functions_Store>);
     static_assert(std::is_trivially_destructible_v<point_functions_Store>);
-    point_functions_Store point_functions_global;
+    static point_functions_Store point_functions_global;
 
 
     /** all mechanism instance variables and global variables */
@@ -210,9 +210,9 @@ namespace coreneuron {
     }
 
 
-    inline double x_plus_a_point_functions(int id, int pnodecount, point_functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _la);
-    inline double v_plus_a_point_functions(int id, int pnodecount, point_functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _la);
-    inline double identity_point_functions(int id, int pnodecount, point_functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv);
+    inline static double x_plus_a_point_functions(int id, int pnodecount, point_functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _la);
+    inline static double v_plus_a_point_functions(int id, int pnodecount, point_functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _la);
+    inline static double identity_point_functions(int id, int pnodecount, point_functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv);
 
 
     inline double x_plus_a_point_functions(int id, int pnodecount, point_functions_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _la) {

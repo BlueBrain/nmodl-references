@@ -83,7 +83,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<src_Store>);
     static_assert(std::is_trivially_move_assignable_v<src_Store>);
     static_assert(std::is_trivially_destructible_v<src_Store>);
-    src_Store src_global;
+    static src_Store src_global;
     auto gbl_src() -> std::decay<decltype(src_global.gbl)>::type  {
         return src_global.gbl;
     }
@@ -111,9 +111,13 @@ namespace neuron {
     };
 
 
-    static src_Instance make_instance_src(_nrn_mechanism_cache_range& _lmc) {
+    static src_Instance make_instance_src(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return src_Instance();
+        }
+
         return src_Instance {
-            _lmc.template fpfield_ptr<0>()
+            _lmc->template fpfield_ptr<0>()
         };
     }
 
@@ -128,6 +132,10 @@ namespace neuron {
         };
     }
     static src_NodeData make_node_data_src(Prop * _prop) {
+        if(!_prop) {
+            return src_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return src_NodeData {
@@ -139,7 +147,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_src(Prop* prop);
+    static void nrn_destructor_src(Prop* prop);
 
 
     static void nrn_alloc_src(Prop* _prop) {
@@ -195,34 +203,34 @@ namespace neuron {
     };
 
 
-    void nrn_init_src(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_src(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_src(_lmc);
+        auto inst = make_instance_src(&_lmc);
         auto node_data = make_node_data_src(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
         }
     }
 
 
     static void nrn_jacob_src(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_src(_lmc);
+        auto inst = make_instance_src(&_lmc);
         auto node_data = make_node_data_src(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
     }
-    void nrn_destructor_src(Prop* prop) {
+    static void nrn_destructor_src(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_src(_lmc);
+        auto inst = make_instance_src(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_src(prop);
 
     }
@@ -232,7 +240,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _src_reg() {
         _initlists();
 

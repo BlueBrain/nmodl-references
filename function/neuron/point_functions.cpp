@@ -80,7 +80,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<point_functions_Store>);
     static_assert(std::is_trivially_move_assignable_v<point_functions_Store>);
     static_assert(std::is_trivially_destructible_v<point_functions_Store>);
-    point_functions_Store point_functions_global;
+    static point_functions_Store point_functions_global;
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -103,11 +103,15 @@ namespace neuron {
     };
 
 
-    static point_functions_Instance make_instance_point_functions(_nrn_mechanism_cache_range& _lmc) {
+    static point_functions_Instance make_instance_point_functions(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return point_functions_Instance();
+        }
+
         return point_functions_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template dptr_field_ptr<0>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template dptr_field_ptr<0>()
         };
     }
 
@@ -122,6 +126,10 @@ namespace neuron {
         };
     }
     static point_functions_NodeData make_node_data_point_functions(Prop * _prop) {
+        if(!_prop) {
+            return point_functions_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return point_functions_NodeData {
@@ -133,7 +141,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_point_functions(Prop* prop);
+    static void nrn_destructor_point_functions(Prop* prop);
 
 
     static void nrn_alloc_point_functions(Prop* _prop) {
@@ -156,9 +164,9 @@ namespace neuron {
 
 
     /* Mechanism procedures and functions */
-    inline double x_plus_a_point_functions(_nrn_mechanism_cache_range& _lmc, point_functions_Instance& inst, point_functions_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
-    inline double v_plus_a_point_functions(_nrn_mechanism_cache_range& _lmc, point_functions_Instance& inst, point_functions_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
-    inline double identity_point_functions(_nrn_mechanism_cache_range& _lmc, point_functions_Instance& inst, point_functions_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
+    inline static double x_plus_a_point_functions(_nrn_mechanism_cache_range& _lmc, point_functions_Instance& inst, point_functions_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
+    inline static double v_plus_a_point_functions(_nrn_mechanism_cache_range& _lmc, point_functions_Instance& inst, point_functions_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la);
+    inline static double identity_point_functions(_nrn_mechanism_cache_range& _lmc, point_functions_Instance& inst, point_functions_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
 
@@ -202,9 +210,9 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static double _hoc_x_plus_a(void*);
-    static double _hoc_v_plus_a(void*);
-    static double _hoc_identity(void*);
+    static double _hoc_x_plus_a(void * _vptr);
+    static double _hoc_v_plus_a(void * _vptr);
+    static double _hoc_identity(void * _vptr);
 
 
     /* connect user functions to hoc names */
@@ -220,8 +228,7 @@ namespace neuron {
         {"identity", _hoc_identity},
         {nullptr, nullptr}
     };
-    static double _hoc_x_plus_a(void* _vptr) {
-        double _r{};
+    static double _hoc_x_plus_a(void * _vptr) {
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -235,13 +242,13 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_p);
         _thread = _extcall_thread.data();
         nt = static_cast<NrnThread*>(_pnt->_vnt);
-        auto inst = make_instance_point_functions(_lmc);
+        auto inst = make_instance_point_functions(_p ? &_lmc : nullptr);
         auto node_data = make_node_data_point_functions(_p);
+        double _r = 0.0;
         _r = x_plus_a_point_functions(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static double _hoc_v_plus_a(void* _vptr) {
-        double _r{};
+    static double _hoc_v_plus_a(void * _vptr) {
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -255,13 +262,13 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_p);
         _thread = _extcall_thread.data();
         nt = static_cast<NrnThread*>(_pnt->_vnt);
-        auto inst = make_instance_point_functions(_lmc);
+        auto inst = make_instance_point_functions(_p ? &_lmc : nullptr);
         auto node_data = make_node_data_point_functions(_p);
+        double _r = 0.0;
         _r = v_plus_a_point_functions(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
-    static double _hoc_identity(void* _vptr) {
-        double _r{};
+    static double _hoc_identity(void * _vptr) {
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -275,8 +282,9 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_p);
         _thread = _extcall_thread.data();
         nt = static_cast<NrnThread*>(_pnt->_vnt);
-        auto inst = make_instance_point_functions(_lmc);
+        auto inst = make_instance_point_functions(_p ? &_lmc : nullptr);
         auto node_data = make_node_data_point_functions(_p);
+        double _r = 0.0;
         _r = identity_point_functions(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
         return(_r);
     }
@@ -284,7 +292,7 @@ namespace neuron {
 
     inline double x_plus_a_point_functions(_nrn_mechanism_cache_range& _lmc, point_functions_Instance& inst, point_functions_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la) {
         double ret_x_plus_a = 0.0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         ret_x_plus_a = inst.x[id] + _la;
         return ret_x_plus_a;
     }
@@ -292,30 +300,30 @@ namespace neuron {
 
     inline double v_plus_a_point_functions(_nrn_mechanism_cache_range& _lmc, point_functions_Instance& inst, point_functions_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _la) {
         double ret_v_plus_a = 0.0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
-        ret_v_plus_a = v + _la;
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
+        ret_v_plus_a = inst.v_unused[id] + _la;
         return ret_v_plus_a;
     }
 
 
     inline double identity_point_functions(_nrn_mechanism_cache_range& _lmc, point_functions_Instance& inst, point_functions_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lv) {
         double ret_identity = 0.0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         ret_identity = _lv;
         return ret_identity;
     }
 
 
-    void nrn_init_point_functions(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_point_functions(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_point_functions(_lmc);
+        auto inst = make_instance_point_functions(&_lmc);
         auto node_data = make_node_data_point_functions(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.x[id] = 1.0;
         }
     }
@@ -323,18 +331,18 @@ namespace neuron {
 
     static void nrn_jacob_point_functions(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_point_functions(_lmc);
+        auto inst = make_instance_point_functions(&_lmc);
         auto node_data = make_node_data_point_functions(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
     }
-    void nrn_destructor_point_functions(Prop* prop) {
+    static void nrn_destructor_point_functions(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_point_functions(_lmc);
+        auto inst = make_instance_point_functions(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_point_functions(prop);
 
     }
@@ -344,7 +352,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _point_functions_reg() {
         _initlists();
 

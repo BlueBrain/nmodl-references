@@ -81,7 +81,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<ForNetconsSyn_Store>);
     static_assert(std::is_trivially_move_assignable_v<ForNetconsSyn_Store>);
     static_assert(std::is_trivially_destructible_v<ForNetconsSyn_Store>);
-    ForNetconsSyn_Store ForNetconsSyn_global;
+    static ForNetconsSyn_Store ForNetconsSyn_global;
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -105,12 +105,16 @@ namespace neuron {
     };
 
 
-    static ForNetconsSyn_Instance make_instance_ForNetconsSyn(_nrn_mechanism_cache_range& _lmc) {
+    static ForNetconsSyn_Instance make_instance_ForNetconsSyn(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return ForNetconsSyn_Instance();
+        }
+
         return ForNetconsSyn_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template dptr_field_ptr<0>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template fpfield_ptr<2>(),
+            _lmc->template dptr_field_ptr<0>()
         };
     }
 
@@ -125,6 +129,10 @@ namespace neuron {
         };
     }
     static ForNetconsSyn_NodeData make_node_data_ForNetconsSyn(Prop * _prop) {
+        if(!_prop) {
+            return ForNetconsSyn_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return ForNetconsSyn_NodeData {
@@ -136,7 +144,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_ForNetconsSyn(Prop* prop);
+    static void nrn_destructor_ForNetconsSyn(Prop* prop);
 
 
     static void nrn_alloc_ForNetconsSyn(Prop* _prop) {
@@ -221,23 +229,23 @@ namespace neuron {
     };
 
 
-    void nrn_init_ForNetconsSyn(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_ForNetconsSyn(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_ForNetconsSyn(_lmc);
+        auto inst = make_instance_ForNetconsSyn(&_lmc);
         auto node_data = make_node_data_ForNetconsSyn(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
         }
     }
 
 
     static void nrn_jacob_ForNetconsSyn(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_ForNetconsSyn(_lmc);
+        auto inst = make_instance_ForNetconsSyn(&_lmc);
         auto node_data = make_node_data_ForNetconsSyn(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -248,7 +256,7 @@ namespace neuron {
         _nrn_mechanism_cache_instance _lmc{_pnt->prop};
         auto * nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto * _ppvar = _nrn_mechanism_access_dparam(_pnt->prop);
-        auto inst = make_instance_ForNetconsSyn(_lmc);
+        auto inst = make_instance_ForNetconsSyn(&_lmc);
         auto node_data = make_node_data_ForNetconsSyn(_pnt->prop);
         // nocmodl has a nullptr dereference for thread variables.
         // NMODL will fail to compile at a later point, because of
@@ -271,7 +279,7 @@ namespace neuron {
         _nrn_mechanism_cache_instance _lmc{_pnt->prop};
         auto * nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto * _ppvar = _nrn_mechanism_access_dparam(_pnt->prop);
-        auto inst = make_instance_ForNetconsSyn(_lmc);
+        auto inst = make_instance_ForNetconsSyn(&_lmc);
         auto node_data = make_node_data_ForNetconsSyn(_pnt->prop);
         // nocmodl has a nullptr dereference for thread variables.
         // NMODL will fail to compile at a later point, because of
@@ -281,11 +289,11 @@ namespace neuron {
         double t = nt->_t;
         _args[1] = inst.a0[id];
     }
-    void nrn_destructor_ForNetconsSyn(Prop* prop) {
+    static void nrn_destructor_ForNetconsSyn(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_ForNetconsSyn(_lmc);
+        auto inst = make_instance_ForNetconsSyn(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_ForNetconsSyn(prop);
 
     }
@@ -295,7 +303,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _for_netcons_syn_reg() {
         _initlists();
 

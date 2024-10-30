@@ -81,7 +81,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<pointer_in_double_Store>);
     static_assert(std::is_trivially_move_assignable_v<pointer_in_double_Store>);
     static_assert(std::is_trivially_destructible_v<pointer_in_double_Store>);
-    pointer_in_double_Store pointer_in_double_global;
+    static pointer_in_double_Store pointer_in_double_global;
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -103,10 +103,14 @@ namespace neuron {
     };
 
 
-    static pointer_in_double_Instance make_instance_pointer_in_double(_nrn_mechanism_cache_range& _lmc) {
+    static pointer_in_double_Instance make_instance_pointer_in_double(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return pointer_in_double_Instance();
+        }
+
         return pointer_in_double_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>()
         };
     }
 
@@ -121,6 +125,10 @@ namespace neuron {
         };
     }
     static pointer_in_double_NodeData make_node_data_pointer_in_double(Prop * _prop) {
+        if(!_prop) {
+            return pointer_in_double_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return pointer_in_double_NodeData {
@@ -132,7 +140,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_pointer_in_double(Prop* prop);
+    static void nrn_destructor_pointer_in_double(Prop* prop);
 
 
     static void nrn_alloc_pointer_in_double(Prop* _prop) {
@@ -145,7 +153,7 @@ namespace neuron {
 
 
     /* Mechanism procedures and functions */
-    inline double use_pointer_pointer_in_double(_nrn_mechanism_cache_range& _lmc, pointer_in_double_Instance& inst, pointer_in_double_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static double use_pointer_pointer_in_double(_nrn_mechanism_cache_range& _lmc, pointer_in_double_Instance& inst, pointer_in_double_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
 
@@ -160,35 +168,6 @@ namespace neuron {
         _setdata(_prop);
         hoc_retpushx(1.);
     }
-
-
-    /** connect global (scalar) variables to hoc -- */
-    static DoubScal hoc_scalar_double[] = {
-        {nullptr, nullptr}
-    };
-
-
-    /** connect global (array) variables to hoc -- */
-    static DoubVec hoc_vector_double[] = {
-        {nullptr, nullptr, 0}
-    };
-
-
-    /* declaration of user functions */
-    static void _hoc_use_pointer(void);
-    static double _npy_use_pointer(Prop*);
-
-
-    /* connect user functions to hoc names */
-    static VoidFunc hoc_intfunc[] = {
-        {"setdata_pointer_in_double", _hoc_setdata},
-        {"use_pointer_pointer_in_double", _hoc_use_pointer},
-        {nullptr, nullptr}
-    };
-    static NPyDirectMechFunc npy_direct_func_proc[] = {
-        {"use_pointer", _npy_use_pointer},
-        {nullptr, nullptr}
-    };
 }
 
 
@@ -216,8 +195,36 @@ static std::vector<SomeDouble> some_doubles;
 
 
 namespace neuron {
-    static void _hoc_use_pointer(void) {
-        double _r{};
+
+
+    /** connect global (scalar) variables to hoc -- */
+    static DoubScal hoc_scalar_double[] = {
+        {nullptr, nullptr}
+    };
+
+
+    /** connect global (array) variables to hoc -- */
+    static DoubVec hoc_vector_double[] = {
+        {nullptr, nullptr, 0}
+    };
+
+
+    /* declaration of user functions */
+    static void _hoc_use_pointer();
+    static double _npy_use_pointer(Prop* _prop);
+
+
+    /* connect user functions to hoc names */
+    static VoidFunc hoc_intfunc[] = {
+        {"setdata_pointer_in_double", _hoc_setdata},
+        {"use_pointer_pointer_in_double", _hoc_use_pointer},
+        {nullptr, nullptr}
+    };
+    static NPyDirectMechFunc npy_direct_func_proc[] = {
+        {"use_pointer", _npy_use_pointer},
+        {nullptr, nullptr}
+    };
+    static void _hoc_use_pointer() {
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -227,13 +234,13 @@ namespace neuron {
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_pointer_in_double(_lmc);
+        auto inst = make_instance_pointer_in_double(_local_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_pointer_in_double(_local_prop);
+        double _r = 0.0;
         _r = use_pointer_pointer_in_double(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_use_pointer(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -242,8 +249,9 @@ namespace neuron {
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_pointer_in_double(_lmc);
+        auto inst = make_instance_pointer_in_double(_prop ? &_lmc : nullptr);
         auto node_data = make_node_data_pointer_in_double(_prop);
+        double _r = 0.0;
         _r = use_pointer_pointer_in_double(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
@@ -251,7 +259,7 @@ namespace neuron {
 
     inline double use_pointer_pointer_in_double(_nrn_mechanism_cache_range& _lmc, pointer_in_double_Instance& inst, pointer_in_double_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         double ret_use_pointer = 0.0;
-        auto v = node_data.node_voltages[node_data.nodeindices[id]];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         // Setup for VERBATIM
         #define ptr inst.ptr[id]
         #define t nt->_t
@@ -267,16 +275,16 @@ namespace neuron {
     }
 
 
-    void nrn_init_pointer_in_double(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_pointer_in_double(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_pointer_in_double(_lmc);
+        auto inst = make_instance_pointer_in_double(&_lmc);
         auto node_data = make_node_data_pointer_in_double(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             // Setup for VERBATIM
             #define ptr inst.ptr[id]
             #define t nt->_t
@@ -296,18 +304,18 @@ namespace neuron {
 
     static void nrn_jacob_pointer_in_double(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_pointer_in_double(_lmc);
+        auto inst = make_instance_pointer_in_double(&_lmc);
         auto node_data = make_node_data_pointer_in_double(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
     }
-    void nrn_destructor_pointer_in_double(Prop* prop) {
+    static void nrn_destructor_pointer_in_double(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_pointer_in_double(_lmc);
+        auto inst = make_instance_pointer_in_double(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_pointer_in_double(prop);
 
     }
@@ -317,7 +325,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _pointer_in_double_reg() {
         _initlists();
 

@@ -60,7 +60,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<basic_pointer_Store>);
     static_assert(std::is_trivially_move_assignable_v<basic_pointer_Store>);
     static_assert(std::is_trivially_destructible_v<basic_pointer_Store>);
-    basic_pointer_Store basic_pointer_global;
+    static basic_pointer_Store basic_pointer_global;
 
 
     /** all mechanism instance variables and global variables */
@@ -222,8 +222,8 @@ namespace coreneuron {
     }
 
 
-    inline double read_p1_basic_pointer(int id, int pnodecount, basic_pointer_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
-    inline double read_p2_basic_pointer(int id, int pnodecount, basic_pointer_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static double read_p1_basic_pointer(int id, int pnodecount, basic_pointer_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static double read_p2_basic_pointer(int id, int pnodecount, basic_pointer_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
 
 
     inline double read_p1_basic_pointer(int id, int pnodecount, basic_pointer_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {

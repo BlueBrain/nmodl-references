@@ -54,7 +54,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<pointer_in_double_Store>);
     static_assert(std::is_trivially_move_assignable_v<pointer_in_double_Store>);
     static_assert(std::is_trivially_destructible_v<pointer_in_double_Store>);
-    pointer_in_double_Store pointer_in_double_global;
+    static pointer_in_double_Store pointer_in_double_global;
 
 
     /** all mechanism instance variables and global variables */
@@ -204,7 +204,7 @@ namespace coreneuron {
     }
 
 
-    inline double use_pointer_pointer_in_double(int id, int pnodecount, pointer_in_double_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static double use_pointer_pointer_in_double(int id, int pnodecount, pointer_in_double_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
 }
 
 

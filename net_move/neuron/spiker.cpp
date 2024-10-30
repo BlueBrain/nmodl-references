@@ -81,7 +81,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<spiker_Store>);
     static_assert(std::is_trivially_move_assignable_v<spiker_Store>);
     static_assert(std::is_trivially_destructible_v<spiker_Store>);
-    spiker_Store spiker_global;
+    static spiker_Store spiker_global;
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -106,13 +106,17 @@ namespace neuron {
     };
 
 
-    static spiker_Instance make_instance_spiker(_nrn_mechanism_cache_range& _lmc) {
+    static spiker_Instance make_instance_spiker(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return spiker_Instance();
+        }
+
         return spiker_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>(),
-            _lmc.template dptr_field_ptr<0>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template fpfield_ptr<2>(),
+            _lmc->template fpfield_ptr<3>(),
+            _lmc->template dptr_field_ptr<0>()
         };
     }
 
@@ -127,6 +131,10 @@ namespace neuron {
         };
     }
     static spiker_NodeData make_node_data_spiker(Prop * _prop) {
+        if(!_prop) {
+            return spiker_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return spiker_NodeData {
@@ -138,7 +146,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_spiker(Prop* prop);
+    static void nrn_destructor_spiker(Prop* prop);
 
 
     static void nrn_alloc_spiker(Prop* _prop) {
@@ -218,16 +226,16 @@ namespace neuron {
     };
 
 
-    void nrn_init_spiker(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_spiker(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_spiker(_lmc);
+        auto inst = make_instance_spiker(&_lmc);
         auto node_data = make_node_data_spiker(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.y[id] = 0.0;
             inst.z[id] = 0.0;
             net_send(/* tqitem */ &_ppvar[2], nullptr, _ppvar[1].get<Point_process*>(), nt->_t + 1.8, 1.0);
@@ -237,7 +245,7 @@ namespace neuron {
 
     static void nrn_jacob_spiker(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_spiker(_lmc);
+        auto inst = make_instance_spiker(&_lmc);
         auto node_data = make_node_data_spiker(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -248,7 +256,7 @@ namespace neuron {
         _nrn_mechanism_cache_instance _lmc{_pnt->prop};
         auto * nt = static_cast<NrnThread*>(_pnt->_vnt);
         auto * _ppvar = _nrn_mechanism_access_dparam(_pnt->prop);
-        auto inst = make_instance_spiker(_lmc);
+        auto inst = make_instance_spiker(&_lmc);
         auto node_data = make_node_data_spiker(_pnt->prop);
         // nocmodl has a nullptr dereference for thread variables.
         // NMODL will fail to compile at a later point, because of
@@ -265,11 +273,11 @@ namespace neuron {
         }
 
     }
-    void nrn_destructor_spiker(Prop* prop) {
+    static void nrn_destructor_spiker(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_spiker(_lmc);
+        auto inst = make_instance_spiker(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_spiker(prop);
 
     }
@@ -279,7 +287,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _spiker_reg() {
         _initlists();
 

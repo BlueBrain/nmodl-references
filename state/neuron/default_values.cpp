@@ -91,7 +91,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<default_values_Store>);
     static_assert(std::is_trivially_move_assignable_v<default_values_Store>);
     static_assert(std::is_trivially_destructible_v<default_values_Store>);
-    default_values_Store default_values_global;
+    static default_values_Store default_values_global;
     auto X0_default_values() -> std::decay<decltype(default_values_global.X0)>::type  {
         return default_values_global.X0;
     }
@@ -138,19 +138,23 @@ namespace neuron {
     };
 
 
-    static default_values_Instance make_instance_default_values(_nrn_mechanism_cache_range& _lmc) {
+    static default_values_Instance make_instance_default_values(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return default_values_Instance();
+        }
+
         return default_values_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template data_array_ptr<3, 3>(),
-            _lmc.template data_array_ptr<4, 2>(),
-            _lmc.template fpfield_ptr<5>(),
-            _lmc.template fpfield_ptr<6>(),
-            _lmc.template fpfield_ptr<7>(),
-            _lmc.template data_array_ptr<8, 3>(),
-            _lmc.template data_array_ptr<9, 2>(),
-            _lmc.template fpfield_ptr<10>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template fpfield_ptr<2>(),
+            _lmc->template data_array_ptr<3, 3>(),
+            _lmc->template data_array_ptr<4, 2>(),
+            _lmc->template fpfield_ptr<5>(),
+            _lmc->template fpfield_ptr<6>(),
+            _lmc->template fpfield_ptr<7>(),
+            _lmc->template data_array_ptr<8, 3>(),
+            _lmc->template data_array_ptr<9, 2>(),
+            _lmc->template fpfield_ptr<10>()
         };
     }
 
@@ -165,6 +169,10 @@ namespace neuron {
         };
     }
     static default_values_NodeData make_node_data_default_values(Prop * _prop) {
+        if(!_prop) {
+            return default_values_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return default_values_NodeData {
@@ -176,7 +184,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_default_values(Prop* prop);
+    static void nrn_destructor_default_values(Prop* prop);
 
 
     static void nrn_alloc_default_values(Prop* _prop) {
@@ -234,16 +242,16 @@ namespace neuron {
     };
 
 
-    void nrn_init_default_values(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_default_values(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_default_values(_lmc);
+        auto inst = make_instance_default_values(&_lmc);
         auto node_data = make_node_data_default_values(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.X[id] = inst.global->X0;
             inst.Y[id] = inst.global->Y0;
             inst.Z[id] = inst.global->Z0;
@@ -260,18 +268,18 @@ namespace neuron {
 
     static void nrn_jacob_default_values(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_default_values(_lmc);
+        auto inst = make_instance_default_values(&_lmc);
         auto node_data = make_node_data_default_values(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
     }
-    void nrn_destructor_default_values(Prop* prop) {
+    static void nrn_destructor_default_values(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_default_values(_lmc);
+        auto inst = make_instance_default_values(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_default_values(prop);
 
     }
@@ -281,7 +289,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _default_values_reg() {
         _initlists();
 

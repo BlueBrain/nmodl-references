@@ -472,7 +472,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<heat_eqn_thread_vars_Store>);
     static_assert(std::is_trivially_move_assignable_v<heat_eqn_thread_vars_Store>);
     static_assert(std::is_trivially_destructible_v<heat_eqn_thread_vars_Store>);
-    heat_eqn_thread_vars_Store heat_eqn_thread_vars_global;
+    static heat_eqn_thread_vars_Store heat_eqn_thread_vars_global;
     auto thread_data_in_use_heat_eqn_thread_vars() -> std::decay<decltype(heat_eqn_thread_vars_global.thread_data_in_use)>::type  {
         return heat_eqn_thread_vars_global.thread_data_in_use;
     }
@@ -529,13 +529,17 @@ namespace neuron {
     };
 
 
-    static heat_eqn_thread_vars_Instance make_instance_heat_eqn_thread_vars(_nrn_mechanism_cache_range& _lmc) {
+    static heat_eqn_thread_vars_Instance make_instance_heat_eqn_thread_vars(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return heat_eqn_thread_vars_Instance();
+        }
+
         return heat_eqn_thread_vars_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>(),
-            _lmc.template fpfield_ptr<4>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template fpfield_ptr<2>(),
+            _lmc->template fpfield_ptr<3>(),
+            _lmc->template fpfield_ptr<4>()
         };
     }
 
@@ -550,6 +554,10 @@ namespace neuron {
         };
     }
     static heat_eqn_thread_vars_NodeData make_node_data_heat_eqn_thread_vars(Prop * _prop) {
+        if(!_prop) {
+            return heat_eqn_thread_vars_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return heat_eqn_thread_vars_NodeData {
@@ -561,7 +569,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_heat_eqn_thread_vars(Prop* prop);
+    static void nrn_destructor_heat_eqn_thread_vars(Prop* prop);
 
 
     static void nrn_alloc_heat_eqn_thread_vars(Prop* _prop) {
@@ -577,7 +585,7 @@ namespace neuron {
     static void* _diffusion_space_X;
     static double _diffusion_coefficient_X(int _i, Memb_list* _ml_arg, size_t id, Datum* _ppvar, double* _pdvol, double* _pdfcdc, Datum* /* _thread */, NrnThread* nt, const _nrn_model_sorted_token& _sorted_token) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_heat_eqn_thread_vars(_lmc);
+        auto inst = make_instance_heat_eqn_thread_vars(&_lmc);
         auto node_data = make_node_data_heat_eqn_thread_vars(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto _thread_vars = heat_eqn_thread_vars_ThreadVariables(_thread[0].get<double*>());
@@ -613,7 +621,6 @@ namespace neuron {
         Datum* _thread;
         heat_eqn_thread_vars_ThreadVariables& _thread_vars;
         NrnThread* nt;
-        double v;
         double source0_, old_X;
 
         void initialize() {
@@ -622,8 +629,8 @@ namespace neuron {
             old_X = inst.X[id];
         }
 
-        functor_heat_eqn_thread_vars_0(_nrn_mechanism_cache_range& _lmc, heat_eqn_thread_vars_Instance& inst, heat_eqn_thread_vars_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, heat_eqn_thread_vars_ThreadVariables& _thread_vars, NrnThread* nt, double v)
-            : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), _thread_vars(_thread_vars), nt(nt), v(v)
+        functor_heat_eqn_thread_vars_0(_nrn_mechanism_cache_range& _lmc, heat_eqn_thread_vars_Instance& inst, heat_eqn_thread_vars_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, heat_eqn_thread_vars_ThreadVariables& _thread_vars, NrnThread* nt)
+            : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), _thread_vars(_thread_vars), nt(nt)
         {}
         void operator()(const Eigen::Matrix<double, 1, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_dxm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
@@ -685,9 +692,9 @@ namespace neuron {
     }
 
 
-    void nrn_init_heat_eqn_thread_vars(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_heat_eqn_thread_vars(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_heat_eqn_thread_vars(_lmc);
+        auto inst = make_instance_heat_eqn_thread_vars(&_lmc);
         auto node_data = make_node_data_heat_eqn_thread_vars(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto _thread_vars = heat_eqn_thread_vars_ThreadVariables(_thread[0].get<double*>());
@@ -695,7 +702,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.X[id] = inst.global->X0;
             _thread_vars.mu(id) = 1.1;
             _thread_vars.vol(id) = 0.01;
@@ -708,9 +715,9 @@ namespace neuron {
     }
 
 
-    void nrn_state_heat_eqn_thread_vars(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_state_heat_eqn_thread_vars(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_heat_eqn_thread_vars(_lmc);
+        auto inst = make_instance_heat_eqn_thread_vars(&_lmc);
         auto node_data = make_node_data_heat_eqn_thread_vars(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto _thread_vars = heat_eqn_thread_vars_ThreadVariables(_thread[0].get<double*>());
@@ -718,13 +725,13 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             
             Eigen::Matrix<double, 1, 1> nmodl_eigen_xm;
             double* nmodl_eigen_x = nmodl_eigen_xm.data();
             nmodl_eigen_x[static_cast<int>(0)] = inst.X[id];
             // call newton solver
-            functor_heat_eqn_thread_vars_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, v);
+            functor_heat_eqn_thread_vars_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
@@ -738,7 +745,7 @@ namespace neuron {
 
     static void nrn_jacob_heat_eqn_thread_vars(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_heat_eqn_thread_vars(_lmc);
+        auto inst = make_instance_heat_eqn_thread_vars(&_lmc);
         auto node_data = make_node_data_heat_eqn_thread_vars(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto _thread_vars = heat_eqn_thread_vars_ThreadVariables(_thread[0].get<double*>());
@@ -748,11 +755,11 @@ namespace neuron {
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
-    void nrn_destructor_heat_eqn_thread_vars(Prop* prop) {
+    static void nrn_destructor_heat_eqn_thread_vars(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_heat_eqn_thread_vars(_lmc);
+        auto inst = make_instance_heat_eqn_thread_vars(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_heat_eqn_thread_vars(prop);
         auto _thread_vars = heat_eqn_thread_vars_ThreadVariables(heat_eqn_thread_vars_global.thread_data);
 
@@ -767,7 +774,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _heat_eqn_thread_vars_reg() {
         _initlists();
 

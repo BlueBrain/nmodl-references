@@ -472,7 +472,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<thread_newton_Store>);
     static_assert(std::is_trivially_move_assignable_v<thread_newton_Store>);
     static_assert(std::is_trivially_destructible_v<thread_newton_Store>);
-    thread_newton_Store thread_newton_global;
+    static thread_newton_Store thread_newton_global;
     auto thread_data_in_use_thread_newton() -> std::decay<decltype(thread_newton_global.thread_data_in_use)>::type  {
         return thread_newton_global.thread_data_in_use;
     }
@@ -523,13 +523,17 @@ namespace neuron {
     };
 
 
-    static thread_newton_Instance make_instance_thread_newton(_nrn_mechanism_cache_range& _lmc) {
+    static thread_newton_Instance make_instance_thread_newton(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return thread_newton_Instance();
+        }
+
         return thread_newton_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>(),
-            _lmc.template fpfield_ptr<4>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template fpfield_ptr<2>(),
+            _lmc->template fpfield_ptr<3>(),
+            _lmc->template fpfield_ptr<4>()
         };
     }
 
@@ -544,6 +548,10 @@ namespace neuron {
         };
     }
     static thread_newton_NodeData make_node_data_thread_newton(Prop * _prop) {
+        if(!_prop) {
+            return thread_newton_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return thread_newton_NodeData {
@@ -555,7 +563,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_thread_newton(Prop* prop);
+    static void nrn_destructor_thread_newton(Prop* prop);
 
 
     static void nrn_alloc_thread_newton(Prop* _prop) {
@@ -593,7 +601,6 @@ namespace neuron {
         Datum* _thread;
         thread_newton_ThreadVariables& _thread_vars;
         NrnThread* nt;
-        double v;
         double source0_, old_X;
 
         void initialize() {
@@ -601,8 +608,8 @@ namespace neuron {
             old_X = inst.X[id];
         }
 
-        functor_thread_newton_0(_nrn_mechanism_cache_range& _lmc, thread_newton_Instance& inst, thread_newton_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, thread_newton_ThreadVariables& _thread_vars, NrnThread* nt, double v)
-            : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), _thread_vars(_thread_vars), nt(nt), v(v)
+        functor_thread_newton_0(_nrn_mechanism_cache_range& _lmc, thread_newton_Instance& inst, thread_newton_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, thread_newton_ThreadVariables& _thread_vars, NrnThread* nt)
+            : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), _thread_vars(_thread_vars), nt(nt)
         {}
         void operator()(const Eigen::Matrix<double, 1, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_dxm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
@@ -663,9 +670,9 @@ namespace neuron {
     }
 
 
-    void nrn_init_thread_newton(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_thread_newton(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_thread_newton(_lmc);
+        auto inst = make_instance_thread_newton(&_lmc);
         auto node_data = make_node_data_thread_newton(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto _thread_vars = thread_newton_ThreadVariables(_thread[0].get<double*>());
@@ -673,7 +680,7 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.X[id] = inst.global->X0;
             double total;
             inst.X[id] = 0.0;
@@ -682,9 +689,9 @@ namespace neuron {
     }
 
 
-    void nrn_state_thread_newton(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_state_thread_newton(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_thread_newton(_lmc);
+        auto inst = make_instance_thread_newton(&_lmc);
         auto node_data = make_node_data_thread_newton(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto _thread_vars = thread_newton_ThreadVariables(_thread[0].get<double*>());
@@ -692,13 +699,13 @@ namespace neuron {
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             
             Eigen::Matrix<double, 1, 1> nmodl_eigen_xm;
             double* nmodl_eigen_x = nmodl_eigen_xm.data();
             nmodl_eigen_x[static_cast<int>(0)] = inst.X[id];
             // call newton solver
-            functor_thread_newton_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, v);
+            functor_thread_newton_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
@@ -713,7 +720,7 @@ namespace neuron {
 
     static void nrn_jacob_thread_newton(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_thread_newton(_lmc);
+        auto inst = make_instance_thread_newton(&_lmc);
         auto node_data = make_node_data_thread_newton(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto _thread_vars = thread_newton_ThreadVariables(_thread[0].get<double*>());
@@ -723,11 +730,11 @@ namespace neuron {
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
-    void nrn_destructor_thread_newton(Prop* prop) {
+    static void nrn_destructor_thread_newton(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_thread_newton(_lmc);
+        auto inst = make_instance_thread_newton(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_thread_newton(prop);
         auto _thread_vars = thread_newton_ThreadVariables(thread_newton_global.thread_data);
 
@@ -742,7 +749,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _thread_newton_reg() {
         _initlists();
 

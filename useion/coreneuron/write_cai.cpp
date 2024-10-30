@@ -55,7 +55,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<write_cai_Store>);
     static_assert(std::is_trivially_move_assignable_v<write_cai_Store>);
     static_assert(std::is_trivially_destructible_v<write_cai_Store>);
-    write_cai_Store write_cai_global;
+    static write_cai_Store write_cai_global;
 
 
     /** all mechanism instance variables and global variables */

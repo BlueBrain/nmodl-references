@@ -83,7 +83,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<read_eca_Store>);
     static_assert(std::is_trivially_move_assignable_v<read_eca_Store>);
     static_assert(std::is_trivially_destructible_v<read_eca_Store>);
-    read_eca_Store read_eca_global;
+    static read_eca_Store read_eca_global;
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -107,12 +107,16 @@ namespace neuron {
     };
 
 
-    static read_eca_Instance make_instance_read_eca(_nrn_mechanism_cache_range& _lmc) {
+    static read_eca_Instance make_instance_read_eca(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return read_eca_Instance();
+        }
+
         return read_eca_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template dptr_field_ptr<0>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template fpfield_ptr<2>(),
+            _lmc->template dptr_field_ptr<0>()
         };
     }
 
@@ -127,6 +131,10 @@ namespace neuron {
         };
     }
     static read_eca_NodeData make_node_data_read_eca(Prop * _prop) {
+        if(!_prop) {
+            return read_eca_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return read_eca_NodeData {
@@ -138,7 +146,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_read_eca(Prop* prop);
+    static void nrn_destructor_read_eca(Prop* prop);
 
 
     static void nrn_alloc_read_eca(Prop* _prop) {
@@ -199,16 +207,16 @@ namespace neuron {
     };
 
 
-    void nrn_init_read_eca(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_read_eca(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_read_eca(_lmc);
+        auto inst = make_instance_read_eca(&_lmc);
         auto node_data = make_node_data_read_eca(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.eca[id] = (*inst.ion_eca[id]);
             inst.x[id] = inst.eca[id];
         }
@@ -217,18 +225,18 @@ namespace neuron {
 
     static void nrn_jacob_read_eca(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_read_eca(_lmc);
+        auto inst = make_instance_read_eca(&_lmc);
         auto node_data = make_node_data_read_eca(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
     }
-    void nrn_destructor_read_eca(Prop* prop) {
+    static void nrn_destructor_read_eca(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_read_eca(_lmc);
+        auto inst = make_instance_read_eca(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_read_eca(prop);
 
     }
@@ -238,7 +246,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _read_eca_reg() {
         _initlists();
 

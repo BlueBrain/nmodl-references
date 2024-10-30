@@ -83,7 +83,7 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<NeuronVariables_Store>);
     static_assert(std::is_trivially_move_assignable_v<NeuronVariables_Store>);
     static_assert(std::is_trivially_destructible_v<NeuronVariables_Store>);
-    NeuronVariables_Store NeuronVariables_global;
+    static NeuronVariables_Store NeuronVariables_global;
     static std::vector<double> _parameter_defaults = {
     };
 
@@ -107,12 +107,16 @@ namespace neuron {
     };
 
 
-    static NeuronVariables_Instance make_instance_NeuronVariables(_nrn_mechanism_cache_range& _lmc) {
+    static NeuronVariables_Instance make_instance_NeuronVariables(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return NeuronVariables_Instance();
+        }
+
         return NeuronVariables_Instance {
             &::celsius,
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template fpfield_ptr<2>()
         };
     }
 
@@ -127,6 +131,10 @@ namespace neuron {
         };
     }
     static NeuronVariables_NodeData make_node_data_NeuronVariables(Prop * _prop) {
+        if(!_prop) {
+            return NeuronVariables_NodeData();
+        }
+
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
         return NeuronVariables_NodeData {
@@ -138,7 +146,7 @@ namespace neuron {
         };
     }
 
-    void nrn_destructor_NeuronVariables(Prop* prop);
+    static void nrn_destructor_NeuronVariables(Prop* prop);
 
 
     static void nrn_alloc_NeuronVariables(Prop* _prop) {
@@ -192,30 +200,30 @@ namespace neuron {
     };
 
 
-    void nrn_init_NeuronVariables(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_NeuronVariables(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_NeuronVariables(_lmc);
+        auto inst = make_instance_NeuronVariables(&_lmc);
         auto node_data = make_node_data_NeuronVariables(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
         }
     }
 
 
-    void nrn_state_NeuronVariables(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_state_NeuronVariables(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_NeuronVariables(_lmc);
+        auto inst = make_instance_NeuronVariables(&_lmc);
         auto node_data = make_node_data_NeuronVariables(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.range_celsius[id] = *(inst.celsius);
         }
     }
@@ -223,7 +231,7 @@ namespace neuron {
 
     static void nrn_jacob_NeuronVariables(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_NeuronVariables(_lmc);
+        auto inst = make_instance_NeuronVariables(&_lmc);
         auto node_data = make_node_data_NeuronVariables(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
@@ -232,11 +240,11 @@ namespace neuron {
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
     }
-    void nrn_destructor_NeuronVariables(Prop* prop) {
+    static void nrn_destructor_NeuronVariables(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_NeuronVariables(_lmc);
+        auto inst = make_instance_NeuronVariables(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_NeuronVariables(prop);
 
     }
@@ -246,7 +254,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _neuron_variables_reg() {
         _initlists();
 
