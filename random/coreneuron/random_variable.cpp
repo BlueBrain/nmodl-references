@@ -151,7 +151,7 @@ namespace coreneuron {
         int nodecount = ml->nodecount;
         Datum* indexes = ml->pdata;
         for (int id = 0; id < nodecount; id++) {
-            nrnran123_deletestream((nrnran123_State*)inst->rng[indexes[0*pnodecount + id]]);
+            nrnran123_deletestream((nrnran123_State*) inst->rng[indexes[0*pnodecount + id]]);
         }
         delete inst;
         ml->instance = nullptr;
@@ -215,7 +215,7 @@ namespace coreneuron {
 
     inline double negexp_random_variable(int id, int pnodecount, random_variable_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
         double ret_negexp = 0.0;
-        ret_negexp = nrnran123_negexp((nrnran123_State*)inst->rng[indexes[0*pnodecount + id]]);
+        ret_negexp = nrnran123_negexp((nrnran123_State*) inst->rng[indexes[0*pnodecount + id]]);
         return ret_negexp;
     }
 
