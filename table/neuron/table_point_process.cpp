@@ -46,6 +46,7 @@ void _nrn_mechanism_register_data_fields(Args&&... args) {
 
 extern Prop* nrn_point_prop_;
 void _nrn_thread_table_reg(int, nrn_thread_table_check_t);
+extern void _cvode_abstol(Symbol**, double*, int);
 extern Node* nrn_alloc_node_;
 
 
