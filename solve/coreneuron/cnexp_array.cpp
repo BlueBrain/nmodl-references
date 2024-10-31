@@ -276,7 +276,7 @@ namespace coreneuron {
             #if NRN_PRCELLSTATE
             inst->v_unused[id] = v;
             #endif
-            inst->x[id] = inst->x[id] * exp(nt->_dt * ((inst->s+id*2)[static_cast<int>(0)] + (inst->s+id*2)[static_cast<int>(1)]) * (inst->z+id*3)[static_cast<int>(0)] * (inst->z+id*3)[static_cast<int>(1)] * (inst->z+id*3)[static_cast<int>(2)]);
+            inst->x[id] = inst->x[id] + (1.0 - exp(nt->_dt * ((((inst->s+id*2)[static_cast<int>(0)] + (inst->s+id*2)[static_cast<int>(1)]) * ((inst->z+id*3)[static_cast<int>(0)] * (inst->z+id*3)[static_cast<int>(1)] * (inst->z+id*3)[static_cast<int>(2)])) * (1.0)))) * ( -(0.0) / (((((inst->s+id*2)[static_cast<int>(0)] + (inst->s+id*2)[static_cast<int>(1)])) * (((((inst->z+id*3)[static_cast<int>(0)]) * ((inst->z+id*3)[static_cast<int>(1)])) * ((inst->z+id*3)[static_cast<int>(2)])))) * (1.0)) - inst->x[id]);
         }
     }
 
