@@ -45,6 +45,7 @@ void _nrn_mechanism_register_data_fields(Args&&... args) {
 }  // namespace
 
 Prop* hoc_getdata_range(int type);
+extern void _cvode_abstol(Symbol**, double*, int);
 extern Node* nrn_alloc_node_;
 
 
@@ -237,7 +238,7 @@ namespace neuron {
     inline double negexp_random_variable(_nrn_mechanism_cache_range& _lmc, random_variable_Instance& inst, random_variable_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         double ret_negexp = 0.0;
         double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
-        ret_negexp = nrnran123_negexp((nrnran123_State*)_ppvar[0].literal_value<void*>());
+        ret_negexp = nrnran123_negexp((nrnran123_State*) _ppvar[0].literal_value<void*>());
         return ret_negexp;
     }
 
@@ -276,7 +277,7 @@ namespace neuron {
         auto inst = make_instance_random_variable(prop ? &_lmc : nullptr);
         auto node_data = make_node_data_random_variable(prop);
 
-        nrnran123_deletestream((nrnran123_State*) _ppvar[0].literal_value<void*>());
+        nrnran123_deletestream((nrnran123_State*) (nrnran123_State*) _ppvar[0].literal_value<void*>());
     }
 
 

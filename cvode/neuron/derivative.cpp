@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : nonlin
-Filename        : nonlin.mod
+Model Name      : scalar
+Filename        : derivative.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -411,7 +411,7 @@ EIGEN_DEVICE_FUNC int newton_solver(Eigen::Matrix<double, 4, 1>& X,
 #define NRN_VECTORIZED 1
 
 static constexpr auto number_of_datum_variables = 0;
-static constexpr auto number_of_floating_point_variables = 3;
+static constexpr auto number_of_floating_point_variables = 8;
 
 namespace {
 template <typename T>
@@ -442,16 +442,23 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "nonlin",
+        "scalar",
         0,
         0,
-        "x_nonlin",
+        "var1_scalar",
+        "var2_scalar",
+        "var3_scalar",
         0,
         0
     };
 
 
     /* NEURON global variables */
+    static neuron::container::field_index _slist1[3], _dlist1[3];
+    static Symbol** _atollist;
+    static HocStateTolerance _hoc_state_tol[] = {
+        {0, 0}
+    };
     static int mech_type;
     static Prop* _extcall_prop;
     /* _prop_id kind of shadows _extcall_prop to allow validity checking. */
@@ -460,17 +467,61 @@ namespace neuron {
 
 
     /** all global variables */
-    struct nonlin_Store {
-        double x0{0};
+    struct scalar_Store {
+        double freq{10};
+        double a{5};
+        double v1{-1};
+        double v2{5};
+        double v3{15};
+        double v4{0.8};
+        double v5{0.3};
+        double r{3};
+        double k{0.2};
+        double var10{0};
+        double var20{0};
+        double var30{0};
     };
-    static_assert(std::is_trivially_copy_constructible_v<nonlin_Store>);
-    static_assert(std::is_trivially_move_constructible_v<nonlin_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<nonlin_Store>);
-    static_assert(std::is_trivially_move_assignable_v<nonlin_Store>);
-    static_assert(std::is_trivially_destructible_v<nonlin_Store>);
-    static nonlin_Store nonlin_global;
-    auto x0_nonlin() -> std::decay<decltype(nonlin_global.x0)>::type  {
-        return nonlin_global.x0;
+    static_assert(std::is_trivially_copy_constructible_v<scalar_Store>);
+    static_assert(std::is_trivially_move_constructible_v<scalar_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<scalar_Store>);
+    static_assert(std::is_trivially_move_assignable_v<scalar_Store>);
+    static_assert(std::is_trivially_destructible_v<scalar_Store>);
+    static scalar_Store scalar_global;
+    auto freq_scalar() -> std::decay<decltype(scalar_global.freq)>::type  {
+        return scalar_global.freq;
+    }
+    auto a_scalar() -> std::decay<decltype(scalar_global.a)>::type  {
+        return scalar_global.a;
+    }
+    auto v1_scalar() -> std::decay<decltype(scalar_global.v1)>::type  {
+        return scalar_global.v1;
+    }
+    auto v2_scalar() -> std::decay<decltype(scalar_global.v2)>::type  {
+        return scalar_global.v2;
+    }
+    auto v3_scalar() -> std::decay<decltype(scalar_global.v3)>::type  {
+        return scalar_global.v3;
+    }
+    auto v4_scalar() -> std::decay<decltype(scalar_global.v4)>::type  {
+        return scalar_global.v4;
+    }
+    auto v5_scalar() -> std::decay<decltype(scalar_global.v5)>::type  {
+        return scalar_global.v5;
+    }
+    auto r_scalar() -> std::decay<decltype(scalar_global.r)>::type  {
+        return scalar_global.r;
+    }
+    auto k_scalar() -> std::decay<decltype(scalar_global.k)>::type  {
+        return scalar_global.k;
+    }
+    auto var10_scalar() -> std::decay<decltype(scalar_global.var10)>::type  {
+        return scalar_global.var10;
+    }
+    auto var20_scalar() -> std::decay<decltype(scalar_global.var20)>::type  {
+        return scalar_global.var20;
+    }
+    auto var30_scalar() -> std::decay<decltype(scalar_global.var30)>::type  {
+        return scalar_global.var30;
     }
 
     static std::vector<double> _parameter_defaults = {
@@ -478,15 +529,20 @@ namespace neuron {
 
 
     /** all mechanism instance variables and global variables */
-    struct nonlin_Instance  {
-        double* x{};
-        double* Dx{};
+    struct scalar_Instance  {
+        double* var1{};
+        double* var2{};
+        double* var3{};
+        double* Dvar1{};
+        double* Dvar2{};
+        double* Dvar3{};
         double* v_unused{};
-        nonlin_Store* global{&nonlin_global};
+        double* g_unused{};
+        scalar_Store* global{&scalar_global};
     };
 
 
-    struct nonlin_NodeData  {
+    struct scalar_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -495,21 +551,26 @@ namespace neuron {
     };
 
 
-    static nonlin_Instance make_instance_nonlin(_nrn_mechanism_cache_range* _lmc) {
+    static scalar_Instance make_instance_scalar(_nrn_mechanism_cache_range* _lmc) {
         if(_lmc == nullptr) {
-            return nonlin_Instance();
+            return scalar_Instance();
         }
 
-        return nonlin_Instance {
+        return scalar_Instance {
             _lmc->template fpfield_ptr<0>(),
             _lmc->template fpfield_ptr<1>(),
-            _lmc->template fpfield_ptr<2>()
+            _lmc->template fpfield_ptr<2>(),
+            _lmc->template fpfield_ptr<3>(),
+            _lmc->template fpfield_ptr<4>(),
+            _lmc->template fpfield_ptr<5>(),
+            _lmc->template fpfield_ptr<6>(),
+            _lmc->template fpfield_ptr<7>()
         };
     }
 
 
-    static nonlin_NodeData make_node_data_nonlin(NrnThread& nt, Memb_list& _ml_arg) {
-        return nonlin_NodeData {
+    static scalar_NodeData make_node_data_scalar(NrnThread& nt, Memb_list& _ml_arg) {
+        return scalar_NodeData {
             _ml_arg.nodeindices,
             nt.node_voltage_storage(),
             nt.node_d_storage(),
@@ -517,14 +578,14 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
-    static nonlin_NodeData make_node_data_nonlin(Prop * _prop) {
+    static scalar_NodeData make_node_data_scalar(Prop * _prop) {
         if(!_prop) {
-            return nonlin_NodeData();
+            return scalar_NodeData();
         }
 
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
-        return nonlin_NodeData {
+        return scalar_NodeData {
             node_index.data(),
             &_nrn_mechanism_access_voltage(_node),
             &_nrn_mechanism_access_d(_node),
@@ -533,23 +594,88 @@ namespace neuron {
         };
     }
 
-    static void nrn_destructor_nonlin(Prop* prop);
+    static void nrn_destructor_scalar(Prop* prop);
 
 
-    static void nrn_alloc_nonlin(Prop* _prop) {
+    static void nrn_alloc_scalar(Prop* _prop) {
         Datum *_ppvar = nullptr;
+        _ppvar = nrn_prop_datum_alloc(mech_type, 1, _prop);
+        _nrn_mechanism_access_dparam(_prop) = _ppvar;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const _iml = 0;
-        assert(_nrn_mechanism_get_num_vars(_prop) == 3);
+        assert(_nrn_mechanism_get_num_vars(_prop) == 8);
         /*initialize range parameters*/
     }
 
 
     /* Mechanism procedures and functions */
-    inline static double solve_nonlin(_nrn_mechanism_cache_range& _lmc, nonlin_Instance& inst, nonlin_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline static double residual_nonlin(_nrn_mechanism_cache_range& _lmc, nonlin_Instance& inst, nonlin_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx);
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
+
+
+
+    /* Functions related to CVODE codegen */
+    static constexpr int ode_count_scalar(int _type) {
+        return 3;
+    }
+
+
+    static void ode_setup_tolerances_scalar(Prop* _prop, int equation_index, neuron::container::data_handle<double>* _pv, neuron::container::data_handle<double>* _pvdot, double* _atol, int _type) {
+        auto* _ppvar = _nrn_mechanism_access_dparam(_prop);
+        _ppvar[0].literal_value<int>() = equation_index;
+        for (int i = 0; i < ode_count_scalar(0); i++) {
+            _pv[i] = _nrn_mechanism_get_param_handle(_prop, _slist1[i]);
+            _pvdot[i] = _nrn_mechanism_get_param_handle(_prop, _dlist1[i]);
+            _cvode_abstol(_atollist, _atol, i);
+        }
+    }
+
+
+    static int ode_update_nonstiff_scalar(_nrn_mechanism_cache_range& _lmc, scalar_Instance& inst, scalar_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+        auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
+        inst.Dvar1[id] =  -sin(inst.global->freq * nt->_t);
+        inst.Dvar2[id] =  -inst.var2[id] * inst.global->a;
+        inst.Dvar3[id] = inst.global->r * inst.var3[id] * (1.0 - inst.var3[id] / inst.global->k);
+        return 0;
+    }
+
+
+    static int ode_update_stiff_scalar(_nrn_mechanism_cache_range& _lmc, scalar_Instance& inst, scalar_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+        auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
+        inst.Dvar1[id] = inst.Dvar1[id] / (1.0 - nt->_dt * (0.0));
+        inst.Dvar2[id] = inst.Dvar2[id] / (1.0 - nt->_dt * ( -inst.global->a));
+        inst.Dvar3[id] = inst.Dvar3[id] / (1.0 - nt->_dt * (inst.global->r * (inst.global->k - 2.0 * inst.var3[id]) / inst.global->k));
+        return 0;
+    }
+
+
+    static void ode_setup_nonstiff_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_scalar(&_lmc);
+        auto node_data = make_node_data_scalar(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
+        for (int id = 0; id < nodecount; id++) {
+            auto* _ppvar = _ml_arg->pdata[id];
+            auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
+            ode_update_nonstiff_scalar(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        }
+    }
+
+
+    static void ode_setup_stiff_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_scalar(&_lmc);
+        auto node_data = make_node_data_scalar(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
+        for (int id = 0; id < nodecount; id++) {
+            auto* _ppvar = _ml_arg->pdata[id];
+            auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
+            ode_update_stiff_scalar(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+        }
+    }
+
 
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
@@ -564,29 +690,45 @@ namespace neuron {
     }
 
 
-    struct functor_nonlin_0 {
+    struct functor_scalar_0 {
         _nrn_mechanism_cache_range& _lmc;
-        nonlin_Instance& inst;
-        nonlin_NodeData& node_data;
+        scalar_Instance& inst;
+        scalar_NodeData& node_data;
         size_t id;
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
+        double old_var1, old_var2, old_var3;
 
         void initialize() {
+            old_var1 = inst.var1[id];
+            old_var2 = inst.var2[id];
+            old_var3 = inst.var3[id];
         }
 
-        functor_nonlin_0(_nrn_mechanism_cache_range& _lmc, nonlin_Instance& inst, nonlin_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt)
+        functor_scalar_0(_nrn_mechanism_cache_range& _lmc, scalar_Instance& inst, scalar_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt)
             : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt)
         {}
-        void operator()(const Eigen::Matrix<double, 1, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_dxm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_jm) const {
+        void operator()(const Eigen::Matrix<double, 3, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 3, 1>& nmodl_eigen_dxm, Eigen::Matrix<double, 3, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 3, 3>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
             double* nmodl_eigen_dx = nmodl_eigen_dxm.data();
             double* nmodl_eigen_j = nmodl_eigen_jm.data();
             double* nmodl_eigen_f = nmodl_eigen_fm.data();
             nmodl_eigen_dx[0] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[0]));
-            nmodl_eigen_f[static_cast<int>(0)] = 4.0 - pow(nmodl_eigen_x[static_cast<int>(0)], 2.0);
-            nmodl_eigen_j[static_cast<int>(0)] =  -2.0 * nmodl_eigen_x[static_cast<int>(0)];
+            nmodl_eigen_dx[1] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[1]));
+            nmodl_eigen_dx[2] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[2]));
+            nmodl_eigen_f[static_cast<int>(0)] = ( -nmodl_eigen_x[static_cast<int>(0)] - nt->_dt * sin(inst.global->freq * nt->_t) + old_var1) / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(0)] =  -1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(3)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(6)] = 0.0;
+            nmodl_eigen_f[static_cast<int>(1)] = ( -nmodl_eigen_x[static_cast<int>(1)] * inst.global->a * nt->_dt - nmodl_eigen_x[static_cast<int>(1)] + old_var2) / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(1)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(4)] =  -inst.global->a - 1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(7)] = 0.0;
+            nmodl_eigen_f[static_cast<int>(2)] =  -pow(nmodl_eigen_x[static_cast<int>(2)], 2.0) * inst.global->r / inst.global->k + nmodl_eigen_x[static_cast<int>(2)] * inst.global->r - nmodl_eigen_x[static_cast<int>(2)] / nt->_dt + old_var3 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(2)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(5)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(8)] =  -2.0 * nmodl_eigen_x[static_cast<int>(2)] * inst.global->r / inst.global->k + inst.global->r - 1.0 / nt->_dt;
         }
 
         void finalize() {
@@ -596,6 +738,15 @@ namespace neuron {
 
     /** connect global (scalar) variables to hoc -- */
     static DoubScal hoc_scalar_double[] = {
+        {"freq_scalar", &scalar_global.freq},
+        {"a_scalar", &scalar_global.a},
+        {"v1_scalar", &scalar_global.v1},
+        {"v2_scalar", &scalar_global.v2},
+        {"v3_scalar", &scalar_global.v3},
+        {"v4_scalar", &scalar_global.v4},
+        {"v5_scalar", &scalar_global.v5},
+        {"r_scalar", &scalar_global.r},
+        {"k_scalar", &scalar_global.k},
         {nullptr, nullptr}
     };
 
@@ -607,123 +758,22 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_solve();
-    static double _npy_solve(Prop* _prop);
-    static void _hoc_residual();
-    static double _npy_residual(Prop* _prop);
 
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
-        {"setdata_nonlin", _hoc_setdata},
-        {"solve_nonlin", _hoc_solve},
-        {"residual_nonlin", _hoc_residual},
+        {"setdata_scalar", _hoc_setdata},
         {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
-        {"solve", _npy_solve},
-        {"residual", _npy_residual},
         {nullptr, nullptr}
     };
-    static void _hoc_solve() {
-        Datum* _ppvar;
-        Datum* _thread;
-        NrnThread* nt;
-        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
-        _nrn_mechanism_cache_instance _lmc{_local_prop};
-        size_t const id{};
-        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
-        _thread = _extcall_thread.data();
-        nt = nrn_threads;
-        auto inst = make_instance_nonlin(_local_prop ? &_lmc : nullptr);
-        auto node_data = make_node_data_nonlin(_local_prop);
-        double _r = 0.0;
-        _r = solve_nonlin(_lmc, inst, node_data, id, _ppvar, _thread, nt);
-        hoc_retpushx(_r);
-    }
-    static double _npy_solve(Prop* _prop) {
-        Datum* _ppvar;
-        Datum* _thread;
-        NrnThread* nt;
-        _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const id = 0;
-        _ppvar = _nrn_mechanism_access_dparam(_prop);
-        _thread = _extcall_thread.data();
-        nt = nrn_threads;
-        auto inst = make_instance_nonlin(_prop ? &_lmc : nullptr);
-        auto node_data = make_node_data_nonlin(_prop);
-        double _r = 0.0;
-        _r = solve_nonlin(_lmc, inst, node_data, id, _ppvar, _thread, nt);
-        return(_r);
-    }
-    static void _hoc_residual() {
-        Datum* _ppvar;
-        Datum* _thread;
-        NrnThread* nt;
-        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
-        _nrn_mechanism_cache_instance _lmc{_local_prop};
-        size_t const id{};
-        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
-        _thread = _extcall_thread.data();
-        nt = nrn_threads;
-        auto inst = make_instance_nonlin(_local_prop ? &_lmc : nullptr);
-        auto node_data = make_node_data_nonlin(_local_prop);
-        double _r = 0.0;
-        _r = residual_nonlin(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
-        hoc_retpushx(_r);
-    }
-    static double _npy_residual(Prop* _prop) {
-        Datum* _ppvar;
-        Datum* _thread;
-        NrnThread* nt;
-        _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const id = 0;
-        _ppvar = _nrn_mechanism_access_dparam(_prop);
-        _thread = _extcall_thread.data();
-        nt = nrn_threads;
-        auto inst = make_instance_nonlin(_prop ? &_lmc : nullptr);
-        auto node_data = make_node_data_nonlin(_prop);
-        double _r = 0.0;
-        _r = residual_nonlin(_lmc, inst, node_data, id, _ppvar, _thread, nt, *getarg(1));
-        return(_r);
-    }
 
 
-    inline double solve_nonlin(_nrn_mechanism_cache_range& _lmc, nonlin_Instance& inst, nonlin_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
-        double ret_solve = 0.0;
-        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
-        inst.x[id] = 1.0;
-                
-        Eigen::Matrix<double, 1, 1> nmodl_eigen_xm;
-        double* nmodl_eigen_x = nmodl_eigen_xm.data();
-        nmodl_eigen_x[static_cast<int>(0)] = inst.x[id];
-        // call newton solver
-        functor_nonlin_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, nt);
-        newton_functor.initialize();
-        int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
-        if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
-        inst.x[id] = nmodl_eigen_x[static_cast<int>(0)];
-        newton_functor.initialize(); // TODO mimic calling F again.
-        newton_functor.finalize();
-
-
-        ret_solve = inst.x[id];
-        return ret_solve;
-    }
-
-
-    inline double residual_nonlin(_nrn_mechanism_cache_range& _lmc, nonlin_Instance& inst, nonlin_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double _lx) {
-        double ret_residual = 0.0;
-        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
-        ret_residual = _lx - 2.0;
-        return ret_residual;
-    }
-
-
-    static void nrn_init_nonlin(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_nonlin(&_lmc);
-        auto node_data = make_node_data_nonlin(*nt, *_ml_arg);
+        auto inst = make_instance_scalar(&_lmc);
+        auto node_data = make_node_data_scalar(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         #pragma omp simd
@@ -732,51 +782,112 @@ namespace neuron {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             inst.v_unused[id] = node_data.node_voltages[node_id];
-            inst.x[id] = inst.global->x0;
+            inst.var1[id] = inst.global->var10;
+            inst.var2[id] = inst.global->var20;
+            inst.var3[id] = inst.global->var30;
+            inst.var1[id] = inst.global->v1;
+            inst.var2[id] = inst.global->v2;
+            inst.var3[id] = inst.global->v3;
         }
     }
 
 
-    static void nrn_jacob_nonlin(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_state_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_nonlin(&_lmc);
-        auto node_data = make_node_data_nonlin(*nt, *_ml_arg);
+        auto inst = make_instance_scalar(&_lmc);
+        auto node_data = make_node_data_scalar(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         #pragma omp simd
         #pragma ivdep
         for (int id = 0; id < nodecount; id++) {
+            int node_id = node_data.nodeindices[id];
+            auto* _ppvar = _ml_arg->pdata[id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
+            
+            Eigen::Matrix<double, 3, 1> nmodl_eigen_xm;
+            double* nmodl_eigen_x = nmodl_eigen_xm.data();
+            nmodl_eigen_x[static_cast<int>(0)] = inst.var1[id];
+            nmodl_eigen_x[static_cast<int>(1)] = inst.var2[id];
+            nmodl_eigen_x[static_cast<int>(2)] = inst.var3[id];
+            // call newton solver
+            functor_scalar_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, nt);
+            newton_functor.initialize();
+            int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
+            if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
+            inst.var1[id] = nmodl_eigen_x[static_cast<int>(0)];
+            inst.var2[id] = nmodl_eigen_x[static_cast<int>(1)];
+            inst.var3[id] = nmodl_eigen_x[static_cast<int>(2)];
+            newton_functor.initialize(); // TODO mimic calling F again.
+            newton_functor.finalize();
+
         }
     }
-    static void nrn_destructor_nonlin(Prop* prop) {
+
+
+    static void nrn_jacob_scalar(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_scalar(&_lmc);
+        auto node_data = make_node_data_scalar(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
+        #pragma omp simd
+        #pragma ivdep
+        for (int id = 0; id < nodecount; id++) {
+            int node_id = node_data.nodeindices[id];
+            node_data.node_diagonal[node_id] += inst.g_unused[id];
+        }
+    }
+    static void nrn_destructor_scalar(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_nonlin(prop ? &_lmc : nullptr);
-        auto node_data = make_node_data_nonlin(prop);
+        auto inst = make_instance_scalar(prop ? &_lmc : nullptr);
+        auto node_data = make_node_data_scalar(prop);
 
     }
 
 
     static void _initlists() {
+        /* var1 */
+        _slist1[0] = {0, 0};
+        /* Dvar1 */
+        _dlist1[0] = {3, 0};
+        /* var2 */
+        _slist1[1] = {1, 0};
+        /* Dvar2 */
+        _dlist1[1] = {4, 0};
+        /* var3 */
+        _slist1[2] = {2, 0};
+        /* Dvar3 */
+        _dlist1[2] = {5, 0};
     }
 
 
-    extern "C" void _nonlin_reg() {
+    extern "C" void _derivative_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_nonlin, nullptr, nullptr, nullptr, nrn_init_nonlin, -1, 1);
+        register_mech(mechanism_info, nrn_alloc_scalar, nullptr, nrn_jacob_scalar, nrn_state_scalar, nrn_init_scalar, -1, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
-            _nrn_mechanism_field<double>{"x"} /* 0 */,
-            _nrn_mechanism_field<double>{"Dx"} /* 1 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 2 */
+            _nrn_mechanism_field<double>{"var1"} /* 0 */,
+            _nrn_mechanism_field<double>{"var2"} /* 1 */,
+            _nrn_mechanism_field<double>{"var3"} /* 2 */,
+            _nrn_mechanism_field<double>{"Dvar1"} /* 3 */,
+            _nrn_mechanism_field<double>{"Dvar2"} /* 4 */,
+            _nrn_mechanism_field<double>{"Dvar3"} /* 5 */,
+            _nrn_mechanism_field<double>{"v_unused"} /* 6 */,
+            _nrn_mechanism_field<double>{"g_unused"} /* 7 */,
+            _nrn_mechanism_field<int>{"cvode_ieq", "cvodeieq"} /* 0 */
         );
 
-        hoc_register_prop_size(mech_type, 3, 0);
+        hoc_register_prop_size(mech_type, 8, 1);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
+        hoc_register_dparam_semantics(mech_type, 0, "cvodeieq");
+        hoc_register_cvode(mech_type, ode_count_scalar, ode_setup_tolerances_scalar, ode_setup_nonstiff_scalar, ode_setup_stiff_scalar);
+        hoc_register_tolerance(mech_type, _hoc_state_tol, &_atollist);
     }
 }
