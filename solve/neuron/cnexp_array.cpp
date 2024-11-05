@@ -71,10 +71,6 @@ namespace neuron {
 
     /* NEURON global variables */
     static neuron::container::field_index _slist1[1], _dlist1[1];
-    static Symbol** _atollist;
-    static HocStateTolerance _hoc_state_tol[] = {
-        {0, 0}
-    };
     static int mech_type;
     static Prop* _extcall_prop;
     /* _prop_id kind of shadows _extcall_prop to allow validity checking. */
@@ -173,8 +169,6 @@ namespace neuron {
 
     static void nrn_alloc_cnexp_array(Prop* _prop) {
         Datum *_ppvar = nullptr;
-        _ppvar = nrn_prop_datum_alloc(mech_type, 1, _prop);
-        _nrn_mechanism_access_dparam(_prop) = _ppvar;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const _iml = 0;
         assert(_nrn_mechanism_get_num_vars(_prop) == 7);
@@ -185,67 +179,6 @@ namespace neuron {
     /* Mechanism procedures and functions */
     static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
     }
-
-
-
-    /* Functions related to CVODE codegen */
-    static constexpr int ode_count_cnexp_array(int _type) {
-        return 1;
-    }
-
-
-    static void ode_setup_tolerances_cnexp_array(Prop* _prop, int equation_index, neuron::container::data_handle<double>* _pv, neuron::container::data_handle<double>* _pvdot, double* _atol, int _type) {
-        auto* _ppvar = _nrn_mechanism_access_dparam(_prop);
-        _ppvar[0].literal_value<int>() = equation_index;
-        for (int i = 0; i < ode_count_cnexp_array(0); i++) {
-            _pv[i] = _nrn_mechanism_get_param_handle(_prop, _slist1[i]);
-            _pvdot[i] = _nrn_mechanism_get_param_handle(_prop, _dlist1[i]);
-            _cvode_abstol(_atollist, _atol, i);
-        }
-    }
-
-
-    static int ode_update_nonstiff_cnexp_array(_nrn_mechanism_cache_range& _lmc, cnexp_array_Instance& inst, cnexp_array_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
-        auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
-        inst.Dx[id] = ((inst.s+id*2)[static_cast<int>(0)] + (inst.s+id*2)[static_cast<int>(1)]) * ((inst.z+id*3)[static_cast<int>(0)] * (inst.z+id*3)[static_cast<int>(1)] * (inst.z+id*3)[static_cast<int>(2)]) * inst.x[id];
-        return 0;
-    }
-
-
-    static int ode_update_stiff_cnexp_array(_nrn_mechanism_cache_range& _lmc, cnexp_array_Instance& inst, cnexp_array_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
-        auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
-        inst.Dx[id] = inst.Dx[id] / (1.0 - nt->_dt * (((inst.s+id*2)[static_cast<int>(0)] + (inst.s+id*2)[static_cast<int>(1)]) * (inst.z+id*3)[static_cast<int>(0)] * (inst.z+id*3)[static_cast<int>(1)] * (inst.z+id*3)[static_cast<int>(2)]));
-        return 0;
-    }
-
-
-    static void ode_setup_nonstiff_cnexp_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_cnexp_array(&_lmc);
-        auto node_data = make_node_data_cnexp_array(*nt, *_ml_arg);
-        auto* _thread = _ml_arg->_thread;
-        auto nodecount = _ml_arg->nodecount;
-        for (int id = 0; id < nodecount; id++) {
-            auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
-            ode_update_nonstiff_cnexp_array(_lmc, inst, node_data, id, _ppvar, _thread, nt);
-        }
-    }
-
-
-    static void ode_setup_stiff_cnexp_array(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_cnexp_array(&_lmc);
-        auto node_data = make_node_data_cnexp_array(*nt, *_ml_arg);
-        auto* _thread = _ml_arg->_thread;
-        auto nodecount = _ml_arg->nodecount;
-        for (int id = 0; id < nodecount; id++) {
-            auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
-            ode_update_stiff_cnexp_array(_lmc, inst, node_data, id, _ppvar, _thread, nt);
-        }
-    }
-
 
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
@@ -372,15 +305,11 @@ namespace neuron {
             _nrn_mechanism_field<double>{"Dx"} /* 3 */,
             _nrn_mechanism_field<double>{"Ds", 2} /* 4 */,
             _nrn_mechanism_field<double>{"v_unused"} /* 5 */,
-            _nrn_mechanism_field<double>{"g_unused"} /* 6 */,
-            _nrn_mechanism_field<int>{"cvode_ieq", "cvodeieq"} /* 0 */
+            _nrn_mechanism_field<double>{"g_unused"} /* 6 */
         );
 
-        hoc_register_prop_size(mech_type, 11, 1);
+        hoc_register_prop_size(mech_type, 11, 0);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
-        hoc_register_dparam_semantics(mech_type, 0, "cvodeieq");
-        hoc_register_cvode(mech_type, ode_count_cnexp_array, ode_setup_tolerances_cnexp_array, ode_setup_nonstiff_cnexp_array, ode_setup_stiff_cnexp_array);
-        hoc_register_tolerance(mech_type, _hoc_state_tol, &_atollist);
     }
 }
