@@ -56,7 +56,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<point_procedures_Store>);
     static_assert(std::is_trivially_move_assignable_v<point_procedures_Store>);
     static_assert(std::is_trivially_destructible_v<point_procedures_Store>);
-    point_procedures_Store point_procedures_global;
+    static point_procedures_Store point_procedures_global;
 
 
     /** all mechanism instance variables and global variables */
@@ -114,10 +114,10 @@ namespace coreneuron {
     }
 
 
-    static inline void* mem_alloc(size_t num, size_t size, size_t alignment = 16) {
-        void* ptr;
-        posix_memalign(&ptr, alignment, num*size);
-        memset(ptr, 0, size);
+    static inline void* mem_alloc(size_t num, size_t size, size_t alignment = 64) {
+        size_t aligned_size = ((num*size + alignment - 1) / alignment) * alignment;
+        void* ptr = aligned_alloc(alignment, aligned_size);
+        memset(ptr, 0, aligned_size);
         return ptr;
     }
 
@@ -210,13 +210,13 @@ namespace coreneuron {
     }
 
 
-    inline double identity_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v);
-    inline int set_x_42_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
-    inline int set_x_a_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double a);
-    inline int set_a_x_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
-    inline int set_x_v_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
-    inline int set_x_just_v_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
-    inline int set_x_just_vv_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v);
+    inline static double identity_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv);
+    inline static int set_x_42_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static int set_x_a_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _la);
+    inline static int set_a_x_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static int set_x_v_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static int set_x_just_v_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static int set_x_just_vv_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv);
 
 
     inline int set_x_42_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
@@ -226,9 +226,9 @@ namespace coreneuron {
     }
 
 
-    inline int set_x_a_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double a) {
+    inline int set_x_a_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _la) {
         int ret_set_x_a = 0;
-        inst->x[id] = a;
+        inst->x[id] = _la;
         return ret_set_x_a;
     }
 
@@ -255,16 +255,16 @@ namespace coreneuron {
     }
 
 
-    inline int set_x_just_vv_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v) {
+    inline int set_x_just_vv_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv) {
         int ret_set_x_just_vv = 0;
-        inst->x[id] = identity_point_procedures(id, pnodecount, inst, data, indexes, thread, nt, v, arg_v);
+        inst->x[id] = identity_point_procedures(id, pnodecount, inst, data, indexes, thread, nt, v, _lv);
         return ret_set_x_just_vv;
     }
 
 
-    inline double identity_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v) {
+    inline double identity_point_procedures(int id, int pnodecount, point_procedures_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv) {
         double ret_identity = 0.0;
-        ret_identity = arg_v;
+        ret_identity = _lv;
         return ret_identity;
     }
 

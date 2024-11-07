@@ -56,7 +56,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<func_in_breakpoint_Store>);
     static_assert(std::is_trivially_move_assignable_v<func_in_breakpoint_Store>);
     static_assert(std::is_trivially_destructible_v<func_in_breakpoint_Store>);
-    func_in_breakpoint_Store func_in_breakpoint_global;
+    static func_in_breakpoint_Store func_in_breakpoint_global;
 
 
     /** all mechanism instance variables and global variables */
@@ -114,10 +114,10 @@ namespace coreneuron {
     }
 
 
-    static inline void* mem_alloc(size_t num, size_t size, size_t alignment = 16) {
-        void* ptr;
-        posix_memalign(&ptr, alignment, num*size);
-        memset(ptr, 0, size);
+    static inline void* mem_alloc(size_t num, size_t size, size_t alignment = 64) {
+        size_t aligned_size = ((num*size + alignment - 1) / alignment) * alignment;
+        void* ptr = aligned_alloc(alignment, aligned_size);
+        memset(ptr, 0, aligned_size);
         return ptr;
     }
 
@@ -209,9 +209,9 @@ namespace coreneuron {
     }
 
 
-    inline int func_func_in_breakpoint(int id, int pnodecount, func_in_breakpoint_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
-    inline int func_with_v_func_in_breakpoint(int id, int pnodecount, func_in_breakpoint_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v);
-    inline int func_with_other_func_in_breakpoint(int id, int pnodecount, func_in_breakpoint_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double q);
+    inline static int func_func_in_breakpoint(int id, int pnodecount, func_in_breakpoint_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static int func_with_v_func_in_breakpoint(int id, int pnodecount, func_in_breakpoint_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv);
+    inline static int func_with_other_func_in_breakpoint(int id, int pnodecount, func_in_breakpoint_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lq);
 
 
     inline int func_func_in_breakpoint(int id, int pnodecount, func_in_breakpoint_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
@@ -220,13 +220,13 @@ namespace coreneuron {
     }
 
 
-    inline int func_with_v_func_in_breakpoint(int id, int pnodecount, func_in_breakpoint_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v) {
+    inline int func_with_v_func_in_breakpoint(int id, int pnodecount, func_in_breakpoint_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv) {
         int ret_func_with_v = 0;
         return ret_func_with_v;
     }
 
 
-    inline int func_with_other_func_in_breakpoint(int id, int pnodecount, func_in_breakpoint_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double q) {
+    inline int func_with_other_func_in_breakpoint(int id, int pnodecount, func_in_breakpoint_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lq) {
         int ret_func_with_other = 0;
         return ret_func_with_other;
     }

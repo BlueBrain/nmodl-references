@@ -45,6 +45,7 @@ void _nrn_mechanism_register_data_fields(Args&&... args) {
 }  // namespace
 
 Prop* hoc_getdata_range(int type);
+extern void _cvode_abstol(Symbol**, double*, int);
 extern Node* nrn_alloc_node_;
 
 
@@ -71,7 +72,6 @@ namespace neuron {
     static Prop* _extcall_prop;
     /* _prop_id kind of shadows _extcall_prop to allow validity checking. */
     static _nrn_non_owning_id_without_container _prop_id{};
-    static int hoc_nrnpointerindex = -1;
     static _nrn_mechanism_std_vector<Datum> _extcall_thread;
 
 
@@ -83,7 +83,9 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<ionic_Store>);
     static_assert(std::is_trivially_move_assignable_v<ionic_Store>);
     static_assert(std::is_trivially_destructible_v<ionic_Store>);
-    ionic_Store ionic_global;
+    static ionic_Store ionic_global;
+    static std::vector<double> _parameter_defaults = {
+    };
 
 
     /** all mechanism instance variables and global variables */
@@ -107,14 +109,18 @@ namespace neuron {
     };
 
 
-    static ionic_Instance make_instance_ionic(_nrn_mechanism_cache_range& _lmc) {
+    static ionic_Instance make_instance_ionic(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return ionic_Instance();
+        }
+
         return ionic_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>(),
-            _lmc.template dptr_field_ptr<0>(),
-            _lmc.template dptr_field_ptr<1>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template fpfield_ptr<2>(),
+            _lmc->template fpfield_ptr<3>(),
+            _lmc->template dptr_field_ptr<0>(),
+            _lmc->template dptr_field_ptr<1>()
         };
     }
 
@@ -128,6 +134,23 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    static ionic_NodeData make_node_data_ionic(Prop * _prop) {
+        if(!_prop) {
+            return ionic_NodeData();
+        }
+
+        static std::vector<int> node_index{0};
+        Node* _node = _nrn_mechanism_access_node(_prop);
+        return ionic_NodeData {
+            node_index.data(),
+            &_nrn_mechanism_access_voltage(_node),
+            &_nrn_mechanism_access_d(_node),
+            &_nrn_mechanism_access_rhs(_node),
+            1
+        };
+    }
+
+    static void nrn_destructor_ionic(Prop* prop);
 
 
     static void nrn_alloc_ionic(Prop* _prop) {
@@ -147,6 +170,10 @@ namespace neuron {
     }
 
 
+    /* Mechanism procedures and functions */
+    static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
+    }
+
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
     static void _setdata(Prop* _prop) {
@@ -158,7 +185,6 @@ namespace neuron {
         _setdata(_prop);
         hoc_retpushx(1.);
     }
-    /* Mechanism procedures and functions */
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -186,33 +212,32 @@ namespace neuron {
     };
 
 
-    void nrn_init_ionic(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_ionic(_lmc);
+    static void nrn_init_ionic(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_ionic(&_lmc);
         auto node_data = make_node_data_ionic(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
-            inst.v_unused[id] = v;
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.ina[id] = (*inst.ion_ina[id]);
             (*inst.ion_ena[id]) = inst.ena[id];
         }
     }
 
 
-    void nrn_state_ionic(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_ionic(_lmc);
+    static void nrn_state_ionic(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_ionic(&_lmc);
         auto node_data = make_node_data_ionic(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.ina[id] = (*inst.ion_ina[id]);
             inst.ena[id] = 42.0;
             (*inst.ion_ena[id]) = inst.ena[id];
@@ -221,14 +246,23 @@ namespace neuron {
 
 
     static void nrn_jacob_ionic(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_ionic(_lmc);
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_ionic(&_lmc);
         auto node_data = make_node_data_ionic(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
+    }
+    static void nrn_destructor_ionic(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_ionic(prop ? &_lmc : nullptr);
+        auto node_data = make_node_data_ionic(prop);
+
     }
 
 
@@ -236,7 +270,6 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _ionic_reg() {
         _initlists();
 
@@ -244,9 +277,10 @@ namespace neuron {
 
         _na_sym = hoc_lookup("na_ion");
 
-        register_mech(mechanism_info, nrn_alloc_ionic, nullptr, nrn_jacob_ionic, nrn_state_ionic, nrn_init_ionic, hoc_nrnpointerindex, 1);
+        register_mech(mechanism_info, nrn_alloc_ionic, nullptr, nrn_jacob_ionic, nrn_state_ionic, nrn_init_ionic, -1, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
+        hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
             _nrn_mechanism_field<double>{"ina"} /* 0 */,
             _nrn_mechanism_field<double>{"ena"} /* 1 */,

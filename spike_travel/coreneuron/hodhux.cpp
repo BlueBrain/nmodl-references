@@ -73,7 +73,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<hodhux_Store>);
     static_assert(std::is_trivially_move_assignable_v<hodhux_Store>);
     static_assert(std::is_trivially_destructible_v<hodhux_Store>);
-    hodhux_Store hodhux_global;
+    static hodhux_Store hodhux_global;
 
 
     /** all mechanism instance variables and global variables */
@@ -157,10 +157,10 @@ namespace coreneuron {
     }
 
 
-    static inline void* mem_alloc(size_t num, size_t size, size_t alignment = 16) {
-        void* ptr;
-        posix_memalign(&ptr, alignment, num*size);
-        memset(ptr, 0, size);
+    static inline void* mem_alloc(size_t num, size_t size, size_t alignment = 64) {
+        size_t aligned_size = ((num*size + alignment - 1) / alignment) * alignment;
+        void* ptr = aligned_alloc(alignment, aligned_size);
+        memset(ptr, 0, aligned_size);
         return ptr;
     }
 
@@ -278,9 +278,9 @@ namespace coreneuron {
     }
 
 
-    inline double vtrap_hodhux(int id, int pnodecount, hodhux_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double x, double y);
-    inline int states_hodhux(int id, int pnodecount, hodhux_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
-    inline int rates_hodhux(int id, int pnodecount, hodhux_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v);
+    inline static double vtrap_hodhux(int id, int pnodecount, hodhux_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lx, double _ly);
+    inline static int states_hodhux(int id, int pnodecount, hodhux_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v);
+    inline static int rates_hodhux(int id, int pnodecount, hodhux_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv);
 
 
     inline int states_hodhux(int id, int pnodecount, hodhux_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v) {
@@ -293,23 +293,23 @@ namespace coreneuron {
     }
 
 
-    inline int rates_hodhux(int id, int pnodecount, hodhux_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double arg_v) {
+    inline int rates_hodhux(int id, int pnodecount, hodhux_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lv) {
         int ret_rates = 0;
         double q10, tinc, alpha, beta, sum;
         q10 = pow(3.0, ((*(inst->celsius) - 6.3) / 10.0));
         tinc =  -nt->_dt * q10;
-        alpha = .1 * vtrap_hodhux(id, pnodecount, inst, data, indexes, thread, nt, v,  -(arg_v + 40.0), 10.0);
-        beta = 4.0 * exp( -(arg_v + 65.0) / 18.0);
+        alpha = .1 * vtrap_hodhux(id, pnodecount, inst, data, indexes, thread, nt, v,  -(_lv + 40.0), 10.0);
+        beta = 4.0 * exp( -(_lv + 65.0) / 18.0);
         sum = alpha + beta;
         inst->minf[id] = alpha / sum;
         inst->mexp[id] = 1.0 - exp(tinc * sum);
-        alpha = .07 * exp( -(arg_v + 65.0) / 20.0);
-        beta = 1.0 / (exp( -(arg_v + 35.0) / 10.0) + 1.0);
+        alpha = .07 * exp( -(_lv + 65.0) / 20.0);
+        beta = 1.0 / (exp( -(_lv + 35.0) / 10.0) + 1.0);
         sum = alpha + beta;
         inst->hinf[id] = alpha / sum;
         inst->hexp[id] = 1.0 - exp(tinc * sum);
-        alpha = .01 * vtrap_hodhux(id, pnodecount, inst, data, indexes, thread, nt, v,  -(arg_v + 55.0), 10.0);
-        beta = .125 * exp( -(arg_v + 65.0) / 80.0);
+        alpha = .01 * vtrap_hodhux(id, pnodecount, inst, data, indexes, thread, nt, v,  -(_lv + 55.0), 10.0);
+        beta = .125 * exp( -(_lv + 65.0) / 80.0);
         sum = alpha + beta;
         inst->ninf[id] = alpha / sum;
         inst->nexp[id] = 1.0 - exp(tinc * sum);
@@ -317,12 +317,12 @@ namespace coreneuron {
     }
 
 
-    inline double vtrap_hodhux(int id, int pnodecount, hodhux_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double x, double y) {
+    inline double vtrap_hodhux(int id, int pnodecount, hodhux_Instance* inst, double* data, const Datum* indexes, ThreadDatum* thread, NrnThread* nt, double v, double _lx, double _ly) {
         double ret_vtrap = 0.0;
-        if (fabs(x / y) < 1e-6) {
-            ret_vtrap = y * (1.0 - x / y / 2.0);
+        if (fabs(_lx / _ly) < 1e-6) {
+            ret_vtrap = _ly * (1.0 - _lx / _ly / 2.0);
         } else {
-            ret_vtrap = x / (exp(x / y) - 1.0);
+            ret_vtrap = _lx / (exp(_lx / _ly) - 1.0);
         }
         return ret_vtrap;
     }
@@ -438,10 +438,7 @@ namespace coreneuron {
             #endif
             inst->ena[id] = inst->ion_ena[indexes[0*pnodecount + id]];
             inst->ek[id] = inst->ion_ek[indexes[3*pnodecount + id]];
-            rates_hodhux(id, pnodecount, inst, data, indexes, thread, nt, v, v);
-            inst->m[id] = inst->m[id] + inst->mexp[id] * (inst->minf[id] - inst->m[id]);
-            inst->h[id] = inst->h[id] + inst->hexp[id] * (inst->hinf[id] - inst->h[id]);
-            inst->n[id] = inst->n[id] + inst->nexp[id] * (inst->ninf[id] - inst->n[id]);
+            states_hodhux(id, pnodecount, inst, data, indexes, thread, nt, v);
         }
     }
 

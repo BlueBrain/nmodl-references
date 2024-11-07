@@ -46,6 +46,7 @@ void _nrn_mechanism_register_data_fields(Args&&... args) {
 }  // namespace
 
 Prop* hoc_getdata_range(int type);
+extern void _cvode_abstol(Symbol**, double*, int);
 extern Node* nrn_alloc_node_;
 
 
@@ -73,21 +74,29 @@ namespace neuron {
     static Prop* _extcall_prop;
     /* _prop_id kind of shadows _extcall_prop to allow validity checking. */
     static _nrn_non_owning_id_without_container _prop_id{};
-    static int hoc_nrnpointerindex = -1;
     static _nrn_mechanism_std_vector<Datum> _extcall_thread;
 
 
     /** all global variables */
     struct top_local_Store {
-        int thread_data_in_use{};
-        double thread_data[1];
+        double thread_data_in_use{0};
+        double thread_data[1] /* TODO init const-array */;
     };
     static_assert(std::is_trivially_copy_constructible_v<top_local_Store>);
     static_assert(std::is_trivially_move_constructible_v<top_local_Store>);
     static_assert(std::is_trivially_copy_assignable_v<top_local_Store>);
     static_assert(std::is_trivially_move_assignable_v<top_local_Store>);
     static_assert(std::is_trivially_destructible_v<top_local_Store>);
-    top_local_Store top_local_global;
+    static top_local_Store top_local_global;
+    auto thread_data_in_use_top_local() -> std::decay<decltype(top_local_global.thread_data_in_use)>::type  {
+        return top_local_global.thread_data_in_use;
+    }
+    auto thread_data_top_local() -> std::decay<decltype(top_local_global.thread_data)>::type  {
+        return top_local_global.thread_data;
+    }
+
+    static std::vector<double> _parameter_defaults = {
+    };
 
 
     /** all mechanism instance variables and global variables */
@@ -125,12 +134,16 @@ namespace neuron {
     };
 
 
-    static top_local_Instance make_instance_top_local(_nrn_mechanism_cache_range& _lmc) {
+    static top_local_Instance make_instance_top_local(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return top_local_Instance();
+        }
+
         return top_local_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template fpfield_ptr<2>(),
+            _lmc->template fpfield_ptr<3>()
         };
     }
 
@@ -144,6 +157,23 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    static top_local_NodeData make_node_data_top_local(Prop * _prop) {
+        if(!_prop) {
+            return top_local_NodeData();
+        }
+
+        static std::vector<int> node_index{0};
+        Node* _node = _nrn_mechanism_access_node(_prop);
+        return top_local_NodeData {
+            node_index.data(),
+            &_nrn_mechanism_access_voltage(_node),
+            &_nrn_mechanism_access_d(_node),
+            &_nrn_mechanism_access_rhs(_node),
+            1
+        };
+    }
+
+    static void nrn_destructor_top_local(Prop* prop);
 
 
     static void nrn_alloc_top_local(Prop* _prop) {
@@ -154,6 +184,12 @@ namespace neuron {
         /*initialize range parameters*/
     }
 
+
+    /* Mechanism procedures and functions */
+    inline static double get_gbl_top_local(_nrn_mechanism_cache_range& _lmc, top_local_Instance& inst, top_local_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, top_local_ThreadVariables& _thread_vars, NrnThread* nt);
+    inline static int set_gbl_top_local(_nrn_mechanism_cache_range& _lmc, top_local_Instance& inst, top_local_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, top_local_ThreadVariables& _thread_vars, NrnThread* nt, double _lvalue);
+    static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
+    }
 
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
@@ -166,7 +202,6 @@ namespace neuron {
         _setdata(_prop);
         hoc_retpushx(1.);
     }
-    /* Mechanism procedures and functions */
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -182,14 +217,22 @@ namespace neuron {
 
 
     /* declaration of user functions */
+    static void _hoc_get_gbl();
+    static double _npy_get_gbl(Prop* _prop);
+    static void _hoc_set_gbl();
+    static double _npy_set_gbl(Prop* _prop);
 
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
         {"setdata_top_local", _hoc_setdata},
+        {"set_gbl_top_local", _hoc_set_gbl},
+        {"get_gbl_top_local", _hoc_get_gbl},
         {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
+        {"set_gbl", _npy_set_gbl},
+        {"get_gbl", _npy_get_gbl},
         {nullptr, nullptr}
     };
     static void thread_mem_init(Datum* _thread)  {
@@ -210,45 +253,129 @@ namespace neuron {
             delete[] _thread_data_ptr;
         }
     }
+    static void _hoc_set_gbl() {
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
+        _nrn_mechanism_cache_instance _lmc{_local_prop};
+        size_t const id{};
+        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
+        _thread = _extcall_thread.data();
+        nt = nrn_threads;
+        auto inst = make_instance_top_local(_local_prop ? &_lmc : nullptr);
+        auto node_data = make_node_data_top_local(_local_prop);
+        auto _thread_vars = top_local_ThreadVariables(_thread[0].get<double*>());
+        double _r = 0.0;
+        _r = 1.;
+        set_gbl_top_local(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
+        hoc_retpushx(_r);
+    }
+    static double _npy_set_gbl(Prop* _prop) {
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        _nrn_mechanism_cache_instance _lmc{_prop};
+        size_t const id = 0;
+        _ppvar = _nrn_mechanism_access_dparam(_prop);
+        _thread = _extcall_thread.data();
+        nt = nrn_threads;
+        auto inst = make_instance_top_local(_prop ? &_lmc : nullptr);
+        auto node_data = make_node_data_top_local(_prop);
+        auto _thread_vars = top_local_ThreadVariables(_thread[0].get<double*>());
+        double _r = 0.0;
+        _r = 1.;
+        set_gbl_top_local(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, *getarg(1));
+        return(_r);
+    }
+    static void _hoc_get_gbl() {
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        Prop* _local_prop = _prop_id ? _extcall_prop : nullptr;
+        _nrn_mechanism_cache_instance _lmc{_local_prop};
+        size_t const id{};
+        _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
+        _thread = _extcall_thread.data();
+        nt = nrn_threads;
+        auto inst = make_instance_top_local(_local_prop ? &_lmc : nullptr);
+        auto node_data = make_node_data_top_local(_local_prop);
+        auto _thread_vars = top_local_ThreadVariables(_thread[0].get<double*>());
+        double _r = 0.0;
+        _r = get_gbl_top_local(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt);
+        hoc_retpushx(_r);
+    }
+    static double _npy_get_gbl(Prop* _prop) {
+        Datum* _ppvar;
+        Datum* _thread;
+        NrnThread* nt;
+        _nrn_mechanism_cache_instance _lmc{_prop};
+        size_t const id = 0;
+        _ppvar = _nrn_mechanism_access_dparam(_prop);
+        _thread = _extcall_thread.data();
+        nt = nrn_threads;
+        auto inst = make_instance_top_local(_prop ? &_lmc : nullptr);
+        auto node_data = make_node_data_top_local(_prop);
+        auto _thread_vars = top_local_ThreadVariables(_thread[0].get<double*>());
+        double _r = 0.0;
+        _r = get_gbl_top_local(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt);
+        return(_r);
+    }
 
 
-    void nrn_init_top_local(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_top_local(_lmc);
+    inline int set_gbl_top_local(_nrn_mechanism_cache_range& _lmc, top_local_Instance& inst, top_local_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, top_local_ThreadVariables& _thread_vars, NrnThread* nt, double _lvalue) {
+        int ret_set_gbl = 0;
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
+        _thread_vars.gbl(id) = _lvalue;
+        return ret_set_gbl;
+    }
+
+
+    inline double get_gbl_top_local(_nrn_mechanism_cache_range& _lmc, top_local_Instance& inst, top_local_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, top_local_ThreadVariables& _thread_vars, NrnThread* nt) {
+        double ret_get_gbl = 0.0;
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
+        ret_get_gbl = _thread_vars.gbl(id);
+        return ret_get_gbl;
+    }
+
+
+    static void nrn_init_top_local(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_top_local(&_lmc);
         auto node_data = make_node_data_top_local(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         auto _thread_vars = top_local_ThreadVariables(_thread[0].get<double*>());
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
-            inst.v_unused[id] = v;
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             _thread_vars.gbl(id) = 2.0;
         }
     }
 
 
-    inline double nrn_current_top_local(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, top_local_ThreadVariables& _thread_vars, size_t id, top_local_Instance& inst, top_local_NodeData& node_data, double v) {
+    static inline double nrn_current_top_local(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, top_local_ThreadVariables& _thread_vars, size_t id, top_local_Instance& inst, top_local_NodeData& node_data, double v) {
+        inst.v_unused[id] = v;
         double current = 0.0;
         if (nt->_t > 0.33) {
             _thread_vars.gbl(id) = 3.0;
         }
         inst.y[id] = _thread_vars.gbl(id);
-        inst.il[id] = 0.0000001 * (v - 10.0);
+        inst.il[id] = 0.0000001 * (inst.v_unused[id] - 10.0);
         current += inst.il[id];
         return current;
     }
 
 
     /** update current */
-    void nrn_cur_top_local(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_top_local(_lmc);
+    static void nrn_cur_top_local(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_top_local(&_lmc);
         auto node_data = make_node_data_top_local(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         auto _thread_vars = top_local_ThreadVariables(_thread[0].get<double*>());
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             double v = node_data.node_voltages[node_id];
@@ -263,30 +390,41 @@ namespace neuron {
     }
 
 
-    void nrn_state_top_local(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_top_local(_lmc);
+    static void nrn_state_top_local(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_top_local(&_lmc);
         auto node_data = make_node_data_top_local(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
         auto _thread_vars = top_local_ThreadVariables(_thread[0].get<double*>());
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
         }
     }
 
 
     static void nrn_jacob_top_local(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_top_local(_lmc);
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_top_local(&_lmc);
         auto node_data = make_node_data_top_local(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
+        auto _thread_vars = top_local_ThreadVariables(_thread[0].get<double*>());
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
+    }
+    static void nrn_destructor_top_local(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_top_local(prop ? &_lmc : nullptr);
+        auto node_data = make_node_data_top_local(prop);
+        auto _thread_vars = top_local_ThreadVariables(top_local_global.thread_data);
+
     }
 
 
@@ -294,13 +432,16 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _top_local_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_top_local, nrn_cur_top_local, nrn_jacob_top_local, nrn_state_top_local, nrn_init_top_local, hoc_nrnpointerindex, 2);
+        register_mech(mechanism_info, nrn_alloc_top_local, nrn_cur_top_local, nrn_jacob_top_local, nrn_state_top_local, nrn_init_top_local, -1, 2);
+        _extcall_thread.resize(2);
+        thread_mem_init(_extcall_thread.data());
+        top_local_global.thread_data_in_use = 0;
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
+        hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
             _nrn_mechanism_field<double>{"y"} /* 0 */,
             _nrn_mechanism_field<double>{"il"} /* 1 */,

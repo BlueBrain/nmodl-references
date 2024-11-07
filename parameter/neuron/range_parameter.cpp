@@ -45,6 +45,7 @@ void _nrn_mechanism_register_data_fields(Args&&... args) {
 }  // namespace
 
 extern Prop* nrn_point_prop_;
+extern void _cvode_abstol(Symbol**, double*, int);
 extern Node* nrn_alloc_node_;
 
 
@@ -70,7 +71,6 @@ namespace neuron {
     /* NEURON global variables */
     static int mech_type;
     static int _pointtype;
-    static int hoc_nrnpointerindex = -1;
     static _nrn_mechanism_std_vector<Datum> _extcall_thread;
 
 
@@ -82,7 +82,11 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<range_parameter_Store>);
     static_assert(std::is_trivially_move_assignable_v<range_parameter_Store>);
     static_assert(std::is_trivially_destructible_v<range_parameter_Store>);
-    range_parameter_Store range_parameter_global;
+    static range_parameter_Store range_parameter_global;
+    static std::vector<double> _parameter_defaults = {
+        42 /* x */,
+        0 /* y */
+    };
 
 
     /** all mechanism instance variables and global variables */
@@ -104,12 +108,16 @@ namespace neuron {
     };
 
 
-    static range_parameter_Instance make_instance_range_parameter(_nrn_mechanism_cache_range& _lmc) {
+    static range_parameter_Instance make_instance_range_parameter(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return range_parameter_Instance();
+        }
+
         return range_parameter_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template dptr_field_ptr<0>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template fpfield_ptr<2>(),
+            _lmc->template dptr_field_ptr<0>()
         };
     }
 
@@ -123,6 +131,23 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    static range_parameter_NodeData make_node_data_range_parameter(Prop * _prop) {
+        if(!_prop) {
+            return range_parameter_NodeData();
+        }
+
+        static std::vector<int> node_index{0};
+        Node* _node = _nrn_mechanism_access_node(_prop);
+        return range_parameter_NodeData {
+            node_index.data(),
+            &_nrn_mechanism_access_voltage(_node),
+            &_nrn_mechanism_access_d(_node),
+            &_nrn_mechanism_access_rhs(_node),
+            1
+        };
+    }
+
+    static void nrn_destructor_range_parameter(Prop* prop);
 
 
     static void nrn_alloc_range_parameter(Prop* _prop) {
@@ -137,12 +162,18 @@ namespace neuron {
             size_t const _iml = 0;
             assert(_nrn_mechanism_get_num_vars(_prop) == 3);
             /*initialize range parameters*/
-            _lmc.template fpfield<0>(_iml) = 42; /* x */
-            _lmc.template fpfield<1>(_iml) = 0; /* y */
+            _lmc.template fpfield<0>(_iml) = _parameter_defaults[0]; /* x */
+            _lmc.template fpfield<1>(_iml) = _parameter_defaults[1]; /* y */
         }
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
+        if(!nrn_point_prop_) {
+        }
     }
 
+
+    /* Mechanism procedures and functions */
+    static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
+    }
 
     /* Point Process specific functions */
     static void* _hoc_create_pnt(Object* _ho) {
@@ -169,7 +200,6 @@ namespace neuron {
         _prop = ((Point_process*)_vptr)->prop;
         _setdata(_prop);
     }
-    /* Mechanism procedures and functions */
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -199,29 +229,37 @@ namespace neuron {
     };
 
 
-    void nrn_init_range_parameter(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_range_parameter(_lmc);
+    static void nrn_init_range_parameter(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_range_parameter(&_lmc);
         auto node_data = make_node_data_range_parameter(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
-            inst.v_unused[id] = v;
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.y[id] = 43.0;
         }
     }
 
 
     static void nrn_jacob_range_parameter(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_range_parameter(_lmc);
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_range_parameter(&_lmc);
         auto node_data = make_node_data_range_parameter(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
+    }
+    static void nrn_destructor_range_parameter(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_range_parameter(prop ? &_lmc : nullptr);
+        auto node_data = make_node_data_range_parameter(prop);
+
     }
 
 
@@ -229,13 +267,13 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _range_parameter_reg() {
         _initlists();
 
-        _pointtype = point_register_mech(mechanism_info, nrn_alloc_range_parameter, nullptr, nullptr, nullptr, nrn_init_range_parameter, hoc_nrnpointerindex, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
+        _pointtype = point_register_mech(mechanism_info, nrn_alloc_range_parameter, nullptr, nullptr, nullptr, nrn_init_range_parameter, -1, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
+        hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
             _nrn_mechanism_field<double>{"x"} /* 0 */,
             _nrn_mechanism_field<double>{"y"} /* 1 */,

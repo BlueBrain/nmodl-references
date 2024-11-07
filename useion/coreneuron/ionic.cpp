@@ -55,7 +55,7 @@ namespace coreneuron {
     static_assert(std::is_trivially_copy_assignable_v<ionic_Store>);
     static_assert(std::is_trivially_move_assignable_v<ionic_Store>);
     static_assert(std::is_trivially_destructible_v<ionic_Store>);
-    ionic_Store ionic_global;
+    static ionic_Store ionic_global;
 
 
     /** all mechanism instance variables and global variables */
@@ -115,10 +115,10 @@ namespace coreneuron {
     }
 
 
-    static inline void* mem_alloc(size_t num, size_t size, size_t alignment = 16) {
-        void* ptr;
-        posix_memalign(&ptr, alignment, num*size);
-        memset(ptr, 0, size);
+    static inline void* mem_alloc(size_t num, size_t size, size_t alignment = 64) {
+        size_t aligned_size = ((num*size + alignment - 1) / alignment) * alignment;
+        void* ptr = aligned_alloc(alignment, aligned_size);
+        memset(ptr, 0, aligned_size);
         return ptr;
     }
 

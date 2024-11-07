@@ -45,6 +45,7 @@ void _nrn_mechanism_register_data_fields(Args&&... args) {
 }  // namespace
 
 extern Prop* nrn_point_prop_;
+extern void _cvode_abstol(Symbol**, double*, int);
 extern Node* nrn_alloc_node_;
 
 
@@ -69,7 +70,6 @@ namespace neuron {
     /* NEURON global variables */
     static int mech_type;
     static int _pointtype;
-    static int hoc_nrnpointerindex = -1;
     static _nrn_mechanism_std_vector<Datum> _extcall_thread;
 
 
@@ -81,7 +81,9 @@ namespace neuron {
     static_assert(std::is_trivially_copy_assignable_v<point_suffix_Store>);
     static_assert(std::is_trivially_move_assignable_v<point_suffix_Store>);
     static_assert(std::is_trivially_destructible_v<point_suffix_Store>);
-    point_suffix_Store point_suffix_global;
+    static point_suffix_Store point_suffix_global;
+    static std::vector<double> _parameter_defaults = {
+    };
 
 
     /** all mechanism instance variables and global variables */
@@ -102,11 +104,15 @@ namespace neuron {
     };
 
 
-    static point_suffix_Instance make_instance_point_suffix(_nrn_mechanism_cache_range& _lmc) {
+    static point_suffix_Instance make_instance_point_suffix(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return point_suffix_Instance();
+        }
+
         return point_suffix_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template dptr_field_ptr<0>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template dptr_field_ptr<0>()
         };
     }
 
@@ -120,6 +126,23 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    static point_suffix_NodeData make_node_data_point_suffix(Prop * _prop) {
+        if(!_prop) {
+            return point_suffix_NodeData();
+        }
+
+        static std::vector<int> node_index{0};
+        Node* _node = _nrn_mechanism_access_node(_prop);
+        return point_suffix_NodeData {
+            node_index.data(),
+            &_nrn_mechanism_access_voltage(_node),
+            &_nrn_mechanism_access_d(_node),
+            &_nrn_mechanism_access_rhs(_node),
+            1
+        };
+    }
+
+    static void nrn_destructor_point_suffix(Prop* prop);
 
 
     static void nrn_alloc_point_suffix(Prop* _prop) {
@@ -136,8 +159,14 @@ namespace neuron {
             /*initialize range parameters*/
         }
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
+        if(!nrn_point_prop_) {
+        }
     }
 
+
+    /* Mechanism procedures and functions */
+    static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
+    }
 
     /* Point Process specific functions */
     static void* _hoc_create_pnt(Object* _ho) {
@@ -164,7 +193,6 @@ namespace neuron {
         _prop = ((Point_process*)_vptr)->prop;
         _setdata(_prop);
     }
-    /* Mechanism procedures and functions */
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -194,29 +222,37 @@ namespace neuron {
     };
 
 
-    void nrn_init_point_suffix(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_point_suffix(_lmc);
+    static void nrn_init_point_suffix(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_point_suffix(&_lmc);
         auto node_data = make_node_data_point_suffix(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
-            inst.v_unused[id] = v;
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.x[id] = 42.0;
         }
     }
 
 
     static void nrn_jacob_point_suffix(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_point_suffix(_lmc);
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_point_suffix(&_lmc);
         auto node_data = make_node_data_point_suffix(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
         }
+    }
+    static void nrn_destructor_point_suffix(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_point_suffix(prop ? &_lmc : nullptr);
+        auto node_data = make_node_data_point_suffix(prop);
+
     }
 
 
@@ -224,13 +260,13 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _point_suffix_reg() {
         _initlists();
 
-        _pointtype = point_register_mech(mechanism_info, nrn_alloc_point_suffix, nullptr, nullptr, nullptr, nrn_init_point_suffix, hoc_nrnpointerindex, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
+        _pointtype = point_register_mech(mechanism_info, nrn_alloc_point_suffix, nullptr, nullptr, nullptr, nrn_init_point_suffix, -1, 1, _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
+        hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
             _nrn_mechanism_field<double>{"x"} /* 0 */,
             _nrn_mechanism_field<double>{"v_unused"} /* 1 */,

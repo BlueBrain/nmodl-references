@@ -60,9 +60,11 @@ EIGEN_DEVICE_FUNC inline int Crout(int n, T* const a, int* const perm, double* c
     for (i = 0; i < n; i++) {
         perm[i] = i;
         k = 0;
-        for (j = 1; j < n; j++)
-            if (std::fabs(a[i * n + j]) > std::fabs(a[i * n + k]))
+        for (j = 1; j < n; j++) {
+            if (std::fabs(a[i * n + j]) > std::fabs(a[i * n + k])) {
                 k = j;
+            }
+        }
         rowmax[i] = a[i * n + k];
     }
 
@@ -109,8 +111,9 @@ EIGEN_DEVICE_FUNC inline int Crout(int n, T* const a, int* const perm, double* c
 
         /* Check that pivot element is not too small */
 
-        if (std::fabs(a[pivot * n + r]) < roundoff)
+        if (std::fabs(a[pivot * n + r]) < roundoff) {
             return -1;
+        }
 
         /*
          * Operate on row in rth position.  This produces the upper
@@ -161,8 +164,9 @@ EIGEN_DEVICE_FUNC inline int solveCrout(int n,
         for (i = 0; i < n; i++) {
             pivot = perm[i];
             sum = 0.0;
-            for (j = 0; j < i; j++)
+            for (j = 0; j < i; j++) {
                 sum += a[pivot * n + j] * (y_(j));
+            }
             y_(i) = (b_(pivot) - sum) / a[pivot * n + i];
         }
 
@@ -176,16 +180,18 @@ EIGEN_DEVICE_FUNC inline int solveCrout(int n,
         for (i = n - 1; i >= 0; i--) {
             pivot = perm[i];
             sum = 0.0;
-            for (j = i + 1; j < n; j++)
+            for (j = i + 1; j < n; j++) {
                 sum += a[pivot * n + j] * (y_(j));
+            }
             y_(i) -= sum;
         }
     } else {
         for (i = 0; i < n; i++) {
             pivot = perm[i];
             sum = 0.0;
-            for (j = 0; j < i; j++)
+            for (j = 0; j < i; j++) {
                 sum += a[pivot * n + j] * (p[j]);
+            }
             p[i] = (b_(pivot) - sum) / a[pivot * n + i];
         }
 
@@ -199,8 +205,9 @@ EIGEN_DEVICE_FUNC inline int solveCrout(int n,
         for (i = n - 1; i >= 0; i--) {
             pivot = perm[i];
             sum = 0.0;
-            for (j = i + 1; j < n; j++)
+            for (j = i + 1; j < n; j++) {
                 sum += a[pivot * n + j] * (p[j]);
+            }
             p[i] -= sum;
         }
     }
@@ -236,14 +243,38 @@ namespace newton {
  * @brief Solver implementation details
  *
  * Implementation of Newton method for solving system of non-linear equations using Eigen
- *   - newton::newton_solver is the preferred option: requires user to provide Jacobian
- *   - newton::newton_numerical_diff_solver is the fallback option: Jacobian not required
+ *   - newton::newton_solver with user, e.g. SymPy, provided Jacobian
  *
  * @{
  */
 
-static constexpr int MAX_ITER = 1e3;
-static constexpr double EPS = 1e-12;
+static constexpr int MAX_ITER = 50;
+static constexpr double EPS = 1e-13;
+
+template <int N>
+EIGEN_DEVICE_FUNC bool is_converged(const Eigen::Matrix<double, N, 1>& X,
+                                    const Eigen::Matrix<double, N, N>& J,
+                                    const Eigen::Matrix<double, N, 1>& F,
+                                    double eps) {
+    bool converged = true;
+    double square_eps = eps * eps;
+    for (Eigen::Index i = 0; i < N; ++i) {
+        double square_error = 0.0;
+        for (Eigen::Index j = 0; j < N; ++j) {
+            double JX = J(i, j) * X(j);
+            square_error += JX * JX;
+        }
+
+        if (F(i) * F(i) > square_eps * square_error) {
+            converged = false;
+// The NVHPC is buggy and wont allow us to short-circuit.
+#ifndef __NVCOMPILER
+            return converged;
+#endif
+        }
+    }
+    return converged;
+}
 
 /**
  * \brief Newton method with user-provided Jacobian
@@ -264,19 +295,18 @@ EIGEN_DEVICE_FUNC int newton_solver(Eigen::Matrix<double, N, 1>& X,
                                     FUNC functor,
                                     double eps = EPS,
                                     int max_iter = MAX_ITER) {
+    // If finite differences are needed, this is stores the stepwidth.
+    Eigen::Matrix<double, N, 1> dX;
     // Vector to store result of function F(X):
     Eigen::Matrix<double, N, 1> F;
-    // Matrix to store jacobian of F(X):
+    // Matrix to store Jacobian of F(X):
     Eigen::Matrix<double, N, N> J;
     // Solver iteration count:
     int iter = -1;
     while (++iter < max_iter) {
         // calculate F, J from X using user-supplied functor
-        functor(X, F, J);
-        // get error norm: here we use sqrt(|F|^2)
-        double error = F.norm();
-        if (error < eps) {
-            // we have converged: return iteration count
+        functor(X, dX, F, J);
+        if (is_converged(X, J, F, eps)) {
             return iter;
         }
         Eigen::Matrix<double, N, 1> X_solve;
@@ -286,97 +316,18 @@ EIGEN_DEVICE_FUNC int newton_solver(Eigen::Matrix<double, N, 1>& X,
         // Crout's implementation requires matrices stored in RowMajor order (C-style arrays).
         // Therefore, the transposeInPlace is critical such that the data() method to give the rows
         // instead of the columns.
-        if (!J.IsRowMajor)
+        if (!J.IsRowMajor) {
             J.transposeInPlace();
+        }
         Eigen::Matrix<int, N, 1> pivot;
         Eigen::Matrix<double, N, 1> rowmax;
         // Check if J is singular
-        if (nmodl::crout::Crout<double>(N, J.data(), pivot.data(), rowmax.data()) < 0)
+        if (nmodl::crout::Crout<double>(N, J.data(), pivot.data(), rowmax.data()) < 0) {
             return -1;
         nmodl::crout::solveCrout<double>(N, J.data(), F.data(), X_solve.data(), pivot.data());
 #else
         X_solve = J.partialPivLu().solve(F);
 #endif
-        X -= X_solve;
-    }
-    // If we fail to converge after max_iter iterations, return -1
-    return -1;
-}
-
-static constexpr double SQUARE_ROOT_ULP = 1e-7;
-static constexpr double CUBIC_ROOT_ULP = 1e-5;
-
-/**
- * \brief Newton method without user-provided Jacobian
- *
- * Newton method without user-provided Jacobian: given initial vector X and a
- * functor that calculates `F(X)`, solves for \f$F(X) = 0\f$, starting with
- * initial value of `X` by iterating:
- *
- * \f[
- *     X_{n+1} = X_n - J(X_n)^{-1} F(X_n)
- * \f]
- *
- * where `J(X)` is the Jacobian of `F(X)`, which is approximated numerically
- * using a symmetric finite difference approximation to the derivative
- * when \f$|F|^2 < eps^2\f$, solution has converged/
- *
- * @return number of iterations (-1 if failed to converge)
- */
-template <int N, typename FUNC>
-EIGEN_DEVICE_FUNC int newton_numerical_diff_solver(Eigen::Matrix<double, N, 1>& X,
-                                                   FUNC functor,
-                                                   double eps = EPS,
-                                                   int max_iter = MAX_ITER) {
-    // Vector to store result of function F(X):
-    Eigen::Matrix<double, N, 1> F;
-    // Temporary storage for F(X+dx)
-    Eigen::Matrix<double, N, 1> F_p;
-    // Temporary storage for F(X-dx)
-    Eigen::Matrix<double, N, 1> F_m;
-    // Matrix to store jacobian of F(X):
-    Eigen::Matrix<double, N, N> J;
-    // Solver iteration count:
-    int iter = 0;
-    while (iter < max_iter) {
-        // calculate F from X using user-supplied functor
-        functor(X, F);
-        // get error norm: here we use sqrt(|F|^2)
-        double error = F.norm();
-        if (error < eps) {
-            // we have converged: return iteration count
-            return iter;
-        }
-        ++iter;
-        // calculate approximate Jacobian
-        for (int i = 0; i < N; ++i) {
-            // symmetric finite difference approximation to derivative
-            // df/dx ~= ( f(x+dx) - f(x-dx) ) / (2*dx)
-            // choose dx to be ~(ULP)^{1/3}*X[i]
-            // https://aip.scitation.org/doi/pdf/10.1063/1.4822971
-            // also enforce a lower bound ~sqrt(ULP) to avoid dx being too small
-            double dX = std::max(CUBIC_ROOT_ULP * X[i], SQUARE_ROOT_ULP);
-            // F(X + dX)
-            X[i] += dX;
-            functor(X, F_p);
-            // F(X - dX)
-            X[i] -= 2.0 * dX;
-            functor(X, F_m);
-            F_p -= F_m;
-            // J = (F(X + dX) - F(X - dX)) / (2*dX)
-            J.col(i) = F_p / (2.0 * dX);
-            // restore X
-            X[i] += dX;
-        }
-        if (!J.IsRowMajor)
-            J.transposeInPlace();
-        Eigen::Matrix<int, N, 1> pivot;
-        Eigen::Matrix<double, N, 1> rowmax;
-        // Check if J is singular
-        if (nmodl::crout::Crout<double>(N, J.data(), pivot.data(), rowmax.data()) < 0)
-            return -1;
-        Eigen::Matrix<double, N, 1> X_solve;
-        nmodl::crout::solveCrout<double>(N, J.data(), F.data(), X_solve.data(), pivot.data());
         X -= X_solve;
     }
     // If we fail to converge after max_iter iterations, return -1
@@ -396,21 +347,22 @@ EIGEN_DEVICE_FUNC int newton_solver_small_N(Eigen::Matrix<double, N, 1>& X,
                                             int max_iter) {
     bool invertible;
     Eigen::Matrix<double, N, 1> F;
+    Eigen::Matrix<double, N, 1> dX;
     Eigen::Matrix<double, N, N> J, J_inv;
     int iter = -1;
     while (++iter < max_iter) {
-        functor(X, F, J);
-        double error = F.norm();
-        if (error < eps) {
+        functor(X, dX, F, J);
+        if (is_converged(X, J, F, eps)) {
             return iter;
         }
         // The inverse can be called from within OpenACC regions without any issue, as opposed to
         // Eigen::PartialPivLU.
         J.computeInverseWithCheck(J_inv, invertible);
-        if (invertible)
+        if (invertible) {
             X -= J_inv * F;
-        else
+        } else {
             return -1;
+        }
     }
     return -1;
 }
@@ -481,6 +433,7 @@ void _nrn_mechanism_register_data_fields(Args&&... args) {
 }  // namespace
 
 Prop* hoc_getdata_range(int type);
+extern void _cvode_abstol(Symbol**, double*, int);
 extern Node* nrn_alloc_node_;
 
 
@@ -512,21 +465,29 @@ namespace neuron {
     static Prop* _extcall_prop;
     /* _prop_id kind of shadows _extcall_prop to allow validity checking. */
     static _nrn_non_owning_id_without_container _prop_id{};
-    static int hoc_nrnpointerindex = -1;
     static _nrn_mechanism_std_vector<Datum> _extcall_thread;
 
 
     /** all global variables */
     struct X2Y_Store {
-        double X0{};
-        double Y0{};
+        double X0{0};
+        double Y0{0};
     };
     static_assert(std::is_trivially_copy_constructible_v<X2Y_Store>);
     static_assert(std::is_trivially_move_constructible_v<X2Y_Store>);
     static_assert(std::is_trivially_copy_assignable_v<X2Y_Store>);
     static_assert(std::is_trivially_move_assignable_v<X2Y_Store>);
     static_assert(std::is_trivially_destructible_v<X2Y_Store>);
-    X2Y_Store X2Y_global;
+    static X2Y_Store X2Y_global;
+    auto X0_X2Y() -> std::decay<decltype(X2Y_global.X0)>::type  {
+        return X2Y_global.X0;
+    }
+    auto Y0_X2Y() -> std::decay<decltype(X2Y_global.Y0)>::type  {
+        return X2Y_global.Y0;
+    }
+
+    static std::vector<double> _parameter_defaults = {
+    };
 
 
     /** all mechanism instance variables and global variables */
@@ -554,18 +515,22 @@ namespace neuron {
     };
 
 
-    static X2Y_Instance make_instance_X2Y(_nrn_mechanism_cache_range& _lmc) {
+    static X2Y_Instance make_instance_X2Y(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return X2Y_Instance();
+        }
+
         return X2Y_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>(),
-            _lmc.template fpfield_ptr<4>(),
-            _lmc.template fpfield_ptr<5>(),
-            _lmc.template fpfield_ptr<6>(),
-            _lmc.template fpfield_ptr<7>(),
-            _lmc.template fpfield_ptr<8>(),
-            _lmc.template fpfield_ptr<9>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template fpfield_ptr<2>(),
+            _lmc->template fpfield_ptr<3>(),
+            _lmc->template fpfield_ptr<4>(),
+            _lmc->template fpfield_ptr<5>(),
+            _lmc->template fpfield_ptr<6>(),
+            _lmc->template fpfield_ptr<7>(),
+            _lmc->template fpfield_ptr<8>(),
+            _lmc->template fpfield_ptr<9>()
         };
     }
 
@@ -579,6 +544,23 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    static X2Y_NodeData make_node_data_X2Y(Prop * _prop) {
+        if(!_prop) {
+            return X2Y_NodeData();
+        }
+
+        static std::vector<int> node_index{0};
+        Node* _node = _nrn_mechanism_access_node(_prop);
+        return X2Y_NodeData {
+            node_index.data(),
+            &_nrn_mechanism_access_voltage(_node),
+            &_nrn_mechanism_access_d(_node),
+            &_nrn_mechanism_access_rhs(_node),
+            1
+        };
+    }
+
+    static void nrn_destructor_X2Y(Prop* prop);
 
 
     static void nrn_alloc_X2Y(Prop* _prop) {
@@ -589,6 +571,11 @@ namespace neuron {
         /*initialize range parameters*/
     }
 
+
+    /* Mechanism procedures and functions */
+    inline static int rates_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, X2Y_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
+    }
 
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
@@ -601,22 +588,20 @@ namespace neuron {
         _setdata(_prop);
         hoc_retpushx(1.);
     }
-    /* Mechanism procedures and functions */
-    inline int rates_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
 
 
     struct functor_X2Y_0 {
         _nrn_mechanism_cache_range& _lmc;
         X2Y_Instance& inst;
+        X2Y_NodeData& node_data;
         size_t id;
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
-        double v;
         double kf0_, kb0_, old_X, old_Y;
 
         void initialize() {
-            rates_X2Y(_lmc, inst, id, _ppvar, _thread, nt);
+            rates_X2Y(_lmc, inst, node_data, id, _ppvar, _thread, nt);
             kf0_ = inst.c1[id];
             kb0_ = inst.c2[id];
             inst.i[id] = (kf0_ * inst.X[id] - kb0_ * inst.Y[id]);
@@ -624,19 +609,22 @@ namespace neuron {
             old_Y = inst.Y[id];
         }
 
-        functor_X2Y_0(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt, double v)
-            : _lmc(_lmc), inst(inst), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt), v(v)
+        functor_X2Y_0(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, X2Y_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt)
+            : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), nt(nt)
         {}
-        void operator()(const Eigen::Matrix<double, 2, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 2, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 2, 2>& nmodl_eigen_jm) const {
+        void operator()(const Eigen::Matrix<double, 2, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 2, 1>& nmodl_eigen_dxm, Eigen::Matrix<double, 2, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 2, 2>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
+            double* nmodl_eigen_dx = nmodl_eigen_dxm.data();
             double* nmodl_eigen_j = nmodl_eigen_jm.data();
             double* nmodl_eigen_f = nmodl_eigen_fm.data();
-            nmodl_eigen_f[static_cast<int>(0)] =  -nmodl_eigen_x[static_cast<int>(0)] * nt->_dt * kf0_ - nmodl_eigen_x[static_cast<int>(0)] + nmodl_eigen_x[static_cast<int>(1)] * nt->_dt * kb0_ + old_X;
-            nmodl_eigen_j[static_cast<int>(0)] =  -nt->_dt * kf0_ - 1.0;
-            nmodl_eigen_j[static_cast<int>(2)] = nt->_dt * kb0_;
-            nmodl_eigen_f[static_cast<int>(1)] = nmodl_eigen_x[static_cast<int>(0)] * nt->_dt * kf0_ - nmodl_eigen_x[static_cast<int>(1)] * nt->_dt * kb0_ - nmodl_eigen_x[static_cast<int>(1)] + old_Y;
-            nmodl_eigen_j[static_cast<int>(1)] = nt->_dt * kf0_;
-            nmodl_eigen_j[static_cast<int>(3)] =  -nt->_dt * kb0_ - 1.0;
+            nmodl_eigen_dx[0] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[0]));
+            nmodl_eigen_dx[1] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[1]));
+            nmodl_eigen_f[static_cast<int>(0)] = ( -nmodl_eigen_x[static_cast<int>(0)] + nt->_dt * ( -nmodl_eigen_x[static_cast<int>(0)] * kf0_ + nmodl_eigen_x[static_cast<int>(1)] * kb0_) + old_X) / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(0)] =  -kf0_ - 1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(2)] = kb0_;
+            nmodl_eigen_f[static_cast<int>(1)] = ( -nmodl_eigen_x[static_cast<int>(1)] + nt->_dt * (nmodl_eigen_x[static_cast<int>(0)] * kf0_ - nmodl_eigen_x[static_cast<int>(1)] * kb0_) + old_Y) / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(1)] = kf0_;
+            nmodl_eigen_j[static_cast<int>(3)] =  -kb0_ - 1.0 / nt->_dt;
         }
 
         void finalize() {
@@ -657,8 +645,8 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_rates(void);
-    static double _npy_rates(Prop*);
+    static void _hoc_rates();
+    static double _npy_rates(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -671,13 +659,12 @@ namespace neuron {
         {"rates", _npy_rates},
         {nullptr, nullptr}
     };
-    static void _hoc_rates(void) {
-        double _r{};
+    static void _hoc_rates() {
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
         if (!_prop_id) {
-            hoc_execerror("No data for rates_X2Y. Requires prior call to setdata_X2Y and that the specified mechanism instance still be in existence.", NULL);
+            hoc_execerror("No data for rates_X2Y. Requires prior call to setdata_X2Y and that the specified mechanism instance still be in existence.", nullptr);
         }
         Prop* _local_prop = _extcall_prop;
         _nrn_mechanism_cache_instance _lmc{_local_prop};
@@ -685,48 +672,52 @@ namespace neuron {
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_X2Y(_lmc);
+        auto inst = make_instance_X2Y(_local_prop ? &_lmc : nullptr);
+        auto node_data = make_node_data_X2Y(_local_prop);
+        double _r = 0.0;
         _r = 1.;
-        rates_X2Y(_lmc, inst, id, _ppvar, _thread, nt);
+        rates_X2Y(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_rates(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
         _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const id{};
+        size_t const id = 0;
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_X2Y(_lmc);
+        auto inst = make_instance_X2Y(_prop ? &_lmc : nullptr);
+        auto node_data = make_node_data_X2Y(_prop);
+        double _r = 0.0;
         _r = 1.;
-        rates_X2Y(_lmc, inst, id, _ppvar, _thread, nt);
+        rates_X2Y(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
 
 
-    inline int rates_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+    inline int rates_X2Y(_nrn_mechanism_cache_range& _lmc, X2Y_Instance& inst, X2Y_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         int ret_rates = 0;
-        auto v = inst.v_unused[id];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         inst.c1[id] = 0.4;
         inst.c2[id] = 0.5;
         return ret_rates;
     }
 
 
-    void nrn_init_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_X2Y(_lmc);
+    static void nrn_init_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_X2Y(&_lmc);
         auto node_data = make_node_data_X2Y(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
-            inst.v_unused[id] = v;
+            inst.v_unused[id] = node_data.node_voltages[node_id];
+            inst.X[id] = inst.global->X0;
+            inst.Y[id] = inst.global->Y0;
             inst.X[id] = 0.0;
             inst.Y[id] = 1.0;
             inst.c1[id] = 0.0;
@@ -735,7 +726,8 @@ namespace neuron {
     }
 
 
-    inline double nrn_current_X2Y(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, X2Y_Instance& inst, X2Y_NodeData& node_data, double v) {
+    static inline double nrn_current_X2Y(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, X2Y_Instance& inst, X2Y_NodeData& node_data, double v) {
+        inst.v_unused[id] = v;
         double current = 0.0;
         inst.il[id] = inst.i[id];
         current += inst.il[id];
@@ -744,12 +736,12 @@ namespace neuron {
 
 
     /** update current */
-    void nrn_cur_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_X2Y(_lmc);
+    static void nrn_cur_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_X2Y(&_lmc);
         auto node_data = make_node_data_X2Y(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             double v = node_data.node_voltages[node_id];
@@ -764,28 +756,29 @@ namespace neuron {
     }
 
 
-    void nrn_state_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_X2Y(_lmc);
+    static void nrn_state_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_X2Y(&_lmc);
         auto node_data = make_node_data_X2Y(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
             
             Eigen::Matrix<double, 2, 1> nmodl_eigen_xm;
             double* nmodl_eigen_x = nmodl_eigen_xm.data();
             nmodl_eigen_x[static_cast<int>(0)] = inst.X[id];
             nmodl_eigen_x[static_cast<int>(1)] = inst.Y[id];
             // call newton solver
-            functor_X2Y_0 newton_functor(_lmc, inst, id, _ppvar, _thread, nt, v);
+            functor_X2Y_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, nt);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
             inst.X[id] = nmodl_eigen_x[static_cast<int>(0)];
             inst.Y[id] = nmodl_eigen_x[static_cast<int>(1)];
+            newton_functor.initialize(); // TODO mimic calling F again.
             newton_functor.finalize();
 
         }
@@ -793,14 +786,23 @@ namespace neuron {
 
 
     static void nrn_jacob_X2Y(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_X2Y(_lmc);
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_X2Y(&_lmc);
         auto node_data = make_node_data_X2Y(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
+    }
+    static void nrn_destructor_X2Y(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_X2Y(prop ? &_lmc : nullptr);
+        auto node_data = make_node_data_X2Y(prop);
+
     }
 
 
@@ -816,13 +818,13 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _X2Y_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_X2Y, nrn_cur_X2Y, nrn_jacob_X2Y, nrn_state_X2Y, nrn_init_X2Y, hoc_nrnpointerindex, 1);
+        register_mech(mechanism_info, nrn_alloc_X2Y, nrn_cur_X2Y, nrn_jacob_X2Y, nrn_state_X2Y, nrn_init_X2Y, -1, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
+        hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
             _nrn_mechanism_field<double>{"il"} /* 0 */,
             _nrn_mechanism_field<double>{"c1"} /* 1 */,

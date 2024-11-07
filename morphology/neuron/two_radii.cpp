@@ -45,6 +45,7 @@ void _nrn_mechanism_register_data_fields(Args&&... args) {
 }  // namespace
 
 Prop* hoc_getdata_range(int type);
+extern void _cvode_abstol(Symbol**, double*, int);
 extern Node* nrn_alloc_node_;
 
 
@@ -72,19 +73,21 @@ namespace neuron {
     static Prop* _extcall_prop;
     /* _prop_id kind of shadows _extcall_prop to allow validity checking. */
     static _nrn_non_owning_id_without_container _prop_id{};
-    static int hoc_nrnpointerindex = -1;
     static _nrn_mechanism_std_vector<Datum> _extcall_thread;
 
 
     /** all global variables */
     struct two_radii_Store {
+        Symbol* _morphology_sym;
     };
     static_assert(std::is_trivially_copy_constructible_v<two_radii_Store>);
     static_assert(std::is_trivially_move_constructible_v<two_radii_Store>);
     static_assert(std::is_trivially_copy_assignable_v<two_radii_Store>);
     static_assert(std::is_trivially_move_assignable_v<two_radii_Store>);
     static_assert(std::is_trivially_destructible_v<two_radii_Store>);
-    two_radii_Store two_radii_global;
+    static two_radii_Store two_radii_global;
+    static std::vector<double> _parameter_defaults = {
+    };
 
 
     /** all mechanism instance variables and global variables */
@@ -108,14 +111,18 @@ namespace neuron {
     };
 
 
-    static two_radii_Instance make_instance_two_radii(_nrn_mechanism_cache_range& _lmc) {
+    static two_radii_Instance make_instance_two_radii(_nrn_mechanism_cache_range* _lmc) {
+        if(_lmc == nullptr) {
+            return two_radii_Instance();
+        }
+
         return two_radii_Instance {
-            _lmc.template fpfield_ptr<0>(),
-            _lmc.template fpfield_ptr<1>(),
-            _lmc.template fpfield_ptr<2>(),
-            _lmc.template fpfield_ptr<3>(),
-            _lmc.template dptr_field_ptr<0>(),
-            _lmc.template dptr_field_ptr<1>()
+            _lmc->template fpfield_ptr<0>(),
+            _lmc->template fpfield_ptr<1>(),
+            _lmc->template fpfield_ptr<2>(),
+            _lmc->template fpfield_ptr<3>(),
+            _lmc->template dptr_field_ptr<0>(),
+            _lmc->template dptr_field_ptr<1>()
         };
     }
 
@@ -129,6 +136,23 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
+    static two_radii_NodeData make_node_data_two_radii(Prop * _prop) {
+        if(!_prop) {
+            return two_radii_NodeData();
+        }
+
+        static std::vector<int> node_index{0};
+        Node* _node = _nrn_mechanism_access_node(_prop);
+        return two_radii_NodeData {
+            node_index.data(),
+            &_nrn_mechanism_access_voltage(_node),
+            &_nrn_mechanism_access_d(_node),
+            &_nrn_mechanism_access_rhs(_node),
+            1
+        };
+    }
+
+    static void nrn_destructor_two_radii(Prop* prop);
 
 
     static void nrn_alloc_two_radii(Prop* _prop) {
@@ -140,12 +164,17 @@ namespace neuron {
         assert(_nrn_mechanism_get_num_vars(_prop) == 4);
         /*initialize range parameters*/
         _nrn_mechanism_access_dparam(_prop) = _ppvar;
-        Symbol * morphology_sym = hoc_lookup("morphology");
-        Prop * morphology_prop = need_memb(morphology_sym);
+        Prop * morphology_prop = need_memb(two_radii_global._morphology_sym);
         _ppvar[0] = _nrn_mechanism_get_param_handle(morphology_prop, 0);
         _ppvar[1] = _nrn_mechanism_get_area_handle(nrn_alloc_node_);
     }
 
+
+    /* Mechanism procedures and functions */
+    inline static double square_diam_two_radii(_nrn_mechanism_cache_range& _lmc, two_radii_Instance& inst, two_radii_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    inline static double square_area_two_radii(_nrn_mechanism_cache_range& _lmc, two_radii_Instance& inst, two_radii_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
+    static void _apply_diffusion_function(ldifusfunc2_t _f, const _nrn_model_sorted_token& _sorted_token, NrnThread& _nt) {
+    }
 
     /* Neuron setdata functions */
     extern void _nrn_setdata_reg(int, void(*)(Prop*));
@@ -158,9 +187,6 @@ namespace neuron {
         _setdata(_prop);
         hoc_retpushx(1.);
     }
-    /* Mechanism procedures and functions */
-    inline double square_diam_two_radii(_nrn_mechanism_cache_range& _lmc, two_radii_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
-    inline double square_area_two_radii(_nrn_mechanism_cache_range& _lmc, two_radii_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt);
 
 
     /** connect global (scalar) variables to hoc -- */
@@ -176,10 +202,10 @@ namespace neuron {
 
 
     /* declaration of user functions */
-    static void _hoc_square_diam(void);
-    static void _hoc_square_area(void);
-    static double _npy_square_diam(Prop*);
-    static double _npy_square_area(Prop*);
+    static void _hoc_square_diam();
+    static double _npy_square_diam(Prop* _prop);
+    static void _hoc_square_area();
+    static double _npy_square_area(Prop* _prop);
 
 
     /* connect user functions to hoc names */
@@ -194,8 +220,7 @@ namespace neuron {
         {"square_area", _npy_square_area},
         {nullptr, nullptr}
     };
-    static void _hoc_square_diam(void) {
-        double _r{};
+    static void _hoc_square_diam() {
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -205,26 +230,28 @@ namespace neuron {
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_two_radii(_lmc);
-        _r = square_diam_two_radii(_lmc, inst, id, _ppvar, _thread, nt);
+        auto inst = make_instance_two_radii(_local_prop ? &_lmc : nullptr);
+        auto node_data = make_node_data_two_radii(_local_prop);
+        double _r = 0.0;
+        _r = square_diam_two_radii(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_square_diam(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
         _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const id{};
+        size_t const id = 0;
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_two_radii(_lmc);
-        _r = square_diam_two_radii(_lmc, inst, id, _ppvar, _thread, nt);
+        auto inst = make_instance_two_radii(_prop ? &_lmc : nullptr);
+        auto node_data = make_node_data_two_radii(_prop);
+        double _r = 0.0;
+        _r = square_diam_two_radii(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
-    static void _hoc_square_area(void) {
-        double _r{};
+    static void _hoc_square_area() {
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
@@ -234,73 +261,76 @@ namespace neuron {
         _ppvar = _local_prop ? _nrn_mechanism_access_dparam(_local_prop) : nullptr;
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_two_radii(_lmc);
-        _r = square_area_two_radii(_lmc, inst, id, _ppvar, _thread, nt);
+        auto inst = make_instance_two_radii(_local_prop ? &_lmc : nullptr);
+        auto node_data = make_node_data_two_radii(_local_prop);
+        double _r = 0.0;
+        _r = square_area_two_radii(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         hoc_retpushx(_r);
     }
     static double _npy_square_area(Prop* _prop) {
-        double _r{};
         Datum* _ppvar;
         Datum* _thread;
         NrnThread* nt;
         _nrn_mechanism_cache_instance _lmc{_prop};
-        size_t const id{};
+        size_t const id = 0;
         _ppvar = _nrn_mechanism_access_dparam(_prop);
         _thread = _extcall_thread.data();
         nt = nrn_threads;
-        auto inst = make_instance_two_radii(_lmc);
-        _r = square_area_two_radii(_lmc, inst, id, _ppvar, _thread, nt);
+        auto inst = make_instance_two_radii(_prop ? &_lmc : nullptr);
+        auto node_data = make_node_data_two_radii(_prop);
+        double _r = 0.0;
+        _r = square_area_two_radii(_lmc, inst, node_data, id, _ppvar, _thread, nt);
         return(_r);
     }
 
 
-    inline double square_diam_two_radii(_nrn_mechanism_cache_range& _lmc, two_radii_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+    inline double square_diam_two_radii(_nrn_mechanism_cache_range& _lmc, two_radii_Instance& inst, two_radii_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         double ret_square_diam = 0.0;
-        auto v = inst.v_unused[id];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         ret_square_diam = (*inst.diam[id]) * (*inst.diam[id]);
         return ret_square_diam;
     }
 
 
-    inline double square_area_two_radii(_nrn_mechanism_cache_range& _lmc, two_radii_Instance& inst, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
+    inline double square_area_two_radii(_nrn_mechanism_cache_range& _lmc, two_radii_Instance& inst, two_radii_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, NrnThread* nt) {
         double ret_square_area = 0.0;
-        auto v = inst.v_unused[id];
+        double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
         ret_square_area = (*inst.area[id]) * (*inst.area[id]);
         return ret_square_area;
     }
 
 
-    void nrn_init_two_radii(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_two_radii(_lmc);
+    static void nrn_init_two_radii(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_two_radii(&_lmc);
         auto node_data = make_node_data_two_radii(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
-            auto v = node_data.node_voltages[node_id];
-            inst.v_unused[id] = v;
-            inst.inv[id] = 1.0 / (square_diam_two_radii(_lmc, inst, id, _ppvar, _thread, nt) + (*inst.area[id]));
+            inst.v_unused[id] = node_data.node_voltages[node_id];
+            inst.inv[id] = 1.0 / (square_diam_two_radii(_lmc, inst, node_data, id, _ppvar, _thread, nt) + (*inst.area[id]));
         }
     }
 
 
-    inline double nrn_current_two_radii(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, two_radii_Instance& inst, two_radii_NodeData& node_data, double v) {
+    static inline double nrn_current_two_radii(_nrn_mechanism_cache_range& _lmc, NrnThread* nt, Datum* _ppvar, Datum* _thread, size_t id, two_radii_Instance& inst, two_radii_NodeData& node_data, double v) {
+        inst.v_unused[id] = v;
         double current = 0.0;
-        inst.il[id] = (square_diam_two_radii(_lmc, inst, id, _ppvar, _thread, nt) + (*inst.area[id])) * 0.001 * (v - 20.0);
+        inst.il[id] = (square_diam_two_radii(_lmc, inst, node_data, id, _ppvar, _thread, nt) + (*inst.area[id])) * 0.001 * (inst.v_unused[id] - 20.0);
         current += inst.il[id];
         return current;
     }
 
 
     /** update current */
-    void nrn_cur_two_radii(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_two_radii(_lmc);
+    static void nrn_cur_two_radii(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_two_radii(&_lmc);
         auto node_data = make_node_data_two_radii(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             double v = node_data.node_voltages[node_id];
@@ -315,29 +345,38 @@ namespace neuron {
     }
 
 
-    void nrn_state_two_radii(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_two_radii(_lmc);
+    static void nrn_state_two_radii(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_two_radii(&_lmc);
         auto node_data = make_node_data_two_radii(*nt, *_ml_arg);
-        auto nodecount = _ml_arg->nodecount;
         auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             auto* _ppvar = _ml_arg->pdata[id];
-            auto v = node_data.node_voltages[node_id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
         }
     }
 
 
     static void nrn_jacob_two_radii(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
-        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _type};
-        auto inst = make_instance_two_radii(_lmc);
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_two_radii(&_lmc);
         auto node_data = make_node_data_two_radii(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             int node_id = node_data.nodeindices[id];
             node_data.node_diagonal[node_id] += inst.g_unused[id];
         }
+    }
+    static void nrn_destructor_two_radii(Prop* prop) {
+        Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
+        _nrn_mechanism_cache_instance _lmc{prop};
+        const size_t id = 0;
+        auto inst = make_instance_two_radii(prop ? &_lmc : nullptr);
+        auto node_data = make_node_data_two_radii(prop);
+
     }
 
 
@@ -345,13 +384,13 @@ namespace neuron {
     }
 
 
-    /** register channel with the simulator */
     extern "C" void _two_radii_reg() {
         _initlists();
 
-        register_mech(mechanism_info, nrn_alloc_two_radii, nrn_cur_two_radii, nrn_jacob_two_radii, nrn_state_two_radii, nrn_init_two_radii, hoc_nrnpointerindex, 1);
+        register_mech(mechanism_info, nrn_alloc_two_radii, nrn_cur_two_radii, nrn_jacob_two_radii, nrn_state_two_radii, nrn_init_two_radii, -1, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
+        hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
             _nrn_mechanism_field<double>{"il"} /* 0 */,
             _nrn_mechanism_field<double>{"inv"} /* 1 */,
@@ -366,5 +405,6 @@ namespace neuron {
         hoc_register_dparam_semantics(mech_type, 1, "area");
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
+        two_radii_global._morphology_sym = hoc_lookup("morphology");
     }
 }
