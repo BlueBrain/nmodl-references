@@ -403,6 +403,7 @@ EIGEN_DEVICE_FUNC int newton_solver(Eigen::Matrix<double, 4, 1>& X,
 
 #include "mech_api.h"
 #include "neuron/cache/mechanism_range.hpp"
+#include "nmodlmutex.h"
 #include "nrniv_mf.h"
 #include "section_fwd.hpp"
 extern void _nrn_thread_reg(int, int, void(*)(Datum*));
