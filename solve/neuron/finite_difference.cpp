@@ -412,7 +412,7 @@ extern void _nrn_thread_reg(int, int, void(*)(Datum*));
 #define NRN_VECTORIZED 1
 
 static constexpr auto number_of_datum_variables = 0;
-static constexpr auto number_of_floating_point_variables = 4;
+static constexpr auto number_of_floating_point_variables = 6;
 
 namespace {
 template <typename T>
@@ -447,13 +447,14 @@ namespace neuron {
         0,
         0,
         "x_finite_difference",
+        "z_finite_difference",
         0,
         0
     };
 
 
     /* NEURON global variables */
-    static neuron::container::field_index _slist1[1], _dlist1[1];
+    static neuron::container::field_index _slist1[2], _dlist1[2];
     static int mech_type;
     static Prop* _extcall_prop;
     /* _prop_id kind of shadows _extcall_prop to allow validity checking. */
@@ -466,6 +467,7 @@ namespace neuron {
         double thread_data_in_use{0};
         double thread_data[1] /* TODO init const-array */;
         double x0{0};
+        double z0{0};
     };
     static_assert(std::is_trivially_copy_constructible_v<finite_difference_Store>);
     static_assert(std::is_trivially_move_constructible_v<finite_difference_Store>);
@@ -482,6 +484,9 @@ namespace neuron {
     auto x0_finite_difference() -> std::decay<decltype(finite_difference_global.x0)>::type  {
         return finite_difference_global.x0;
     }
+    auto z0_finite_difference() -> std::decay<decltype(finite_difference_global.z0)>::type  {
+        return finite_difference_global.z0;
+    }
 
     static std::vector<double> _parameter_defaults = {
     };
@@ -490,7 +495,9 @@ namespace neuron {
     /** all mechanism instance variables and global variables */
     struct finite_difference_Instance  {
         double* x{};
+        double* z{};
         double* Dx{};
+        double* Dz{};
         double* v_unused{};
         double* g_unused{};
         finite_difference_Store* global{&finite_difference_global};
@@ -531,7 +538,9 @@ namespace neuron {
             _lmc->template fpfield_ptr<0>(),
             _lmc->template fpfield_ptr<1>(),
             _lmc->template fpfield_ptr<2>(),
-            _lmc->template fpfield_ptr<3>()
+            _lmc->template fpfield_ptr<3>(),
+            _lmc->template fpfield_ptr<4>(),
+            _lmc->template fpfield_ptr<5>()
         };
     }
 
@@ -568,7 +577,7 @@ namespace neuron {
         Datum *_ppvar = nullptr;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const _iml = 0;
-        assert(_nrn_mechanism_get_num_vars(_prop) == 4);
+        assert(_nrn_mechanism_get_num_vars(_prop) == 6);
         /*initialize range parameters*/
     }
 
@@ -600,23 +609,29 @@ namespace neuron {
         Datum* _thread;
         finite_difference_ThreadVariables& _thread_vars;
         NrnThread* nt;
-        double old_x;
+        double old_x, old_z;
 
         void initialize() {
             old_x = inst.x[id];
+            old_z = inst.z[id];
         }
 
         functor_finite_difference_0(_nrn_mechanism_cache_range& _lmc, finite_difference_Instance& inst, finite_difference_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, finite_difference_ThreadVariables& _thread_vars, NrnThread* nt)
             : _lmc(_lmc), inst(inst), node_data(node_data), id(id), _ppvar(_ppvar), _thread(_thread), _thread_vars(_thread_vars), nt(nt)
         {}
-        void operator()(const Eigen::Matrix<double, 1, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_dxm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 1, 1>& nmodl_eigen_jm) const {
+        void operator()(const Eigen::Matrix<double, 2, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 2, 1>& nmodl_eigen_dxm, Eigen::Matrix<double, 2, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 2, 2>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
             double* nmodl_eigen_dx = nmodl_eigen_dxm.data();
             double* nmodl_eigen_j = nmodl_eigen_jm.data();
             double* nmodl_eigen_f = nmodl_eigen_fm.data();
             nmodl_eigen_dx[0] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[0]));
-            nmodl_eigen_f[static_cast<int>(0)] = ( -nmodl_eigen_x[static_cast<int>(0)] - nt->_dt * f_finite_difference(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, nmodl_eigen_x[static_cast<int>(0)]) + old_x) / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(0)] = ( -nmodl_eigen_dx[static_cast<int>(0)] + nt->_dt * (f_finite_difference(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, nmodl_eigen_x[static_cast<int>(0)] - 1.0 / 2.0 * nmodl_eigen_dx[static_cast<int>(0)]) - f_finite_difference(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, nmodl_eigen_x[static_cast<int>(0)] + (1.0 / 2.0) * nmodl_eigen_dx[static_cast<int>(0)]))) / (nmodl_eigen_dx[static_cast<int>(0)] * nt->_dt);
+            nmodl_eigen_dx[1] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[1]));
+            nmodl_eigen_f[static_cast<int>(0)] = ( -nmodl_eigen_x[static_cast<int>(0)] + nt->_dt * f_finite_difference(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, nmodl_eigen_x[static_cast<int>(0)]) + old_x) / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(0)] = ( -nmodl_eigen_dx[static_cast<int>(0)] + nt->_dt * ( -f_finite_difference(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, nmodl_eigen_x[static_cast<int>(0)] - 1.0 / 2.0 * nmodl_eigen_dx[static_cast<int>(0)]) + f_finite_difference(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, nmodl_eigen_x[static_cast<int>(0)] + (1.0 / 2.0) * nmodl_eigen_dx[static_cast<int>(0)]))) / (nmodl_eigen_dx[static_cast<int>(0)] * nt->_dt);
+            nmodl_eigen_j[static_cast<int>(2)] = 0.0;
+            nmodl_eigen_f[static_cast<int>(1)] = ( -nmodl_eigen_x[static_cast<int>(1)] + 2.0 * nt->_dt * f_finite_difference(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, nmodl_eigen_x[static_cast<int>(1)]) + old_z) / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(1)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(3)] = ( -nmodl_eigen_dx[static_cast<int>(1)] + 2.0 * nt->_dt * ( -f_finite_difference(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, nmodl_eigen_x[static_cast<int>(1)] - 1.0 / 2.0 * nmodl_eigen_dx[static_cast<int>(1)]) + f_finite_difference(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt, nmodl_eigen_x[static_cast<int>(1)] + (1.0 / 2.0) * nmodl_eigen_dx[static_cast<int>(1)]))) / (nmodl_eigen_dx[static_cast<int>(1)] * nt->_dt);
         }
 
         void finalize() {
@@ -708,7 +723,7 @@ namespace neuron {
     inline double f_finite_difference(_nrn_mechanism_cache_range& _lmc, finite_difference_Instance& inst, finite_difference_NodeData& node_data, size_t id, Datum* _ppvar, Datum* _thread, finite_difference_ThreadVariables& _thread_vars, NrnThread* nt, double _lx) {
         double ret_f = 0.0;
         double v = node_data.node_voltages ? node_data.node_voltages[node_data.nodeindices[id]] : 0.0;
-        ret_f = _thread_vars.a(id) * _lx;
+        ret_f =  -_thread_vars.a(id) * _lx;
         return ret_f;
     }
 
@@ -725,7 +740,9 @@ namespace neuron {
             int node_id = node_data.nodeindices[id];
             inst.v_unused[id] = node_data.node_voltages[node_id];
             inst.x[id] = inst.global->x0;
+            inst.z[id] = inst.global->z0;
             inst.x[id] = 42.0;
+            inst.z[id] = 21.0;
             _thread_vars.a(id) = 0.1;
         }
     }
@@ -743,15 +760,17 @@ namespace neuron {
             auto* _ppvar = _ml_arg->pdata[id];
             inst.v_unused[id] = node_data.node_voltages[node_id];
             
-            Eigen::Matrix<double, 1, 1> nmodl_eigen_xm;
+            Eigen::Matrix<double, 2, 1> nmodl_eigen_xm;
             double* nmodl_eigen_x = nmodl_eigen_xm.data();
             nmodl_eigen_x[static_cast<int>(0)] = inst.x[id];
+            nmodl_eigen_x[static_cast<int>(1)] = inst.z[id];
             // call newton solver
             functor_finite_difference_0 newton_functor(_lmc, inst, node_data, id, _ppvar, _thread, _thread_vars, nt);
             newton_functor.initialize();
             int newton_iterations = nmodl::newton::newton_solver(nmodl_eigen_xm, newton_functor);
             if (newton_iterations < 0) assert(false && "Newton solver did not converge!");
             inst.x[id] = nmodl_eigen_x[static_cast<int>(0)];
+            inst.z[id] = nmodl_eigen_x[static_cast<int>(1)];
             newton_functor.initialize(); // TODO mimic calling F again.
             newton_functor.finalize();
 
@@ -786,7 +805,11 @@ namespace neuron {
         /* x */
         _slist1[0] = {0, 0};
         /* Dx */
-        _dlist1[0] = {1, 0};
+        _dlist1[0] = {2, 0};
+        /* z */
+        _slist1[1] = {1, 0};
+        /* Dz */
+        _dlist1[1] = {3, 0};
     }
 
 
@@ -802,12 +825,14 @@ namespace neuron {
         hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
             _nrn_mechanism_field<double>{"x"} /* 0 */,
-            _nrn_mechanism_field<double>{"Dx"} /* 1 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 2 */,
-            _nrn_mechanism_field<double>{"g_unused"} /* 3 */
+            _nrn_mechanism_field<double>{"z"} /* 1 */,
+            _nrn_mechanism_field<double>{"Dx"} /* 2 */,
+            _nrn_mechanism_field<double>{"Dz"} /* 3 */,
+            _nrn_mechanism_field<double>{"v_unused"} /* 4 */,
+            _nrn_mechanism_field<double>{"g_unused"} /* 5 */
         );
 
-        hoc_register_prop_size(mech_type, 4, 0);
+        hoc_register_prop_size(mech_type, 6, 0);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
         _nrn_thread_reg(mech_type, 1, thread_mem_init);
