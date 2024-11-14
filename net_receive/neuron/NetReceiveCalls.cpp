@@ -19,6 +19,7 @@ NMODL Compiler  : VERSION
 
 #include "mech_api.h"
 #include "neuron/cache/mechanism_range.hpp"
+#include "nmodlmutex.h"
 #include "nrniv_mf.h"
 #include "section_fwd.hpp"
 

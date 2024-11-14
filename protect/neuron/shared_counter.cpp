@@ -1,6 +1,6 @@
 /*********************************************************
-Model Name      : read_cao
-Filename        : read_cao.mod
+Model Name      : shared_counter
+Filename        : shared_counter.mod
 NMODL Version   : 7.7.0
 Vectorized      : true
 Threadsafe      : true
@@ -27,8 +27,8 @@ NMODL Compiler  : VERSION
 /* VECTORIZED */
 #define NRN_VECTORIZED 1
 
-static constexpr auto number_of_datum_variables = 2;
-static constexpr auto number_of_floating_point_variables = 3;
+static constexpr auto number_of_datum_variables = 0;
+static constexpr auto number_of_floating_point_variables = 2;
 
 namespace {
 template <typename T>
@@ -59,9 +59,8 @@ namespace neuron {
     /** channel information */
     static const char *mechanism_info[] = {
         "7.7.0",
-        "read_cao",
+        "shared_counter",
         0,
-        "x_read_cao",
         0,
         0,
         0
@@ -69,7 +68,6 @@ namespace neuron {
 
 
     /* NEURON global variables */
-    static Symbol* _ca_sym;
     static int mech_type;
     static Prop* _extcall_prop;
     /* _prop_id kind of shadows _extcall_prop to allow validity checking. */
@@ -78,30 +76,32 @@ namespace neuron {
 
 
     /** all global variables */
-    struct read_cao_Store {
+    struct shared_counter_Store {
+        double g_cnt{0};
     };
-    static_assert(std::is_trivially_copy_constructible_v<read_cao_Store>);
-    static_assert(std::is_trivially_move_constructible_v<read_cao_Store>);
-    static_assert(std::is_trivially_copy_assignable_v<read_cao_Store>);
-    static_assert(std::is_trivially_move_assignable_v<read_cao_Store>);
-    static_assert(std::is_trivially_destructible_v<read_cao_Store>);
-    static read_cao_Store read_cao_global;
+    static_assert(std::is_trivially_copy_constructible_v<shared_counter_Store>);
+    static_assert(std::is_trivially_move_constructible_v<shared_counter_Store>);
+    static_assert(std::is_trivially_copy_assignable_v<shared_counter_Store>);
+    static_assert(std::is_trivially_move_assignable_v<shared_counter_Store>);
+    static_assert(std::is_trivially_destructible_v<shared_counter_Store>);
+    static shared_counter_Store shared_counter_global;
+    auto g_cnt_shared_counter() -> std::decay<decltype(shared_counter_global.g_cnt)>::type  {
+        return shared_counter_global.g_cnt;
+    }
+
     static std::vector<double> _parameter_defaults = {
     };
 
 
     /** all mechanism instance variables and global variables */
-    struct read_cao_Instance  {
-        double* x{};
-        double* cao{};
+    struct shared_counter_Instance  {
         double* v_unused{};
-        const double* const* ion_cao{};
-        const double* const* ion_cai{};
-        read_cao_Store* global{&read_cao_global};
+        double* g_unused{};
+        shared_counter_Store* global{&shared_counter_global};
     };
 
 
-    struct read_cao_NodeData  {
+    struct shared_counter_NodeData  {
         int const * nodeindices;
         double const * node_voltages;
         double * node_diagonal;
@@ -110,23 +110,20 @@ namespace neuron {
     };
 
 
-    static read_cao_Instance make_instance_read_cao(_nrn_mechanism_cache_range* _lmc) {
+    static shared_counter_Instance make_instance_shared_counter(_nrn_mechanism_cache_range* _lmc) {
         if(_lmc == nullptr) {
-            return read_cao_Instance();
+            return shared_counter_Instance();
         }
 
-        return read_cao_Instance {
+        return shared_counter_Instance {
             _lmc->template fpfield_ptr<0>(),
-            _lmc->template fpfield_ptr<1>(),
-            _lmc->template fpfield_ptr<2>(),
-            _lmc->template dptr_field_ptr<0>(),
-            _lmc->template dptr_field_ptr<1>()
+            _lmc->template fpfield_ptr<1>()
         };
     }
 
 
-    static read_cao_NodeData make_node_data_read_cao(NrnThread& nt, Memb_list& _ml_arg) {
-        return read_cao_NodeData {
+    static shared_counter_NodeData make_node_data_shared_counter(NrnThread& nt, Memb_list& _ml_arg) {
+        return shared_counter_NodeData {
             _ml_arg.nodeindices,
             nt.node_voltage_storage(),
             nt.node_d_storage(),
@@ -134,14 +131,14 @@ namespace neuron {
             _ml_arg.nodecount
         };
     }
-    static read_cao_NodeData make_node_data_read_cao(Prop * _prop) {
+    static shared_counter_NodeData make_node_data_shared_counter(Prop * _prop) {
         if(!_prop) {
-            return read_cao_NodeData();
+            return shared_counter_NodeData();
         }
 
         static std::vector<int> node_index{0};
         Node* _node = _nrn_mechanism_access_node(_prop);
-        return read_cao_NodeData {
+        return shared_counter_NodeData {
             node_index.data(),
             &_nrn_mechanism_access_voltage(_node),
             &_nrn_mechanism_access_d(_node),
@@ -150,23 +147,15 @@ namespace neuron {
         };
     }
 
-    static void nrn_destructor_read_cao(Prop* prop);
+    static void nrn_destructor_shared_counter(Prop* prop);
 
 
-    static void nrn_alloc_read_cao(Prop* _prop) {
+    static void nrn_alloc_shared_counter(Prop* _prop) {
         Datum *_ppvar = nullptr;
-        _ppvar = nrn_prop_datum_alloc(mech_type, 2, _prop);
-        _nrn_mechanism_access_dparam(_prop) = _ppvar;
         _nrn_mechanism_cache_instance _lmc{_prop};
         size_t const _iml = 0;
-        assert(_nrn_mechanism_get_num_vars(_prop) == 3);
+        assert(_nrn_mechanism_get_num_vars(_prop) == 2);
         /*initialize range parameters*/
-        _nrn_mechanism_access_dparam(_prop) = _ppvar;
-        Symbol * ca_sym = hoc_lookup("ca_ion");
-        Prop * ca_prop = need_memb(ca_sym);
-        nrn_promote(ca_prop, 1, 0);
-        _ppvar[0] = _nrn_mechanism_get_param_handle(ca_prop, 2);
-        _ppvar[1] = _nrn_mechanism_get_param_handle(ca_prop, 1);
     }
 
 
@@ -189,6 +178,7 @@ namespace neuron {
 
     /** connect global (scalar) variables to hoc -- */
     static DoubScal hoc_scalar_double[] = {
+        {"g_cnt_shared_counter", &shared_counter_global.g_cnt},
         {nullptr, nullptr}
     };
 
@@ -204,7 +194,7 @@ namespace neuron {
 
     /* connect user functions to hoc names */
     static VoidFunc hoc_intfunc[] = {
-        {"setdata_read_cao", _hoc_setdata},
+        {"setdata_shared_counter", _hoc_setdata},
         {nullptr, nullptr}
     };
     static NPyDirectMechFunc npy_direct_func_proc[] = {
@@ -212,37 +202,57 @@ namespace neuron {
     };
 
 
-    static void nrn_init_read_cao(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_init_shared_counter(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_read_cao(&_lmc);
-        auto node_data = make_node_data_read_cao(*nt, *_ml_arg);
+        auto inst = make_instance_shared_counter(&_lmc);
+        auto node_data = make_node_data_shared_counter(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
             auto* _ppvar = _ml_arg->pdata[id];
             int node_id = node_data.nodeindices[id];
             inst.v_unused[id] = node_data.node_voltages[node_id];
-            inst.cao[id] = (*inst.ion_cao[id]);
-            inst.x[id] = inst.cao[id];
+            _NMODLMUTEXLOCK
+            inst.global->g_cnt = 0.0;            _NMODLMUTEXUNLOCK
+
         }
     }
 
 
-    static void nrn_jacob_read_cao(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+    static void nrn_state_shared_counter(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
         _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
-        auto inst = make_instance_read_cao(&_lmc);
-        auto node_data = make_node_data_read_cao(*nt, *_ml_arg);
+        auto inst = make_instance_shared_counter(&_lmc);
+        auto node_data = make_node_data_shared_counter(*nt, *_ml_arg);
         auto* _thread = _ml_arg->_thread;
         auto nodecount = _ml_arg->nodecount;
         for (int id = 0; id < nodecount; id++) {
+            int node_id = node_data.nodeindices[id];
+            auto* _ppvar = _ml_arg->pdata[id];
+            inst.v_unused[id] = node_data.node_voltages[node_id];
+            _NMODLMUTEXLOCK
+            inst.global->g_cnt = inst.global->g_cnt + 1.0;            _NMODLMUTEXUNLOCK
+
         }
     }
-    static void nrn_destructor_read_cao(Prop* prop) {
+
+
+    static void nrn_jacob_shared_counter(const _nrn_model_sorted_token& _sorted_token, NrnThread* nt, Memb_list* _ml_arg, int _type) {
+        _nrn_mechanism_cache_range _lmc{_sorted_token, *nt, *_ml_arg, _ml_arg->type()};
+        auto inst = make_instance_shared_counter(&_lmc);
+        auto node_data = make_node_data_shared_counter(*nt, *_ml_arg);
+        auto* _thread = _ml_arg->_thread;
+        auto nodecount = _ml_arg->nodecount;
+        for (int id = 0; id < nodecount; id++) {
+            int node_id = node_data.nodeindices[id];
+            node_data.node_diagonal[node_id] += inst.g_unused[id];
+        }
+    }
+    static void nrn_destructor_shared_counter(Prop* prop) {
         Datum* _ppvar = _nrn_mechanism_access_dparam(prop);
         _nrn_mechanism_cache_instance _lmc{prop};
         const size_t id = 0;
-        auto inst = make_instance_read_cao(prop ? &_lmc : nullptr);
-        auto node_data = make_node_data_read_cao(prop);
+        auto inst = make_instance_shared_counter(prop ? &_lmc : nullptr);
+        auto node_data = make_node_data_shared_counter(prop);
 
     }
 
@@ -251,28 +261,19 @@ namespace neuron {
     }
 
 
-    extern "C" void _read_cao_reg() {
+    extern "C" void _shared_counter_reg() {
         _initlists();
 
-        ion_reg("ca", -10000);
-
-        _ca_sym = hoc_lookup("ca_ion");
-
-        register_mech(mechanism_info, nrn_alloc_read_cao, nullptr, nullptr, nullptr, nrn_init_read_cao, -1, 1);
+        register_mech(mechanism_info, nrn_alloc_shared_counter, nullptr, nrn_jacob_shared_counter, nrn_state_shared_counter, nrn_init_shared_counter, -1, 1);
 
         mech_type = nrn_get_mechtype(mechanism_info[1]);
         hoc_register_parm_default(mech_type, &_parameter_defaults);
         _nrn_mechanism_register_data_fields(mech_type,
-            _nrn_mechanism_field<double>{"x"} /* 0 */,
-            _nrn_mechanism_field<double>{"cao"} /* 1 */,
-            _nrn_mechanism_field<double>{"v_unused"} /* 2 */,
-            _nrn_mechanism_field<double*>{"ion_cao", "ca_ion"} /* 0 */,
-            _nrn_mechanism_field<double*>{"ion_cai", "ca_ion"} /* 1 */
+            _nrn_mechanism_field<double>{"v_unused"} /* 0 */,
+            _nrn_mechanism_field<double>{"g_unused"} /* 1 */
         );
 
-        hoc_register_prop_size(mech_type, 3, 2);
-        hoc_register_dparam_semantics(mech_type, 0, "ca_ion");
-        hoc_register_dparam_semantics(mech_type, 1, "ca_ion");
+        hoc_register_prop_size(mech_type, 2, 0);
         hoc_register_var(hoc_scalar_double, hoc_vector_double, hoc_intfunc);
         hoc_register_npy_direct(mech_type, npy_direct_func_proc);
     }
