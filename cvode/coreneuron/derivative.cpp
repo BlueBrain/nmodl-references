@@ -426,6 +426,7 @@ namespace coreneuron {
         "var1_scalar",
         "var2_scalar",
         "var3_scalar",
+        "var4_scalar",
         0,
         0
     };
@@ -436,6 +437,7 @@ namespace coreneuron {
         double var10{};
         double var20{};
         double var30{};
+        double var40{};
         int reset{};
         int mech_type{};
         double freq{10};
@@ -447,8 +449,8 @@ namespace coreneuron {
         double v5{0.3};
         double r{3};
         double k{0.2};
-        int slist1[3]{0, 1, 2};
-        int dlist1[3]{3, 4, 5};
+        int slist1[4]{0, 1, 2, 3};
+        int dlist1[4]{4, 5, 6, 7};
     };
     static_assert(std::is_trivially_copy_constructible_v<scalar_Store>);
     static_assert(std::is_trivially_move_constructible_v<scalar_Store>);
@@ -463,9 +465,11 @@ namespace coreneuron {
         double* var1{};
         double* var2{};
         double* var3{};
+        double* var4{};
         double* Dvar1{};
         double* Dvar2{};
         double* Dvar3{};
+        double* Dvar4{};
         double* v_unused{};
         double* g_unused{};
         scalar_Store* global{&scalar_global};
@@ -504,7 +508,7 @@ namespace coreneuron {
 
 
     static inline int float_variables_size() {
-        return 8;
+        return 10;
     }
 
 
@@ -582,11 +586,13 @@ namespace coreneuron {
         inst->var1 = ml->data+0*pnodecount;
         inst->var2 = ml->data+1*pnodecount;
         inst->var3 = ml->data+2*pnodecount;
-        inst->Dvar1 = ml->data+3*pnodecount;
-        inst->Dvar2 = ml->data+4*pnodecount;
-        inst->Dvar3 = ml->data+5*pnodecount;
-        inst->v_unused = ml->data+6*pnodecount;
-        inst->g_unused = ml->data+7*pnodecount;
+        inst->var4 = ml->data+3*pnodecount;
+        inst->Dvar1 = ml->data+4*pnodecount;
+        inst->Dvar2 = ml->data+5*pnodecount;
+        inst->Dvar3 = ml->data+6*pnodecount;
+        inst->Dvar4 = ml->data+7*pnodecount;
+        inst->v_unused = ml->data+8*pnodecount;
+        inst->g_unused = ml->data+9*pnodecount;
     }
 
 
@@ -635,18 +641,19 @@ namespace coreneuron {
         const Datum* indexes;
         double* data;
         ThreadDatum* thread;
-        double old_var1, old_var2, old_var3;
+        double old_var1, old_var2, old_var3, old_var4;
 
         void initialize() {
             old_var1 = inst->var1[id];
             old_var2 = inst->var2[id];
             old_var3 = inst->var3[id];
+            old_var4 = inst->var4[id];
         }
 
         functor_scalar_0(NrnThread* nt, scalar_Instance* inst, int id, int pnodecount, double v, const Datum* indexes, double* data, ThreadDatum* thread)
             : nt(nt), inst(inst), id(id), pnodecount(pnodecount), v(v), indexes(indexes), data(data), thread(thread)
         {}
-        void operator()(const Eigen::Matrix<double, 3, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 3, 1>& nmodl_eigen_dxm, Eigen::Matrix<double, 3, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 3, 3>& nmodl_eigen_jm) const {
+        void operator()(const Eigen::Matrix<double, 4, 1>& nmodl_eigen_xm, Eigen::Matrix<double, 4, 1>& nmodl_eigen_dxm, Eigen::Matrix<double, 4, 1>& nmodl_eigen_fm, Eigen::Matrix<double, 4, 4>& nmodl_eigen_jm) const {
             const double* nmodl_eigen_x = nmodl_eigen_xm.data();
             double* nmodl_eigen_dx = nmodl_eigen_dxm.data();
             double* nmodl_eigen_j = nmodl_eigen_jm.data();
@@ -654,18 +661,27 @@ namespace coreneuron {
             nmodl_eigen_dx[0] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[0]));
             nmodl_eigen_dx[1] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[1]));
             nmodl_eigen_dx[2] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[2]));
+            nmodl_eigen_dx[3] = std::max(1e-6, 0.02*std::fabs(nmodl_eigen_x[3]));
             nmodl_eigen_f[static_cast<int>(0)] = ( -nmodl_eigen_x[static_cast<int>(0)] - nt->_dt * sin(inst->global->freq * nt->_t) + old_var1) / nt->_dt;
             nmodl_eigen_j[static_cast<int>(0)] =  -1.0 / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(3)] = 0.0;
-            nmodl_eigen_j[static_cast<int>(6)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(4)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(8)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(12)] = 0.0;
             nmodl_eigen_f[static_cast<int>(1)] = ( -nmodl_eigen_x[static_cast<int>(1)] * inst->global->a * nt->_dt - nmodl_eigen_x[static_cast<int>(1)] + old_var2) / nt->_dt;
             nmodl_eigen_j[static_cast<int>(1)] = 0.0;
-            nmodl_eigen_j[static_cast<int>(4)] =  -inst->global->a - 1.0 / nt->_dt;
-            nmodl_eigen_j[static_cast<int>(7)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(5)] =  -inst->global->a - 1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(9)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(13)] = 0.0;
             nmodl_eigen_f[static_cast<int>(2)] =  -pow(nmodl_eigen_x[static_cast<int>(2)], 2.0) * inst->global->r / inst->global->k + nmodl_eigen_x[static_cast<int>(2)] * inst->global->r - nmodl_eigen_x[static_cast<int>(2)] / nt->_dt + old_var3 / nt->_dt;
             nmodl_eigen_j[static_cast<int>(2)] = 0.0;
-            nmodl_eigen_j[static_cast<int>(5)] = 0.0;
-            nmodl_eigen_j[static_cast<int>(8)] =  -2.0 * nmodl_eigen_x[static_cast<int>(2)] * inst->global->r / inst->global->k + inst->global->r - 1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(6)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(10)] =  -2.0 * nmodl_eigen_x[static_cast<int>(2)] * inst->global->r / inst->global->k + inst->global->r - 1.0 / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(14)] = 0.0;
+            nmodl_eigen_f[static_cast<int>(3)] = ( -nmodl_eigen_x[static_cast<int>(3)] + nt->_dt * (nmodl_eigen_x[static_cast<int>(3)] + 0.10000000000000001 * inst->global->a + 1.0 * inst->global->r + 1.0) + old_var4) / nt->_dt;
+            nmodl_eigen_j[static_cast<int>(3)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(7)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(11)] = 0.0;
+            nmodl_eigen_j[static_cast<int>(15)] = (nt->_dt - 1.0) / nt->_dt;
         }
 
         void finalize() {
@@ -698,6 +714,7 @@ namespace coreneuron {
                 inst->var1[id] = inst->global->var10;
                 inst->var2[id] = inst->global->var20;
                 inst->var3[id] = inst->global->var30;
+                inst->var4[id] = inst->global->var40;
                 inst->var1[id] = inst->global->v1;
                 inst->var2[id] = inst->global->v2;
                 inst->var3[id] = inst->global->v3;
@@ -726,11 +743,12 @@ namespace coreneuron {
             inst->v_unused[id] = v;
             #endif
             
-            Eigen::Matrix<double, 3, 1> nmodl_eigen_xm;
+            Eigen::Matrix<double, 4, 1> nmodl_eigen_xm;
             double* nmodl_eigen_x = nmodl_eigen_xm.data();
             nmodl_eigen_x[static_cast<int>(0)] = inst->var1[id];
             nmodl_eigen_x[static_cast<int>(1)] = inst->var2[id];
             nmodl_eigen_x[static_cast<int>(2)] = inst->var3[id];
+            nmodl_eigen_x[static_cast<int>(3)] = inst->var4[id];
             // call newton solver
             functor_scalar_0 newton_functor(nt, inst, id, pnodecount, v, indexes, data, thread);
             newton_functor.initialize();
@@ -739,6 +757,7 @@ namespace coreneuron {
             inst->var1[id] = nmodl_eigen_x[static_cast<int>(0)];
             inst->var2[id] = nmodl_eigen_x[static_cast<int>(1)];
             inst->var3[id] = nmodl_eigen_x[static_cast<int>(2)];
+            inst->var4[id] = nmodl_eigen_x[static_cast<int>(3)];
             newton_functor.initialize(); // TODO mimic calling F again.
             newton_functor.finalize();
 
